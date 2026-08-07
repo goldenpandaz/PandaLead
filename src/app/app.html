@@ -1,6 +1,11 @@
 @if (auth.currentUser()) {
   <div class="app-shell">
-    <aside class="app-sidenav" [class.collapsed]="collapsed()">
+    <button mat-icon-button type="button" class="mobile-menu-btn" (click)="toggleMobileNav()" matTooltip="Menú">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <span class="mobile-backdrop" [class.visible]="mobileNavOpen()" (click)="closeMobileNav()"></span>
+
+    <aside class="app-sidenav" [class.collapsed]="collapsed()" [class.mobile-open]="mobileNavOpen()">
       <span class="sidenav-blob sidenav-blob-1"></span>
       <span class="sidenav-blob sidenav-blob-2"></span>
 
@@ -24,13 +29,13 @@
       </div>
 
       <mat-nav-list class="sidenav-list">
-        <a mat-list-item routerLink="/prospects" routerLinkActive="active-link" [matTooltip]="collapsed() ? 'Clientes' : ''">
+        <a mat-list-item routerLink="/prospects" routerLinkActive="active-link" (click)="closeMobileNav()" [matTooltip]="collapsed() ? 'Clientes' : ''">
           <mat-icon matListItemIcon>groups</mat-icon>
           @if (!collapsed()) {
             <span matListItemTitle>Clientes</span>
           }
         </a>
-        <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link" [matTooltip]="collapsed() ? 'Resumen' : ''">
+        <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link" (click)="closeMobileNav()" [matTooltip]="collapsed() ? 'Resumen' : ''">
           <mat-icon matListItemIcon>dashboard</mat-icon>
           @if (!collapsed()) {
             <span matListItemTitle>Resumen</span>
@@ -41,7 +46,7 @@
       <div class="nav-divider"></div>
 
       <mat-nav-list class="sidenav-list">
-        <a mat-list-item routerLink="/settings" routerLinkActive="active-link" [matTooltip]="collapsed() ? 'Configuración' : ''">
+        <a mat-list-item routerLink="/settings" routerLinkActive="active-link" (click)="closeMobileNav()" [matTooltip]="collapsed() ? 'Configuración' : ''">
           <mat-icon matListItemIcon>settings</mat-icon>
           @if (!collapsed()) {
             <span matListItemTitle>Configuración</span>

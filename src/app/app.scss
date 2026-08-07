@@ -256,3 +256,79 @@
   flex-direction: column;
   background: transparent;
 }
+
+.mobile-menu-btn,
+.mobile-backdrop {
+  display: none;
+}
+
+// Debajo de este ancho el sidebar deja de "empujar" contenido — pasa a ser un
+// drawer superpuesto, oculto por default, con un botón hamburguesa fijo para
+// abrirlo. Mismo breakpoint que usa el login para su propio panel de marca.
+@media (max-width: 760px) {
+  .mobile-menu-btn {
+    display: inline-flex;
+    position: fixed;
+    top: 0.6rem;
+    left: 0.6rem;
+    z-index: 40;
+    background: #131313;
+    border: 1px solid var(--mat-sys-outline-variant);
+    color: #e8e8e8;
+  }
+
+  .mobile-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 25;
+    background: rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+
+    &.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  .app-sidenav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    z-index: 30;
+    transform: translateX(-100%);
+    transition:
+      transform 0.22s ease,
+      width 0s; // el ancho no anima acá — solo entra/sale, no se "achica"
+    box-shadow: 10px 0 32px rgba(0, 0, 0, 0.55);
+
+    // En mobile "colapsado" no aplica — es un drawer completo o cerrado, no
+    // tiene sentido un modo icon-only cuando de por sí está tapado hasta que
+    // lo abrís.
+    &.collapsed {
+      width: 240px;
+      padding: 0.75rem 0.75rem 1rem;
+    }
+
+    &.mobile-open {
+      transform: translateX(0);
+    }
+  }
+
+  // El botón de contraer no tiene rol en mobile — lo saca el hamburguesa +
+  // tocar el fondo. Se oculta para no duplicar affordance.
+  .collapse-toggle {
+    display: none;
+  }
+
+  .sidenav-header {
+    justify-content: center;
+  }
+
+  .app-content {
+    padding-top: 3.25rem;
+  }
+}

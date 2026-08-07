@@ -112,3 +112,14 @@
   opacity: 0.55;
   font-size: 0.875rem;
 }
+
+@media (max-width: 480px) {
+  .dashboard-page {
+    padding: 1rem;
+  }
+
+  .status-bar-row {
+    grid-template-columns: 90px 1fr 28px;
+    font-size: 0.78rem;
+  }
+}

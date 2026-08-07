@@ -150,3 +150,23 @@
     }
   }
 }
+
+@media (max-width: 640px) {
+  .prospects-page {
+    padding: 0.65rem;
+    gap: 0.5rem;
+  }
+
+  // Los campos con ancho fijo (200px, 280px) no entran en una pantalla de
+  // ~360-400px de ancho — pasan a ocupar el ancho disponible, se acomodan
+  // solos con el flex-wrap que ya tiene el toolbar.
+  .toolbar mat-form-field,
+  .toolbar .search-field {
+    width: 100%;
+    flex: 1 1 160px;
+  }
+
+  .new-client-btn {
+    margin-left: 0;
+  }
+}
