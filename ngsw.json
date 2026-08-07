@@ -1,0 +1,136 @@
+{
+  "configVersion": 1,
+  "timestamp": 1786093853532,
+  "index": "/PandaLead/index.html",
+  "assetGroups": [
+    {
+      "name": "app",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/PandaLead/chunk-0l4K3jJP.js",
+        "/PandaLead/chunk-BEo9-Dl9.js",
+        "/PandaLead/chunk-B_YO19PP.js",
+        "/PandaLead/chunk-BhzQDJ1W.js",
+        "/PandaLead/chunk-BjFu0Sjf.js",
+        "/PandaLead/chunk-C7WdV7E2.js",
+        "/PandaLead/chunk-CMw-pN6x.js",
+        "/PandaLead/chunk-CgtdpdX3.js",
+        "/PandaLead/chunk-CqoGXn8q.js",
+        "/PandaLead/chunk-CzYsJc6H.js",
+        "/PandaLead/chunk-DKJF-btB.js",
+        "/PandaLead/chunk-DzCnZNgK.js",
+        "/PandaLead/chunk-H3SMjoEp.js",
+        "/PandaLead/chunk-KUPSVXOQ.js",
+        "/PandaLead/chunk-RFlH6J_5.js",
+        "/PandaLead/chunk-dGgvg9Ga.js",
+        "/PandaLead/index.html",
+        "/PandaLead/main-R5UTDGPJ.js",
+        "/PandaLead/manifest.webmanifest",
+        "/PandaLead/styles-KSYN27UJ.css"
+      ],
+      "patterns": []
+    },
+    {
+      "name": "assets",
+      "installMode": "lazy",
+      "updateMode": "prefetch",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/PandaLead/brand/isotipo.png",
+        "/PandaLead/brand/wordmark.png",
+        "/PandaLead/favicon-48.png",
+        "/PandaLead/icons/icon-128x128.png",
+        "/PandaLead/icons/icon-144x144.png",
+        "/PandaLead/icons/icon-152x152.png",
+        "/PandaLead/icons/icon-192x192.png",
+        "/PandaLead/icons/icon-384x384.png",
+        "/PandaLead/icons/icon-512x512.png",
+        "/PandaLead/icons/icon-72x72.png",
+        "/PandaLead/icons/icon-96x96.png",
+        "/PandaLead/logo-512.png"
+      ],
+      "patterns": []
+    },
+    {
+      "name": "ocr-engine",
+      "installMode": "prefetch",
+      "updateMode": "lazy",
+      "cacheQueryOptions": {
+        "ignoreVary": true
+      },
+      "urls": [
+        "/PandaLead/tessdata/eng.traineddata.gz",
+        "/PandaLead/tessdata/spa.traineddata.gz",
+        "/PandaLead/tesseract/tesseract-core-simd-lstm.wasm",
+        "/PandaLead/tesseract/tesseract-core-simd-lstm.wasm.js",
+        "/PandaLead/tesseract/worker.min.js"
+      ],
+      "patterns": []
+    }
+  ],
+  "dataGroups": [],
+  "hashTable": {
+    "/PandaLead/brand/isotipo.png": "8533134ddb87e09b3e8f599da9f20860b43c9b2d",
+    "/PandaLead/brand/wordmark.png": "3a5f43ef9ec20854d4d1c4265275ebced64144f7",
+    "/PandaLead/chunk-0l4K3jJP.js": "7a8c2020a95f4a7ae1f7bffd4aaab94e7f9c8a3e",
+    "/PandaLead/chunk-BEo9-Dl9.js": "8ee1212bad57b934aa0fa1cb2634b3daa86bc911",
+    "/PandaLead/chunk-B_YO19PP.js": "47439faec0ab6f4ae841061dc9cd8994c19d4856",
+    "/PandaLead/chunk-BhzQDJ1W.js": "6e5d1746c22a2efc03d8d49bc39b4a05c76bcd0a",
+    "/PandaLead/chunk-BjFu0Sjf.js": "446432202ace6d1fa0946d2f8450075bbdc61895",
+    "/PandaLead/chunk-C7WdV7E2.js": "22cb070d565764b62ea14692130ef8b8bbf52bfe",
+    "/PandaLead/chunk-CMw-pN6x.js": "922bd45dd0e8cd2f6941c44083cea3be5498eed6",
+    "/PandaLead/chunk-CgtdpdX3.js": "2c93be9c0b8d976ddbfec5f099110b2e7fe2592b",
+    "/PandaLead/chunk-CqoGXn8q.js": "f8fdc2aef8394f5651f9dec8af67f7cf852bbc79",
+    "/PandaLead/chunk-CzYsJc6H.js": "cfe28709771ee99bf9f38003b28a8eea1ad35e0b",
+    "/PandaLead/chunk-DKJF-btB.js": "1377ff90e9579513a87f9fdd4e424e5eaaf356e3",
+    "/PandaLead/chunk-DzCnZNgK.js": "6aeb46195c58b41c7811ae0eeadd107155149979",
+    "/PandaLead/chunk-H3SMjoEp.js": "fbbf4077fa80cee856543e4ad6a5e0292a9c76ca",
+    "/PandaLead/chunk-KUPSVXOQ.js": "c697cd9c0da6dd66d44a1a02836d4ed893179665",
+    "/PandaLead/chunk-RFlH6J_5.js": "b2098e9301ca41a48c634beec8774e332ef6c0b0",
+    "/PandaLead/chunk-dGgvg9Ga.js": "b3c3bcc8a0680f88d8ae7a138e5f7f17b89ee883",
+    "/PandaLead/favicon-48.png": "5d8e7c6d8cb1a7161eaf5afc9ab4286adddd0381",
+    "/PandaLead/icons/icon-128x128.png": "05c3eb966d7abb2e8f35a4f44ea029443456e676",
+    "/PandaLead/icons/icon-144x144.png": "df38b144db258c407a6787b9bbb10197ca250a3a",
+    "/PandaLead/icons/icon-152x152.png": "cb7c2950b9ec383a7edbb3e36910f9193988eadd",
+    "/PandaLead/icons/icon-192x192.png": "f7bb8f5511ccf41fd759a06985db5ff90ac68316",
+    "/PandaLead/icons/icon-384x384.png": "4a2fc2f703ddf480cec31f08ff00f152c38e4754",
+    "/PandaLead/icons/icon-512x512.png": "5d0de45c1f93c61200748f0eef2407d1858e9467",
+    "/PandaLead/icons/icon-72x72.png": "3bc65eb57c177faa3275c07515d2ed5b9ebaf524",
+    "/PandaLead/icons/icon-96x96.png": "cd1886d46d85208a33f1cdb59dbfa40f8fd73247",
+    "/PandaLead/index.html": "24e281d854e80dbffcfe6512252e00bb98ccc95a",
+    "/PandaLead/logo-512.png": "007df2ffcfb279822c89f40a17b30d2da880ae95",
+    "/PandaLead/main-R5UTDGPJ.js": "d666dc5f1498522723ff15573a1f4a134fd53b7b",
+    "/PandaLead/manifest.webmanifest": "0b56990ff63a42f6ca746f5cf53dc02fa2f0fd13",
+    "/PandaLead/styles-KSYN27UJ.css": "e130bc9663d407eb77d622589471eb7adb856fe7",
+    "/PandaLead/tessdata/eng.traineddata.gz": "458f05111883c419d17c8ecdec90ef3ebabcf42f",
+    "/PandaLead/tessdata/spa.traineddata.gz": "d64a59a4304337aa292e7e816417a7cf7dca2905",
+    "/PandaLead/tesseract/tesseract-core-simd-lstm.wasm": "aba3e2e1c89c1bc2554fb261c9435096c47c92c5",
+    "/PandaLead/tesseract/tesseract-core-simd-lstm.wasm.js": "0aa39048693ad056820b35880afb911e235533ae",
+    "/PandaLead/tesseract/worker.min.js": "fcdfc690d75dfa8d3e121b0b35b463f7dcabfc38"
+  },
+  "navigationUrls": [
+    {
+      "positive": true,
+      "regex": "^\\/.*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*\\.[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*$"
+    },
+    {
+      "positive": false,
+      "regex": "^\\/(?:.+\\/)?[^/]*__[^/]*\\/.*$"
+    }
+  ],
+  "navigationRequestStrategy": "performance"
+}
