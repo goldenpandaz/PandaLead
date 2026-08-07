@@ -34,6 +34,9 @@ import { WhatsappTemplatePicker } from '../whatsapp/whatsapp-template-picker/wha
 import { MessageTemplate } from '../../../domain/models/template.model';
 import { ServiceConfig } from '../../../domain/models/service.model';
 import { CategoryConfig } from '../../../domain/models/category.model';
+import { StatusConfig } from '../../../domain/models/status.model';
+import { Project } from '../../../domain/models/project.model';
+import { Followup } from '../../../domain/models/followup.model';
 import { MoneyInputDirective } from '../../../shared/directives/money-input.directive';
 import { MoneyPipe } from '../../../shared/pipes/money.pipe';
 
@@ -212,6 +215,28 @@ export class ProspectDetail {
         );
       }
     });
+
+    // `Prospect.nextFollowupAt` es un espejo del seguimiento pendiente más
+    // próximo — se recalcula solo cada vez que cambian los seguimientos
+    // (agregar, completar). Sin esto quedaba como campo fantasma, nunca
+    // escrito, y la columna de la tabla siempre mostraba "—".
+    effect(() => {
+      const pending = this.followups()
+        .filter((f) => f.status === 'pending')
+        .map((f) => this.followupTimestamp(f))
+        .filter((ts): ts is number => ts !== null)
+        .sort((a, b) => a - b);
+      const next = pending[0] ?? null;
+      const current = this.prospect()?.nextFollowupAt ?? null;
+      if (this.prospect() && next !== current) {
+        void this.prospectRepo.update(this.id(), { nextFollowupAt: next });
+      }
+    });
+  }
+
+  private followupTimestamp(followup: Followup): number | null {
+    const date = new Date(`${followup.date}T${followup.time || '00:00'}`);
+    return Number.isNaN(date.getTime()) ? null : date.getTime();
   }
 
   backToList(): void {
@@ -243,11 +268,11 @@ export class ProspectDetail {
       });
       await this.historyRepo.log(this.id(), HistoryEventType.Edited, {});
 
-      // Cualquier estado "en serio" (isWon, o requiresService) necesita Proyecto
-      // para poder trackear plata — se crea acá si hace falta, y si el campo
-      // Servicio quedó cargado, se le asigna.
-      if (status?.isWon || status?.requiresService) {
-        await this.ensureProjectAndService(serviceId);
+      // Cualquier estado "en serio" (isWon, isFinal, o requiresService) necesita
+      // Proyecto para poder trackear plata — se crea acá si hace falta, y si el
+      // campo Servicio quedó cargado, se le asigna.
+      if (status?.isWon || status?.isFinal || status?.requiresService) {
+        await this.ensureProjectAndService(serviceId, status);
       }
 
       this.form.markAsPristine();
@@ -257,9 +282,12 @@ export class ProspectDetail {
   }
 
   /** Crea el Proyecto si todavía no existe, y si vino un servicio elegido, lo
-   * copia ahí (nombre + precio de ese momento, no una referencia viva al catálogo). */
-  private async ensureProjectAndService(serviceId: string): Promise<void> {
-    let projectId = this.projects()[0]?.id;
+   * copia ahí (nombre + precio de ese momento, no una referencia viva al catálogo).
+   * Si el estado ya es Final y todavía no hay anticipo cargado, asume que el
+   * precio del servicio ya se cobró completo. */
+  private async ensureProjectAndService(serviceId: string, status: StatusConfig | undefined): Promise<void> {
+    const project = this.projects()[0];
+    let projectId = project?.id;
     if (!projectId) {
       projectId = await this.projectRepo.create({
         prospectId: this.id(),
@@ -273,11 +301,12 @@ export class ProspectDetail {
     const service = this.services().find((s) => s.id === serviceId);
     if (!service) return;
 
-    await this.projectRepo.update(projectId, {
-      serviceId: service.id,
-      serviceName: service.name,
-      servicePrice: service.price,
-    });
+    const updates: Partial<Project> = { serviceId: service.id, serviceName: service.name, servicePrice: service.price };
+    if (status?.isFinal && !project?.deposit && service.price) {
+      updates.deposit = service.price;
+    }
+
+    await this.projectRepo.update(projectId, updates);
     await this.historyRepo.log(this.id(), HistoryEventType.ServiceAssigned, { serviceId: service.id, serviceName: service.name });
   }
 
@@ -337,13 +366,23 @@ export class ProspectDetail {
     try {
       const value = this.projectForm.getRawValue();
       const service = this.services().find((s) => s.id === value.serviceId);
+      const currentStatus = this.statuses().find((s) => s.id === this.prospect()?.statusId);
+      // Si ya está en un estado Final y no cargaste ningún anticipo a mano,
+      // se asume que el precio del servicio ya se cobró completo.
+      const deposit = currentStatus?.isFinal && !value.deposit && service?.price ? service.price : value.deposit;
+
+      if (!value.serviceId) {
+        // `undefined` no alcanza para borrar en RTDB — ver comentario en
+        // ProjectRepository.clearService.
+        await this.projectRepo.clearService(project.id);
+      } else {
+        await this.projectRepo.update(project.id, { serviceId: service?.id, serviceName: service?.name, servicePrice: service?.price });
+      }
+
       await this.projectRepo.update(project.id, {
-        serviceId: value.serviceId || undefined,
-        serviceName: service?.name,
-        servicePrice: service?.price,
         status: value.status,
         dueDate: value.dueDate || undefined,
-        deposit: value.deposit,
+        deposit,
         balance: value.balance,
         domain: value.domain || undefined,
         hosting: value.hosting || undefined,

@@ -32,7 +32,16 @@ export class ProjectRepository extends BaseRepository {
     return id;
   }
 
-  async update(id: string, changes: Partial<Omit<Project, 'id' | 'prospectId'>>): Promise<void> {
+  /** `null` en cualquier campo opcional lo borra de verdad en RTDB — a diferencia
+   * de `undefined`, que `SyncEngine` saca del payload antes de mandarlo
+   * (stripUndefined), así que un `update({ campo: undefined })` le llega vacío
+   * al servidor y no borra nada. Para borrar un campo, mandá `null` explícito. */
+  async update(id: string, changes: Partial<{ [K in keyof Omit<Project, 'id' | 'prospectId'>]: Project[K] | null }>): Promise<void> {
     await this.sync.write(COLLECTION, id, this.tenantPath(COLLECTION, id), 'update', changes);
+  }
+
+  /** Atajo para sacar el servicio asignado — ver el comentario de `update()`. */
+  async clearService(id: string): Promise<void> {
+    await this.update(id, { serviceId: null, serviceName: null, servicePrice: null });
   }
 }

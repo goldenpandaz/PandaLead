@@ -16,4 +16,9 @@ export interface Project {
   hosting?: string;
   observations?: string;
   status: string;
+  /** Marca manual de "ya pagó, quedó cerrado" — pasa el Estado del prospecto a
+   * un estado Final y bloquea Estado/Servicio en la tabla hasta que se destilde
+   * (con confirmación en ambos sentidos). No confundir con `deposit`/`balance`:
+   * esto es un candado, no un monto. */
+  paid?: boolean;
 }

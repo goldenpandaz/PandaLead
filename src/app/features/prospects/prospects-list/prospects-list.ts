@@ -1,5 +1,6 @@
 import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { firstValueFrom } from 'rxjs';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -23,6 +24,7 @@ import { Router } from '@angular/router';
 import { ProspectCapture, ProspectCaptureData } from '../prospect-capture/prospect-capture';
 import { WhatsappTemplatePicker } from '../whatsapp/whatsapp-template-picker/whatsapp-template-picker';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
+import { ConfirmDialog, ConfirmDialogData } from '../../../shared/dialogs/confirm-dialog/confirm-dialog';
 import { MessageTemplate } from '../../../domain/models/template.model';
 import { ProspectRepository } from '../../../data/repositories/prospect.repository';
 import { ConfigRepository } from '../../../data/repositories/config.repository';
@@ -57,7 +59,6 @@ const DETAILED_COLUMN_ORDER = [
   'createdAt',
   'lastContactAt',
   'nextFollowupAt',
-  'score',
   'actions',
 ] as const;
 
@@ -70,7 +71,6 @@ const OPTIONAL_COLUMNS = [
   { key: 'createdAt', label: 'Creado' },
   { key: 'lastContactAt', label: 'Último contacto' },
   { key: 'nextFollowupAt', label: 'Próximo seguimiento' },
-  { key: 'score', label: 'Score' },
 ] as const;
 
 const COLUMNS_STORAGE_KEY = 'pandalead.prospects.visibleColumns';
@@ -166,18 +166,9 @@ export class ProspectsList {
   readonly hasEmailFilter = signal(false);
   readonly dateFrom = signal('');
   readonly dateTo = signal('');
-  readonly scoreMin = signal<number | null>(null);
-  readonly scoreMax = signal<number | null>(null);
 
   readonly advancedFiltersActive = computed(
-    () =>
-      this.hasPhoneFilter() ||
-      this.hasWebsiteFilter() ||
-      this.hasEmailFilter() ||
-      !!this.dateFrom() ||
-      !!this.dateTo() ||
-      this.scoreMin() != null ||
-      this.scoreMax() != null,
+    () => this.hasPhoneFilter() || this.hasWebsiteFilter() || this.hasEmailFilter() || !!this.dateFrom() || !!this.dateTo(),
   );
 
   resetAdvancedFilters(event?: Event): void {
@@ -187,8 +178,6 @@ export class ProspectsList {
     this.hasEmailFilter.set(false);
     this.dateFrom.set('');
     this.dateTo.set('');
-    this.scoreMin.set(null);
-    this.scoreMax.set(null);
   }
 
   readonly filtered = computed(() => {
@@ -202,8 +191,6 @@ export class ProspectsList {
     const fromMs = this.dateFrom() ? new Date(this.dateFrom()).getTime() : null;
     // +1 día - 1ms: el filtro "hasta" incluye todo ese día, no solo la medianoche.
     const toMs = this.dateTo() ? new Date(this.dateTo()).getTime() + 86_400_000 - 1 : null;
-    const scoreMin = this.scoreMin();
-    const scoreMax = this.scoreMax();
 
     return this.prospects().filter((p) => {
       if (status && p.statusId !== status) return false;
@@ -214,8 +201,6 @@ export class ProspectsList {
       if (needsEmail && !p.email) return false;
       if (fromMs != null && p.createdAt < fromMs) return false;
       if (toMs != null && p.createdAt > toMs) return false;
-      if (scoreMin != null && (p.score ?? -Infinity) < scoreMin) return false;
-      if (scoreMax != null && (p.score ?? Infinity) > scoreMax) return false;
       if (term) {
         const haystack = `${p.name} ${p.phone ?? ''} ${p.email ?? ''} ${p.locality ?? ''} ${p.category ?? ''}`.toLowerCase();
         if (!haystack.includes(term)) return false;
@@ -278,6 +263,10 @@ export class ProspectsList {
     return this.projectByProspectId().get(prospect.id)?.serviceName;
   }
 
+  isPaidOf(prospect: Prospect): boolean {
+    return !!this.projectByProspectId().get(prospect.id)?.paid;
+  }
+
   /** Edición en línea — cambiar categoría o estado no debería obligarte a
    * entrar a la ficha completa. */
   updateCategory(prospect: Prospect, category: string): void {
@@ -285,9 +274,67 @@ export class ProspectsList {
     void this.prospectRepo.update(prospect.id, { category: category || undefined });
   }
 
-  updateStatus(prospect: Prospect, statusId: string): void {
+  private confirmDialog(data: ConfirmDialogData): Promise<boolean> {
+    return firstValueFrom(this.dialog.open<ConfirmDialog, ConfirmDialogData, boolean>(ConfirmDialog, { data, width: '380px' }).afterClosed()).then(
+      (result) => !!result,
+    );
+  }
+
+  /** El propio select de Estado dispara la confirmación — sin checkbox aparte.
+   * Entrar a un estado Final pide confirmar "¿ya pagó?" y bloquea el Servicio
+   * (candado = `project.paid`). Salir de un estado Final ya pagado pide
+   * confirmar que se quiere reabrir, y destilda el candado. Cualquier otro
+   * cambio de Estado (que no entra ni sale de un Final pagado) va directo. */
+  async updateStatus(prospect: Prospect, statusId: string): Promise<void> {
     if (statusId === prospect.statusId) return;
-    void this.prospectRepo.update(prospect.id, { statusId });
+
+    const project = this.projectByProspectId().get(prospect.id);
+    const newStatus = this.statusById().get(statusId);
+    const wasPaid = !!project?.paid;
+
+    if (newStatus?.isFinal && !wasPaid) {
+      const confirmed = await this.confirmDialog({
+        title: '¿Ya pagó?',
+        message: `"${prospect.name}" pasa a "${newStatus.label}". Se bloquea el Servicio hasta que vuelvas a cambiar el Estado.`,
+        confirmLabel: 'Sí, ya pagó',
+        icon: 'paid',
+      });
+      if (!confirmed) return;
+
+      let projectId = project?.id;
+      if (!projectId) {
+        projectId = await this.projectRepo.create({
+          prospectId: prospect.id,
+          startDate: new Date().toISOString().slice(0, 10),
+          status: 'Activo',
+        });
+        await this.historyRepo.log(prospect.id, HistoryEventType.ProjectCreated, { projectId });
+      }
+
+      const updates: Partial<Project> = { paid: true };
+      if (!project?.deposit && project?.servicePrice) {
+        updates.deposit = project.servicePrice;
+      }
+      await this.projectRepo.update(projectId, updates);
+      await this.prospectRepo.update(prospect.id, { statusId });
+      await this.historyRepo.log(prospect.id, HistoryEventType.StatusChanged, { statusId });
+      return;
+    }
+
+    if (wasPaid && !newStatus?.isFinal) {
+      const confirmed = await this.confirmDialog({
+        title: '¿Reabrir este cliente?',
+        message: `"${prospect.name}" ya estaba marcado como pagado. Cambiar el Estado destilda el candado, vuelve a habilitar el Servicio y vacía el Anticipo cargado — ya no cuenta como ingreso hasta que se vuelva a marcar como pagado.`,
+        confirmLabel: 'Sí, cambiar igual',
+        icon: 'lock_open',
+      });
+      if (!confirmed) return;
+      if (project) await this.projectRepo.update(project.id, { paid: false, deposit: null });
+      await this.prospectRepo.update(prospect.id, { statusId });
+      return;
+    }
+
+    await this.prospectRepo.update(prospect.id, { statusId });
   }
 
   /** Mismo criterio que en los formularios: crea el Proyecto si todavía no
@@ -296,6 +343,7 @@ export class ProspectsList {
   async updateService(prospect: Prospect, serviceId: string): Promise<void> {
     const project = this.projectByProspectId().get(prospect.id);
     if (serviceId === (project?.serviceId ?? '')) return;
+    if (project?.paid) return; // bloqueado hasta destildar "Pagado"
 
     let projectId = project?.id;
     if (!projectId) {
@@ -308,14 +356,22 @@ export class ProspectsList {
     }
 
     if (!serviceId) {
-      await this.projectRepo.update(projectId, { serviceId: undefined, serviceName: undefined, servicePrice: undefined });
+      await this.projectRepo.clearService(projectId);
       return;
     }
 
     const service = this.services().find((s) => s.id === serviceId);
     if (!service) return;
 
-    await this.projectRepo.update(projectId, { serviceId: service.id, serviceName: service.name, servicePrice: service.price });
+    const updates: Partial<Project> = { serviceId: service.id, serviceName: service.name, servicePrice: service.price };
+    // Si ya está en un estado Final y todavía no se cargó ningún anticipo, se
+    // asume que el precio del servicio ya se cobró completo — evita el paso
+    // extra de ir a la ficha a tipear a mano algo que ya se sabe.
+    if (this.statusOf(prospect)?.isFinal && !project?.deposit && service.price) {
+      updates.deposit = service.price;
+    }
+
+    await this.projectRepo.update(projectId, updates);
     await this.historyRepo.log(prospect.id, HistoryEventType.ServiceAssigned, { serviceId: service.id, serviceName: service.name });
   }
 
@@ -353,7 +409,14 @@ export class ProspectsList {
 
   async remove(prospect: Prospect, event: Event): Promise<void> {
     event.stopPropagation();
-    if (!confirm(`¿Eliminar "${prospect.name}"? Esta acción no se puede deshacer.`)) return;
+    const confirmed = await this.confirmDialog({
+      title: '¿Eliminar cliente?',
+      message: `"${prospect.name}" se borra para siempre — esta acción no se puede deshacer.`,
+      confirmLabel: 'Eliminar',
+      icon: 'delete',
+      danger: true,
+    });
+    if (!confirmed) return;
     await this.prospectRepo.delete(prospect.id);
   }
 }

@@ -67,10 +67,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "prospector-crm:build:production"
+              "buildTarget": "pandalead:build:production"
             },
             "development": {
-              "buildTarget": "prospector-crm:build:development"
+              "buildTarget": "pandalead:build:development"
             }
           },
           "defaultConfiguration": "development"

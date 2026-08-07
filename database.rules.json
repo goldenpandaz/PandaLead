@@ -1,0 +1,140 @@
+{
+  "rules": {
+    "tenants": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+
+        "prospects": {
+          "$prospectId": {
+            "name": { ".validate": "newData.isString() && newData.val().length > 0" },
+            "normalizedName": { ".validate": "newData.isString()" },
+            "phone": { ".validate": "newData.isString()" },
+            "email": { ".validate": "newData.isString()" },
+            "website": { ".validate": "newData.isString()" },
+            "instagram": { ".validate": "newData.isString()" },
+            "facebook": { ".validate": "newData.isString()" },
+            "tiktok": { ".validate": "newData.isString()" },
+            "youtube": { ".validate": "newData.isString()" },
+            "linkedin": { ".validate": "newData.isString()" },
+            "locality": { ".validate": "newData.isString()" },
+            "category": { ".validate": "newData.isString()" },
+            "statusId": { ".validate": "newData.isString()" },
+            "source": { ".validate": "newData.isString()" },
+            "favorite": { ".validate": "newData.isBoolean()" },
+            "score": { ".validate": "newData.isNumber()" },
+            "rating": { ".validate": "newData.isNumber()" },
+            "reviewCount": { ".validate": "newData.isNumber()" },
+            "schedule": { ".validate": "newData.isString()" },
+            "createdAt": { ".validate": "newData.isNumber()" },
+            "updatedAt": { ".validate": "newData.isNumber()" },
+            "lastContactAt": { ".validate": "newData.isNumber()" },
+            "nextFollowupAt": { ".validate": "newData.isNumber()" }
+          }
+        },
+
+        "prospectDetails": {
+          "$prospectId": {
+            "description": { ".validate": "newData.isString()" },
+            "ocrRawText": { ".validate": "newData.isString()" }
+          }
+        },
+
+        "notes": {
+          "$prospectId": {
+            "$noteId": {
+              "text": { ".validate": "newData.isString() && newData.val().length > 0" },
+              "authorId": { ".validate": "newData.isString()" },
+              "createdAt": { ".validate": "newData.isNumber()" },
+              "updatedAt": { ".validate": "newData.isNumber()" }
+            }
+          }
+        },
+
+        "followups": {
+          "$prospectId": {
+            "$followupId": {
+              "date": { ".validate": "newData.isString()" },
+              "time": { ".validate": "newData.isString()" },
+              "description": { ".validate": "newData.isString()" },
+              "status": { ".validate": "newData.isString()" }
+            }
+          }
+        },
+
+        "history": {
+          "$prospectId": {
+            "$eventId": {
+              "type": { ".validate": "newData.isString()" },
+              "createdAt": { ".validate": "newData.isNumber()" }
+            }
+          }
+        },
+
+        "captures": {
+          "$prospectId": {
+            "$captureId": {
+              "source": { ".validate": "newData.isString()" },
+              "ocrText": { ".validate": "newData.isString()" },
+              "createdAt": { ".validate": "newData.isNumber()" }
+            }
+          }
+        },
+
+        "projects": {
+          "$projectId": {
+            "prospectId": { ".validate": "newData.isString()" },
+            "startDate": { ".validate": "newData.isString()" },
+            "dueDate": { ".validate": "newData.isString()" },
+            "serviceId": { ".validate": "newData.isString()" },
+            "serviceName": { ".validate": "newData.isString()" },
+            "servicePrice": { ".validate": "newData.isNumber()" },
+            "deposit": { ".validate": "newData.isNumber()" },
+            "balance": { ".validate": "newData.isNumber()" },
+            "domain": { ".validate": "newData.isString()" },
+            "hosting": { ".validate": "newData.isString()" },
+            "observations": { ".validate": "newData.isString()" },
+            "status": { ".validate": "newData.isString()" },
+            "paid": { ".validate": "newData.isBoolean()" }
+          }
+        },
+
+        "config": {
+          "statuses": {
+            "$statusId": {
+              "label": { ".validate": "newData.isString() && newData.val().length > 0" },
+              "order": { ".validate": "newData.isNumber()" },
+              "color": { ".validate": "newData.isString()" },
+              "isWon": { ".validate": "newData.isBoolean()" },
+              "isLost": { ".validate": "newData.isBoolean()" },
+              "isFinal": { ".validate": "newData.isBoolean()" },
+              "requiresService": { ".validate": "newData.isBoolean()" }
+            }
+          },
+
+          "templates": {
+            "$templateId": {
+              "name": { ".validate": "newData.isString() && newData.val().length > 0" },
+              "category": { ".validate": "newData.isString()" },
+              "body": { ".validate": "newData.isString()" }
+            }
+          },
+
+          "services": {
+            "$serviceId": {
+              "name": { ".validate": "newData.isString() && newData.val().length > 0" },
+              "description": { ".validate": "newData.isString()" },
+              "price": { ".validate": "newData.isNumber()" }
+            }
+          },
+
+          "categories": {
+            "$categoryId": {
+              "name": { ".validate": "newData.isString() && newData.val().length > 0" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

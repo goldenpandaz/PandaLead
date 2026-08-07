@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -8,6 +9,15 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { AuthService } from '../../../core/auth/auth.service';
+
+/** "Confirmar contraseña" solo tiene sentido comparado contra el campo
+ * `password` hermano — se lee vía `control.parent`, no queda atado al form
+ * group específico (reusable si el día de mañana se usa en otro form). */
+function passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
+  const password = control.parent?.get('password')?.value;
+  if (!password) return null; // sin contraseña cargada todavía, no hay nada que comparar
+  return control.value === password ? null : { mismatch: true };
+}
 
 @Component({
   selector: 'app-login',
@@ -31,30 +41,48 @@ export class Login {
   readonly errorMessage = signal<string | null>(null);
   readonly mode = signal<'login' | 'register'>('login');
 
-  // TODO: sacar el prefill antes de usar la app con datos reales de clientes —
-  // es solo comodidad mientras seguimos desarrollando, no debería quedar en
-  // ninguna versión que uses en serio.
   readonly form = this.fb.nonNullable.group({
-    email: ['develop@gmail.com', [Validators.required, Validators.email]],
-    password: ['123456', [Validators.required, Validators.minLength(6)]],
+    name: [''],
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', [Validators.required, Validators.minLength(6)]],
+    confirmPassword: [''],
   });
+
+  constructor() {
+    // "Confirmar contraseña" no se re-evalúa sola cuando cambia "Contraseña"
+    // (son controles hermanos, Angular no los cruza automático) — se fuerza acá.
+    this.form.controls.password.valueChanges.pipe(takeUntilDestroyed()).subscribe(() => {
+      this.form.controls.confirmPassword.updateValueAndValidity({ onlySelf: true, emitEvent: false });
+    });
+  }
 
   async submitEmail(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-    const { email, password } = this.form.getRawValue();
+    const { name, email, password } = this.form.getRawValue();
     const action =
       this.mode() === 'login'
         ? () => this.auth.signInWithEmail(email, password)
-        : () => this.auth.registerWithEmail(email, password);
+        : () => this.auth.registerWithEmail(email, password, name);
     await this.attempt(action);
   }
 
   toggleMode(): void {
     this.mode.set(this.mode() === 'login' ? 'register' : 'login');
     this.errorMessage.set(null);
+    this.applyValidatorsForMode();
+  }
+
+  /** Nombre y Confirmar contraseña solo son obligatorios en modo registro —
+   * en login no tiene sentido pedirlos (ni mostrarlos, ver el template). */
+  private applyValidatorsForMode(): void {
+    const isRegister = this.mode() === 'register';
+    this.form.controls.name.setValidators(isRegister ? [Validators.required] : []);
+    this.form.controls.confirmPassword.setValidators(isRegister ? [Validators.required, passwordsMatchValidator] : []);
+    this.form.controls.name.updateValueAndValidity();
+    this.form.controls.confirmPassword.updateValueAndValidity();
   }
 
   async submitGoogle(): Promise<void> {

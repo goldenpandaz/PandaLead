@@ -8,6 +8,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
+  updateProfile,
 } from 'firebase/auth';
 
 import { FIREBASE_AUTH } from '../firebase/firebase.tokens';
@@ -43,8 +44,11 @@ export class AuthService {
     await signInWithEmailAndPassword(this.auth, email, password);
   }
 
-  async registerWithEmail(email: string, password: string): Promise<void> {
-    await createUserWithEmailAndPassword(this.auth, email, password);
+  async registerWithEmail(email: string, password: string, name?: string): Promise<void> {
+    const credential = await createUserWithEmailAndPassword(this.auth, email, password);
+    if (name) {
+      await updateProfile(credential.user, { displayName: name });
+    }
   }
 
   async signInWithGoogle(): Promise<void> {

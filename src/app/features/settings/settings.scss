@@ -17,7 +17,14 @@
   h1 {
     margin: 0;
     font-size: 1.75rem;
-    color: var(--gold-light);
+    line-height: 1.4;
+    padding-bottom: 0.15em;
+    width: fit-content;
+    background-image: var(--gold-shine) !important;
+    background-clip: text !important;
+    -webkit-background-clip: text !important;
+    color: transparent !important;
+    -webkit-text-fill-color: transparent !important;
   }
 }
 

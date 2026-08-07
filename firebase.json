@@ -1,4 +1,7 @@
 {
+  "database": {
+    "rules": "database.rules.json"
+  },
   "hosting": {
     "public": "dist/pandalead/browser",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],

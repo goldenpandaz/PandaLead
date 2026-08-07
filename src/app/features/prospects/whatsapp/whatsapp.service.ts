@@ -4,6 +4,7 @@ import { HistoryEventType } from '../../../domain/enums/history-event-type.enum'
 import { MessageTemplate } from '../../../domain/models/template.model';
 import { Prospect } from '../../../domain/models/prospect.model';
 import { HistoryRepository } from '../../../data/repositories/history.repository';
+import { ProspectRepository } from '../../../data/repositories/prospect.repository';
 import { normalizePhone } from '../../../shared/utils/normalize.util';
 
 /**
@@ -14,6 +15,7 @@ import { normalizePhone } from '../../../shared/utils/normalize.util';
 @Injectable({ providedIn: 'root' })
 export class WhatsappService {
   private readonly history = inject(HistoryRepository);
+  private readonly prospectRepo = inject(ProspectRepository);
 
   interpolate(template: MessageTemplate, prospect: Prospect): string {
     return template.body.replace(/\{\{\s*nombre\s*\}\}/gi, prospect.name);
@@ -27,6 +29,7 @@ export class WhatsappService {
     const url = message ? `https://wa.me/${number}?text=${encodeURIComponent(message)}` : `https://wa.me/${number}`;
     window.open(url, '_blank', 'noopener');
 
+    await this.prospectRepo.update(prospect.id, { lastContactAt: Date.now() });
     await this.history.log(prospect.id, HistoryEventType.WhatsappOpened, {
       templateId: template?.id ?? null,
       templateName: template?.name ?? null,

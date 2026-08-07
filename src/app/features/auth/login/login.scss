@@ -118,7 +118,7 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
   background: radial-gradient(ellipse at 50% 30%, #1a1a1a 0%, #0b0b0b 75%);
 
   .brand-logo {
-    width: 230px;
+    width: 320px;
     max-width: 100%;
   }
 
@@ -126,7 +126,7 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
     font-family: $system-font;
     font-size: 0.875rem;
     line-height: 1.5;
-    color: var(--gold-mid);
+    color: #ffffff;
     margin: 0;
     max-width: 280px;
   }
@@ -154,13 +154,27 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
   font-weight: 600;
   letter-spacing: -0.025em;
   margin: 0 0 0.35rem;
-  color: var(--gold-light);
+  line-height: 1.4;
+  // max-content (no fit-content) + un pelo de padding lateral — fit-content
+  // sumado al letter-spacing negativo dejaba la caja justa y recortaba el
+  // borde de la última letra.
+  width: max-content;
+  max-width: 100%;
+  padding: 0.05em 0.1em 0.15em;
+  align-self: center;
+  text-align: center;
+  background-image: var(--gold-shine) !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
 }
 
 .form-subtitle {
   margin: 0 0 1.5rem;
   font-size: 0.875rem;
   opacity: 0.65;
+  text-align: center;
 }
 
 .login-form {

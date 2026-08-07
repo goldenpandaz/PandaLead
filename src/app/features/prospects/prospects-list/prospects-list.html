@@ -68,17 +68,6 @@
           </mat-form-field>
         </div>
 
-        <div class="filters-menu-row">
-          <mat-form-field appearance="outline">
-            <mat-label>Score mín.</mat-label>
-            <input matInput type="number" [ngModel]="scoreMin()" (ngModelChange)="scoreMin.set($event)" />
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Score máx.</mat-label>
-            <input matInput type="number" [ngModel]="scoreMax()" (ngModelChange)="scoreMax.set($event)" />
-          </mat-form-field>
-        </div>
-
         <button mat-button type="button" [disabled]="!advancedFiltersActive()" (click)="resetAdvancedFilters($event)">
           Limpiar filtros
         </button>
@@ -219,7 +208,7 @@
             class="inline-status-select"
             [class.needs-service]="statusOf(row)?.requiresService && !serviceIdOf(row)"
             [value]="serviceIdOf(row)"
-            [disabled]="!statusOf(row)?.requiresService"
+            [disabled]="!statusOf(row)?.requiresService || isPaidOf(row)"
             (click)="$event.stopPropagation()"
             (selectionChange)="updateService(row, $event.value)"
           >
@@ -250,11 +239,6 @@
       <ng-container matColumnDef="nextFollowupAt">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Próximo seguimiento</th>
         <td mat-cell *matCellDef="let row">{{ row.nextFollowupAt ? (row.nextFollowupAt | date: 'dd/MM/yy') : '—' }}</td>
-      </ng-container>
-
-      <ng-container matColumnDef="score">
-        <th mat-header-cell *matHeaderCellDef mat-sort-header>Score</th>
-        <td mat-cell *matCellDef="let row">{{ row.score ?? '—' }}</td>
       </ng-container>
 
       <ng-container matColumnDef="actions">

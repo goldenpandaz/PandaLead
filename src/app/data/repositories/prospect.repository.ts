@@ -29,7 +29,9 @@ export class ProspectRepository extends BaseRepository {
     return id;
   }
 
-  async update(id: string, changes: Partial<Omit<Prospect, 'id' | 'createdAt'>>): Promise<void> {
+  // `null` en un campo opcional lo borra de verdad en RTDB — `undefined` no
+  // alcanza, ver comentario en ProjectRepository.update.
+  async update(id: string, changes: Partial<{ [K in keyof Omit<Prospect, 'id' | 'createdAt'>]: Prospect[K] | null }>): Promise<void> {
     await this.sync.write(COLLECTION, id, this.tenantPath(COLLECTION, id), 'update', {
       ...changes,
       updatedAt: Date.now(),

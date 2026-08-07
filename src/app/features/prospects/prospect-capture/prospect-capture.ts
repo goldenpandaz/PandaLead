@@ -19,6 +19,8 @@ import { CaptureSource } from '../../../domain/enums/capture-source.enum';
 import { HistoryEventType } from '../../../domain/enums/history-event-type.enum';
 import { DuplicateCandidate } from '../../../domain/models/duplicate-candidate.model';
 import { Prospect } from '../../../domain/models/prospect.model';
+import { Project } from '../../../domain/models/project.model';
+import { StatusConfig } from '../../../domain/models/status.model';
 import { CaptureRepository } from '../../../data/repositories/capture.repository';
 import { ConfigRepository } from '../../../data/repositories/config.repository';
 import { HistoryRepository } from '../../../data/repositories/history.repository';
@@ -359,11 +361,11 @@ export class ProspectCapture {
       }
       await this.historyRepo.log(id, HistoryEventType.Created, { source, manual: !this.imageFile });
 
-      // Cualquier estado "en serio" (isWon, o requiresService) necesita Proyecto
-      // para poder trackear plata — se crea acá si hace falta, y si el campo
-      // Servicio quedó cargado (obligatorio cuando requiresService), se le asigna.
-      if (status?.isWon || status?.requiresService) {
-        await this.ensureProjectAndService(id, value.serviceId);
+      // Cualquier estado "en serio" (isWon, isFinal, o requiresService) necesita
+      // Proyecto para poder trackear plata — se crea acá si hace falta, y si el
+      // campo Servicio quedó cargado (obligatorio cuando requiresService), se le asigna.
+      if (status?.isWon || status?.isFinal || status?.requiresService) {
+        await this.ensureProjectAndService(id, value.serviceId, status);
       }
 
       this.dialogRef.close(id);
@@ -376,8 +378,9 @@ export class ProspectCapture {
 
   /** Mismo criterio que `ProspectDetail.convertToClient()` — crea el Proyecto
    * si todavía no existe, y si vino un servicio elegido, lo copia ahí (nombre +
-   * precio de ese momento, no una referencia viva al catálogo). */
-  private async ensureProjectAndService(prospectId: string, serviceId: string): Promise<void> {
+   * precio de ese momento, no una referencia viva al catálogo). Si el estado
+   * ya es Final, asume que el precio del servicio ya se cobró completo. */
+  private async ensureProjectAndService(prospectId: string, serviceId: string, status: StatusConfig | undefined): Promise<void> {
     const projectId = await this.projectRepo.create({
       prospectId,
       startDate: new Date().toISOString().slice(0, 10),
@@ -389,11 +392,12 @@ export class ProspectCapture {
     const service = this.services().find((s) => s.id === serviceId);
     if (!service) return;
 
-    await this.projectRepo.update(projectId, {
-      serviceId: service.id,
-      serviceName: service.name,
-      servicePrice: service.price,
-    });
+    const updates: Partial<Project> = { serviceId: service.id, serviceName: service.name, servicePrice: service.price };
+    if (status?.isFinal && service.price) {
+      updates.deposit = service.price;
+    }
+
+    await this.projectRepo.update(projectId, updates);
     await this.historyRepo.log(prospectId, HistoryEventType.ServiceAssigned, { serviceId: service.id, serviceName: service.name });
   }
 
