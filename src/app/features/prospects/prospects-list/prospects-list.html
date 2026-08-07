@@ -1,0 +1,287 @@
+<div class="prospects-page">
+  <header class="toolbar">
+    <mat-button-toggle-group class="view-toggle" [value]="viewMode()" (change)="viewMode.set($event.value)">
+      <mat-button-toggle value="simple">Simple</mat-button-toggle>
+      <mat-button-toggle value="detailed">Detallada</mat-button-toggle>
+    </mat-button-toggle-group>
+
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Buscar</mat-label>
+      <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Nombre, teléfono, email, localidad, categoría…" />
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Estado</mat-label>
+      <mat-select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+        <mat-option [value]="null">Todos</mat-option>
+        @for (status of statuses(); track status.id) {
+          <mat-option [value]="status.id">{{ status.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Fuente</mat-label>
+      <mat-select [ngModel]="sourceFilter()" (ngModelChange)="sourceFilter.set($event)">
+        <mat-option [value]="null">Todas</mat-option>
+        @for (src of sources; track src) {
+          <mat-option [value]="src">{{ src }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <mat-chip-listbox>
+      <mat-chip-option [selected]="favoritesOnly()" (click)="favoritesOnly.set(!favoritesOnly())">
+        <mat-icon matChipAvatar>star</mat-icon>
+        Favoritos
+      </mat-chip-option>
+    </mat-chip-listbox>
+
+    <button
+      mat-stroked-button
+      [matMenuTriggerFor]="filtersMenu"
+      [matBadge]="advancedFiltersActive() ? '•' : ''"
+      matBadgeColor="warn"
+      matBadgeSize="small"
+    >
+      <mat-icon>filter_list</mat-icon>
+      Más filtros
+    </button>
+
+    <mat-menu #filtersMenu="matMenu" class="filters-menu-panel">
+      <div class="filters-menu" (click)="$event.stopPropagation()">
+        <span class="filters-menu-title">Filtros avanzados</span>
+
+        <mat-checkbox [checked]="hasPhoneFilter()" (change)="hasPhoneFilter.set($event.checked)">Tiene teléfono</mat-checkbox>
+        <mat-checkbox [checked]="hasWebsiteFilter()" (change)="hasWebsiteFilter.set($event.checked)">Tiene sitio web</mat-checkbox>
+        <mat-checkbox [checked]="hasEmailFilter()" (change)="hasEmailFilter.set($event.checked)">Tiene correo</mat-checkbox>
+
+        <div class="filters-menu-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Creado desde</mat-label>
+            <input matInput type="date" [ngModel]="dateFrom()" (ngModelChange)="dateFrom.set($event)" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Creado hasta</mat-label>
+            <input matInput type="date" [ngModel]="dateTo()" (ngModelChange)="dateTo.set($event)" />
+          </mat-form-field>
+        </div>
+
+        <div class="filters-menu-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Score mín.</mat-label>
+            <input matInput type="number" [ngModel]="scoreMin()" (ngModelChange)="scoreMin.set($event)" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Score máx.</mat-label>
+            <input matInput type="number" [ngModel]="scoreMax()" (ngModelChange)="scoreMax.set($event)" />
+          </mat-form-field>
+        </div>
+
+        <button mat-button type="button" [disabled]="!advancedFiltersActive()" (click)="resetAdvancedFilters($event)">
+          Limpiar filtros
+        </button>
+      </div>
+    </mat-menu>
+
+    @if (viewMode() === 'detailed') {
+      <button mat-stroked-button [matMenuTriggerFor]="columnsMenu">
+        <mat-icon>view_column</mat-icon>
+        Columnas
+      </button>
+
+      <mat-menu #columnsMenu="matMenu" class="filters-menu-panel">
+        <div class="filters-menu" (click)="$event.stopPropagation()">
+          <span class="filters-menu-title">Columnas visibles</span>
+          @for (col of optionalColumns; track col.key) {
+            <mat-checkbox [checked]="visibleColumns().has(col.key)" (change)="toggleColumn(col.key)">
+              {{ col.label }}
+            </mat-checkbox>
+          }
+        </div>
+      </mat-menu>
+    }
+
+    @if (selection.selected.length > 0) {
+      <span class="selection-count">{{ selection.selected.length }} seleccionados</span>
+    }
+
+    <button mat-stroked-button class="new-client-btn" (click)="openNewClient()">
+      <mat-icon>handshake</mat-icon>
+      Nuevo cliente
+    </button>
+
+    <button mat-flat-button color="primary" class="new-prospect-btn" (click)="openCapture()">
+      <mat-icon>add_a_photo</mat-icon>
+      Capturar cliente
+    </button>
+  </header>
+
+  <div class="table-container">
+    <table mat-table [dataSource]="dataSource" matSort class="prospects-table">
+      <ng-container matColumnDef="select">
+        <th mat-header-cell *matHeaderCellDef>
+          <mat-checkbox
+            [checked]="isAllSelected()"
+            [indeterminate]="selection.selected.length > 0 && !isAllSelected()"
+            (change)="toggleAllSelection()"
+          />
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <mat-checkbox
+            [checked]="selection.isSelected(row)"
+            (click)="$event.stopPropagation()"
+            (change)="selection.toggle(row)"
+          />
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="favorite">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button (click)="toggleFavorite(row, $event)" [attr.aria-label]="'Favorito'">
+            <mat-icon [class.favorite-active]="row.favorite">{{ row.favorite ? 'star' : 'star_border' }}</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
+        <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="category">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header matTooltip="Se agregan/editan desde Configuración → Categorías">
+          Categoría
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <mat-select
+            class="inline-status-select"
+            [value]="row.category || ''"
+            (click)="$event.stopPropagation()"
+            (selectionChange)="updateCategory(row, $event.value)"
+          >
+            <mat-select-trigger>{{ row.category || '—' }}</mat-select-trigger>
+            <mat-option value="">—</mat-option>
+            @if (row.category && !categories().some(c => c.name === row.category)) {
+              <mat-option [value]="row.category">{{ row.category }} (no está en tu catálogo)</mat-option>
+            }
+            @for (cat of categories(); track cat.id) {
+              <mat-option [value]="cat.name">{{ cat.name }}</mat-option>
+            }
+          </mat-select>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="locality">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Localidad</th>
+        <td mat-cell *matCellDef="let row">{{ row.locality || '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="phone">
+        <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+        <td mat-cell *matCellDef="let row">{{ row.phone || '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="statusId">
+        <th mat-header-cell *matHeaderCellDef matTooltip="Se agregan/editan desde Configuración → Estados">Estado</th>
+        <td mat-cell *matCellDef="let row">
+          <mat-select
+            class="inline-status-select"
+            [value]="row.statusId"
+            (click)="$event.stopPropagation()"
+            (selectionChange)="updateStatus(row, $event.value)"
+          >
+            <mat-select-trigger>
+              @if (statusOf(row); as status) {
+                <span class="status-chip" [style.background]="status.color">{{ status.label }}</span>
+              } @else {
+                —
+              }
+            </mat-select-trigger>
+            @for (status of statuses(); track status.id) {
+              <mat-option [value]="status.id">
+                <span class="color-dot" [style.background]="status.color"></span>
+                {{ status.label }}
+              </mat-option>
+            }
+          </mat-select>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="service">
+        <th mat-header-cell *matHeaderCellDef matTooltip="Habilitado solo si el Estado lo requiere (Configuración → Estados)">
+          Servicio
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <mat-select
+            class="inline-status-select"
+            [class.needs-service]="statusOf(row)?.requiresService && !serviceIdOf(row)"
+            [value]="serviceIdOf(row)"
+            [disabled]="!statusOf(row)?.requiresService"
+            (click)="$event.stopPropagation()"
+            (selectionChange)="updateService(row, $event.value)"
+          >
+            <mat-select-trigger>{{ serviceNameOf(row) || '—' }}</mat-select-trigger>
+            <mat-option value="">—</mat-option>
+            @for (service of services(); track service.id) {
+              <mat-option [value]="service.id">{{ service.name }}</mat-option>
+            }
+          </mat-select>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="source">
+        <th mat-header-cell *matHeaderCellDef>Fuente</th>
+        <td mat-cell *matCellDef="let row">{{ row.source }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Creado</th>
+        <td mat-cell *matCellDef="let row">{{ row.createdAt | date: 'dd/MM/yy' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="lastContactAt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Último contacto</th>
+        <td mat-cell *matCellDef="let row">{{ row.lastContactAt ? (row.lastContactAt | date: 'dd/MM/yy') : '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="nextFollowupAt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Próximo seguimiento</th>
+        <td mat-cell *matCellDef="let row">{{ row.nextFollowupAt ? (row.nextFollowupAt | date: 'dd/MM/yy') : '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="score">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Score</th>
+        <td mat-cell *matCellDef="let row">{{ row.score ?? '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Acciones</th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button matTooltip="Editar" (click)="openDetail(row, $event)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Abrir WhatsApp" [disabled]="!row.phone" (click)="openWhatsapp(row, $event)">
+            <mat-icon>chat</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Eliminar" (click)="remove(row, $event)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columns()"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns()" (click)="openDetail(row)" class="clickable-row"></tr>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell no-data" [attr.colspan]="columns().length">
+          No hay clientes que coincidan con los filtros.
+        </td>
+      </tr>
+    </table>
+
+    <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" [pageSize]="25" showFirstLastButtons />
+  </div>
+</div>

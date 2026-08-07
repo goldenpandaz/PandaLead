@@ -1,0 +1,125 @@
+// Include theming for Angular Material with `mat.theme()`.
+// This Sass mixin will define CSS variables that are used for styling Angular Material
+// components according to the Material 3 design spec.
+// Learn more about theming and how to use it for your application's
+// custom components at https://material.angular.dev/guide/theming
+@use '@angular/material' as mat;
+@use './theme-colors' as theme;
+
+// Paleta generada con `ng generate @angular/material:m3-theme` — dorado (#D4AF37)
+// + neutrales desaturados, casi acromáticos (ver src/_theme-colors.scss). Tema
+// oscuro, negros/grises reales, sin tintado de color.
+html {
+  height: 100%;
+  @include mat.theme(
+    (
+      color: (
+        theme-type: dark,
+        primary: theme.$primary-palette,
+        tertiary: theme.$tertiary-palette,
+      ),
+      typography: Roboto,
+      density: 0,
+    )
+  );
+
+  // Tokens propios, fuera del sistema de Material — para el degradado del
+  // isotipo (claro al medio, oscuro a los costados: brillo metálico) y la
+  // tipografía de marca.
+  --gold-deepest: #735c00;
+  --gold-deep: #917400;
+  --gold-base: #af8d11;
+  --gold-mid: #cca730;
+  --gold-light: #e9c349;
+  --gold-lightest: #ffe088;
+  --gold-shine: linear-gradient(100deg, var(--gold-base) 0%, var(--gold-lightest) 50%, var(--gold-base) 100%);
+  --font-display: 'Playfair Display', 'Georgia', serif;
+
+  // El `outline`/`outline-variant` que calcula el algoritmo M3 para tema oscuro
+  // sale casi blanco contra nuestro fondo casi negro (contraste "correcto" en
+  // teoría, pero se ve mal acá). Se pisa con gris apenas más claro que el
+  // fondo — afecta de una a los bordes de selects, toggles, chips, botones
+  // "stroked" y divisores de tabla en toda la app, porque todos usan estos
+  // dos tokens.
+  --mat-sys-outline: #3d3d3d;
+  --mat-sys-outline-variant: #2a2a2a;
+}
+
+body {
+  color-scheme: dark;
+
+  // Fondo con un dejo de profundidad (viñeta muy sutil) en vez de un gris
+  // plano — sigue siendo una herramienta de trabajo, no una landing, así que
+  // el efecto es apenas perceptible, no una textura que compita con los datos.
+  background: radial-gradient(ellipse 1400px 900px at 50% -10%, #1f1f1f 0%, var(--mat-sys-surface) 55%);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+
+  margin: 0;
+  height: 100%;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+// Botones primarios con el mismo degradado "brillo metálico" del isotipo —
+// claro al medio, oscuro a los costados — en vez del relleno sólido default
+// de Material. Texto oscuro porque un fondo claro necesita contraste oscuro.
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-unelevated-button.mat-primary {
+  background: var(--gold-shine);
+  color: #0e0e0e;
+  box-shadow: 0 2px 10px -2px rgba(233, 195, 73, 0.35);
+  transition: box-shadow 0.2s ease;
+
+  .mdc-button__label,
+  mat-icon {
+    color: #0e0e0e;
+  }
+
+  &:hover:not(:disabled) {
+    box-shadow: 0 4px 16px -2px rgba(233, 195, 73, 0.55);
+  }
+
+  &:disabled {
+    background: var(--mat-sys-surface-container);
+    box-shadow: none;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+// Cards con borde gris apenas insinuado — el dorado se guarda para acentos
+// puntuales (marca, botones primarios, selección), no para líneas estructurales
+// que aparecen por toda la app.
+.mat-mdc-card {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 14px !important;
+}
+
+::selection {
+  background: rgba(233, 195, 73, 0.35);
+}
+
+// Scrollbar fino y discreto, gris — no dorado.
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.22);
+  }
+}
+
+/* You can add global styles to this file, and also import other style files */

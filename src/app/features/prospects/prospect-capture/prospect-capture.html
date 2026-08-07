@@ -1,0 +1,184 @@
+<h2 mat-dialog-title>Nuevo cliente</h2>
+
+<mat-dialog-content class="capture-content">
+  @switch (step()) {
+    @case ('capture') {
+      <div class="drop-zone" (drop)="onDrop($event)" (dragover)="onDragOver($event)">
+        <mat-icon>content_paste</mat-icon>
+        <p>Pegá una imagen con <kbd>Ctrl+V</kbd>, arrastrala acá, o elegí un archivo.</p>
+        <button mat-stroked-button type="button" (click)="fileInput.click()">Elegir archivo</button>
+        <input #fileInput type="file" accept="image/*" hidden (change)="onFileSelected($event)" />
+        <button mat-button type="button" (click)="skipToManual()">O cargalo a mano, sin captura</button>
+      </div>
+    }
+
+    @case ('source') {
+      <div class="step-with-image">
+        <img [src]="imageUrl()" class="captured-image" alt="Captura pegada" />
+        <p>¿De dónde es esta captura?</p>
+        <div class="source-grid">
+          @for (src of sources; track src) {
+            <button mat-stroked-button type="button" (click)="selectSource(src)">{{ src }}</button>
+          }
+        </div>
+        <button mat-button type="button" (click)="backToCapture()">Volver</button>
+      </div>
+    }
+
+    @case ('processing') {
+      <div class="step-with-image">
+        <img [src]="imageUrl()" class="captured-image" alt="Captura pegada" />
+        <mat-progress-bar mode="indeterminate" />
+        <p>Leyendo la imagen…</p>
+      </div>
+    }
+
+    @case ('preview') {
+      <div class="preview-step">
+        @if (errorMessage()) {
+          <p class="error-text">{{ errorMessage() }}</p>
+        }
+
+        @if (duplicates().length > 0) {
+          <mat-card class="duplicates-card">
+            <mat-card-header>
+              <mat-card-title>Posibles duplicados</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              @for (dup of duplicates(); track dup.prospectId) {
+                <div class="duplicate-row">
+                  <span>{{ dup.similarityScore }}% — coincide en: {{ dup.matchedFields.join(', ') }}</span>
+                  <span class="duplicate-actions">
+                    <button mat-button type="button" (click)="viewExisting(dup)">Ver existente</button>
+                    <button mat-button type="button" color="primary" [disabled]="saving()" (click)="updateExisting(dup)">
+                      Actualizar existente
+                    </button>
+                  </span>
+                </div>
+              }
+            </mat-card-content>
+          </mat-card>
+        }
+
+        <form [formGroup]="form" class="preview-form">
+          <div class="name-phone-row span-2">
+            <mat-form-field appearance="outline" class="name-field">
+              <mat-label>Nombre *</mat-label>
+              <input matInput formControlName="name" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="dial-code">
+              <mat-label>Indicativo</mat-label>
+              <mat-select formControlName="dialCode">
+                @for (dial of dialCodes; track dial.code) {
+                  <mat-option [value]="dial.code">{{ dial.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="local-number">
+              <mat-label>Teléfono *</mat-label>
+              <input matInput formControlName="localNumber" />
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Categoría</mat-label>
+            <mat-select formControlName="category">
+              <mat-option value="">—</mat-option>
+              @for (cat of categories(); track cat.id) {
+                <mat-option [value]="cat.name">{{ cat.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Estado</mat-label>
+            <mat-select formControlName="statusId">
+              @for (status of statuses(); track status.id) {
+                <mat-option [value]="status.id">{{ status.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="span-2">
+            <mat-label>Servicio{{ currentStatus()?.requiresService ? ' *' : '' }}</mat-label>
+            <mat-select formControlName="serviceId">
+              <mat-option value="">—</mat-option>
+              @for (service of services(); track service.id) {
+                <mat-option [value]="service.id">{{ service.name }}</mat-option>
+              }
+            </mat-select>
+            <mat-hint>
+              @if (currentStatus()?.requiresService) {
+                Este estado requiere elegir qué le vas a brindar.
+              } @else {
+                Se habilita cuando el Estado lo requiere.
+              }
+            </mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Sitio web</mat-label>
+            <input matInput formControlName="website" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="span-2">
+            <mat-label>Localidad</mat-label>
+            <input matInput formControlName="locality" placeholder="Barrio, ciudad…" />
+          </mat-form-field>
+
+          <mat-expansion-panel class="social-panel span-2">
+            <mat-expansion-panel-header>
+              <mat-panel-title>Redes sociales</mat-panel-title>
+              <mat-panel-description>Opcional</mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="preview-form">
+              <mat-form-field appearance="outline">
+                <mat-label>Instagram</mat-label>
+                <input matInput formControlName="instagram" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Facebook</mat-label>
+                <input matInput formControlName="facebook" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>TikTok</mat-label>
+                <input matInput formControlName="tiktok" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>YouTube</mat-label>
+                <input matInput formControlName="youtube" />
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="span-2">
+                <mat-label>LinkedIn</mat-label>
+                <input matInput formControlName="linkedin" />
+              </mat-form-field>
+            </div>
+          </mat-expansion-panel>
+        </form>
+
+        @if (ocrText()) {
+          <mat-expansion-panel class="ocr-panel">
+            <mat-expansion-panel-header>Texto OCR completo</mat-expansion-panel-header>
+            <pre>{{ ocrText() }}</pre>
+          </mat-expansion-panel>
+        }
+      </div>
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="close()">Cancelar</button>
+  @if (step() === 'preview') {
+    <button mat-flat-button type="button" color="primary" [disabled]="saving()" (click)="save()">
+      @if (saving()) {
+        <mat-spinner diameter="20" />
+      } @else {
+        Guardar cliente
+      }
+    </button>
+  }
+</mat-dialog-actions>

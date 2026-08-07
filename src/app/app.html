@@ -1,0 +1,75 @@
+@if (auth.currentUser()) {
+  <div class="app-shell">
+    <aside class="app-sidenav" [class.collapsed]="collapsed()">
+      <span class="sidenav-blob sidenav-blob-1"></span>
+      <span class="sidenav-blob sidenav-blob-2"></span>
+
+      <div class="sidenav-header">
+        @if (!collapsed()) {
+          <img src="brand/wordmark.png" alt="PandaLead" class="sidenav-wordmark" />
+          <button mat-icon-button type="button" class="collapse-toggle" (click)="toggleCollapsed()" matTooltip="Contraer">
+            <mat-icon>menu_open</mat-icon>
+          </button>
+        } @else {
+          <button
+            mat-icon-button
+            type="button"
+            class="collapse-toggle expand-toggle"
+            (click)="toggleCollapsed()"
+            matTooltip="Expandir"
+          >
+            <img src="brand/isotipo.png" alt="Expandir" class="sidenav-isotipo" />
+          </button>
+        }
+      </div>
+
+      <mat-nav-list class="sidenav-list">
+        <a mat-list-item routerLink="/prospects" routerLinkActive="active-link" [matTooltip]="collapsed() ? 'Clientes' : ''">
+          <mat-icon matListItemIcon>groups</mat-icon>
+          @if (!collapsed()) {
+            <span matListItemTitle>Clientes</span>
+          }
+        </a>
+        <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link" [matTooltip]="collapsed() ? 'Resumen' : ''">
+          <mat-icon matListItemIcon>dashboard</mat-icon>
+          @if (!collapsed()) {
+            <span matListItemTitle>Resumen</span>
+          }
+        </a>
+      </mat-nav-list>
+
+      <div class="nav-divider"></div>
+
+      <mat-nav-list class="sidenav-list">
+        <a mat-list-item routerLink="/settings" routerLinkActive="active-link" [matTooltip]="collapsed() ? 'Configuración' : ''">
+          <mat-icon matListItemIcon>settings</mat-icon>
+          @if (!collapsed()) {
+            <span matListItemTitle>Configuración</span>
+          }
+        </a>
+      </mat-nav-list>
+
+      <span class="sidenav-spacer"></span>
+
+      <div class="account-card">
+        @if (!collapsed()) {
+          <span class="account-label">Cuenta</span>
+        }
+        <mat-nav-list class="sidenav-list">
+          <button mat-list-item type="button" class="logout-btn" (click)="logout()" [matTooltip]="collapsed() ? 'Cerrar sesión' : ''">
+            <mat-icon matListItemIcon>logout</mat-icon>
+            @if (!collapsed()) {
+              <span matListItemTitle>Cerrar sesión</span>
+            }
+          </button>
+        </mat-nav-list>
+      </div>
+    </aside>
+
+    <main class="app-content">
+      <router-outlet />
+    </main>
+  </div>
+} @else {
+  <router-outlet />
+}

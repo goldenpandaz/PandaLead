@@ -1,0 +1,268 @@
+@if (prospect(); as prospect) {
+  <div class="detail-page">
+    <header class="detail-header">
+      <button mat-icon-button (click)="backToList()" matTooltip="Volver">
+        <mat-icon>arrow_back</mat-icon>
+      </button>
+      <h1>{{ prospect.name }}</h1>
+
+      <span class="spacer"></span>
+
+      <button mat-stroked-button [disabled]="!prospect.phone" (click)="openWhatsapp()">
+        <mat-icon>chat</mat-icon>
+        WhatsApp
+      </button>
+
+      @if (projects().length === 0) {
+        <button mat-flat-button color="primary" (click)="convertToClient()">
+          <mat-icon>handshake</mat-icon>
+          Convertir a cliente
+        </button>
+      }
+    </header>
+
+    <mat-tab-group class="detail-tabs" animationDuration="0ms">
+      <mat-tab label="General">
+        <form [formGroup]="form" class="general-form">
+          <div class="name-phone-row span-2">
+            <mat-form-field appearance="outline" class="name-field">
+              <mat-label>Nombre *</mat-label>
+              <input matInput formControlName="name" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="dial-code">
+              <mat-label>Indicativo</mat-label>
+              <mat-select formControlName="dialCode">
+                @for (dial of dialCodes; track dial.code) {
+                  <mat-option [value]="dial.code">{{ dial.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="local-number">
+              <mat-label>Teléfono *</mat-label>
+              <input matInput formControlName="localNumber" />
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Categoría</mat-label>
+            <mat-select formControlName="category">
+              <mat-option value="">—</mat-option>
+              @if (suggestedCategory(); as suggested) {
+                <mat-option [value]="suggested">{{ suggested }} (no está en tu catálogo)</mat-option>
+              }
+              @for (cat of categories(); track cat.id) {
+                <mat-option [value]="cat.name">{{ cat.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Estado</mat-label>
+            <mat-select formControlName="statusId">
+              @for (status of statuses(); track status.id) {
+                <mat-option [value]="status.id">{{ status.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="span-2">
+            <mat-label>Servicio{{ currentStatus()?.requiresService ? ' *' : '' }}</mat-label>
+            <mat-select formControlName="serviceId">
+              <mat-option value="">—</mat-option>
+              @for (service of services(); track service.id) {
+                <mat-option [value]="service.id">{{ service.name }}</mat-option>
+              }
+            </mat-select>
+            <mat-hint>
+              @if (currentStatus()?.requiresService) {
+                Este estado requiere elegir qué le vas a brindar.
+              } @else {
+                Se habilita cuando el Estado lo requiere.
+              }
+            </mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline"><mat-label>Email</mat-label><input matInput formControlName="email" /></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Sitio web</mat-label><input matInput formControlName="website" /></mat-form-field>
+          <mat-form-field appearance="outline" class="span-2"><mat-label>Localidad</mat-label><input matInput formControlName="locality" placeholder="Barrio, ciudad…" /></mat-form-field>
+
+          <mat-checkbox class="span-2" formControlName="favorite">Favorito</mat-checkbox>
+
+          <mat-expansion-panel class="social-panel span-2">
+            <mat-expansion-panel-header>
+              <mat-panel-title>Redes sociales</mat-panel-title>
+              <mat-panel-description>Opcional</mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="general-form">
+              <mat-form-field appearance="outline"><mat-label>Instagram</mat-label><input matInput formControlName="instagram" /></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Facebook</mat-label><input matInput formControlName="facebook" /></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>TikTok</mat-label><input matInput formControlName="tiktok" /></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>YouTube</mat-label><input matInput formControlName="youtube" /></mat-form-field>
+              <mat-form-field appearance="outline" class="span-2"><mat-label>LinkedIn</mat-label><input matInput formControlName="linkedin" /></mat-form-field>
+            </div>
+          </mat-expansion-panel>
+
+          @if (errorMessage()) {
+            <p class="error-text span-2">{{ errorMessage() }}</p>
+          }
+
+          <div class="form-actions">
+            <button mat-flat-button color="primary" type="button" [disabled]="!form.dirty || saving()" (click)="saveGeneral()">
+              Guardar cambios
+            </button>
+          </div>
+        </form>
+
+        @if (details()?.ocrRawText) {
+          <mat-card class="ocr-card">
+            <mat-card-header><mat-card-title>Texto OCR de la primera captura</mat-card-title></mat-card-header>
+            <mat-card-content><pre>{{ details()?.ocrRawText }}</pre></mat-card-content>
+          </mat-card>
+        }
+      </mat-tab>
+
+      <mat-tab label="Notas ({{ notes().length }})">
+        <div class="tab-panel">
+          <div class="add-row">
+            <mat-form-field appearance="outline" class="grow">
+              <mat-label>Nueva nota</mat-label>
+              <textarea matInput rows="2" [ngModel]="newNoteText()" (ngModelChange)="newNoteText.set($event)"></textarea>
+            </mat-form-field>
+            <button mat-flat-button color="primary" (click)="addNote()">Agregar</button>
+          </div>
+
+          <mat-list>
+            @for (note of notes(); track note.id) {
+              <mat-list-item>
+                <span matListItemTitle>{{ note.text }}</span>
+                <span matListItemLine>{{ note.createdAt | date: 'dd/MM/yy HH:mm' }}</span>
+                <button mat-icon-button matListItemMeta (click)="deleteNote(note.id)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </mat-list-item>
+            } @empty {
+              <p class="empty-hint">Todavía no hay notas.</p>
+            }
+          </mat-list>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Seguimientos ({{ followups().length }})">
+        <div class="tab-panel">
+          <div class="add-row followup-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Fecha</mat-label>
+              <input matInput type="date" [ngModel]="newFollowup().date" (ngModelChange)="newFollowup.set({ ...newFollowup(), date: $event })" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Hora</mat-label>
+              <input matInput type="time" [ngModel]="newFollowup().time" (ngModelChange)="newFollowup.set({ ...newFollowup(), time: $event })" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="grow">
+              <mat-label>Descripción</mat-label>
+              <input matInput [ngModel]="newFollowup().description" (ngModelChange)="newFollowup.set({ ...newFollowup(), description: $event })" />
+            </mat-form-field>
+            <button mat-flat-button color="primary" (click)="addFollowup()">Agregar</button>
+          </div>
+
+          <mat-list>
+            @for (followup of followups(); track followup.id) {
+              <mat-list-item>
+                <mat-checkbox
+                  matListItemAvatar
+                  [checked]="followup.status === 'done'"
+                  (change)="toggleFollowup(followup.id, $event.checked)"
+                />
+                <span matListItemTitle>{{ followup.description }}</span>
+                <span matListItemLine>{{ followup.date }} {{ followup.time }}</span>
+              </mat-list-item>
+            } @empty {
+              <p class="empty-hint">Sin seguimientos programados.</p>
+            }
+          </mat-list>
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Capturas ({{ captures().length }})">
+        <div class="tab-panel">
+          @for (capture of captures(); track capture.id) {
+            <mat-card class="capture-card">
+              <mat-card-header>
+                <mat-card-title>{{ capture.source }}</mat-card-title>
+                <mat-card-subtitle>{{ capture.createdAt | date: 'dd/MM/yy HH:mm' }}</mat-card-subtitle>
+              </mat-card-header>
+              <mat-card-content>
+                <pre>{{ capture.ocrText }}</pre>
+              </mat-card-content>
+            </mat-card>
+          } @empty {
+            <p class="empty-hint">Sin capturas todavía.</p>
+          }
+        </div>
+      </mat-tab>
+
+      <mat-tab label="Historial ({{ history().length }})">
+        <div class="tab-panel">
+          <mat-list>
+            @for (event of history(); track event.id) {
+              <mat-list-item>
+                <mat-icon matListItemIcon>history</mat-icon>
+                <span matListItemTitle>{{ event.type }}</span>
+                <span matListItemLine>{{ event.createdAt | date: 'dd/MM/yy HH:mm' }}</span>
+              </mat-list-item>
+            } @empty {
+              <p class="empty-hint">Sin eventos todavía.</p>
+            }
+          </mat-list>
+        </div>
+      </mat-tab>
+
+      @if (projects().length > 0) {
+        <mat-tab label="Proyecto">
+          <form [formGroup]="projectForm" class="general-form">
+            <p class="project-start-hint">Inicio del proyecto: {{ projects()[0].startDate }}</p>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Servicio</mat-label>
+              <mat-select formControlName="serviceId">
+                <mat-option value="">—</mat-option>
+                @for (service of services(); track service.id) {
+                  <mat-option [value]="service.id">
+                    {{ service.name }}@if (service.price) { · {{ service.price | money }} }
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline"><mat-label>Estado del proyecto</mat-label><input matInput formControlName="status" /></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Fecha de entrega</mat-label><input matInput type="date" formControlName="dueDate" /></mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Anticipo</mat-label>
+              <span matTextPrefix>$&nbsp;</span>
+              <input matInput type="text" inputmode="numeric" moneyInput formControlName="deposit" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Saldo pendiente</mat-label>
+              <span matTextPrefix>$&nbsp;</span>
+              <input matInput type="text" inputmode="numeric" moneyInput formControlName="balance" />
+            </mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Dominio</mat-label><input matInput formControlName="domain" /></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Hosting</mat-label><input matInput formControlName="hosting" /></mat-form-field>
+            <mat-form-field appearance="outline" class="grow">
+              <mat-label>Observaciones</mat-label>
+              <textarea matInput rows="2" formControlName="observations"></textarea>
+            </mat-form-field>
+
+            <div class="form-actions">
+              <button mat-flat-button color="primary" type="button" [disabled]="!projectForm.dirty || savingProject()" (click)="saveProject()">
+                Guardar proyecto
+              </button>
+            </div>
+          </form>
+        </mat-tab>
+      }
+    </mat-tab-group>
+  </div>
+} @else {
+  <div class="loading-placeholder">Cargando…</div>
+}

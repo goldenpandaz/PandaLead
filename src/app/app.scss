@@ -1,0 +1,258 @@
+:host {
+  display: block;
+  height: 100vh;
+}
+
+// Shell propio con flexbox — sin `mat-sidenav-container`. No hace falta el
+// drawer/overlay de Material acá (el sidebar siempre está visible, solo
+// cambia de ancho), así que se arma directo y queda 100% predecible.
+.app-shell {
+  height: 100%;
+  display: flex;
+  background: transparent;
+}
+
+.app-sidenav {
+  position: relative;
+  flex: 0 0 auto;
+  width: 240px;
+  background: #131313;
+  border-right: 1px solid var(--mat-sys-outline-variant);
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem 0.75rem 1rem;
+  transition: width 0.18s ease;
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  &.collapsed {
+    width: 76px;
+    padding: 0.75rem 0.5rem 1rem;
+  }
+}
+
+// Blobs de fondo, igual criterio que el login — profundidad sutil, no textura
+// que compita con la navegación.
+.sidenav-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(50px);
+  pointer-events: none;
+  z-index: 0;
+  animation: sidenav-float 14s ease-in-out infinite;
+}
+
+.sidenav-blob-1 {
+  width: 200px;
+  height: 200px;
+  top: 15%;
+  right: -70px;
+  background: radial-gradient(circle, rgba(233, 195, 73, 0.1), transparent 70%);
+}
+
+.sidenav-blob-2 {
+  width: 160px;
+  height: 160px;
+  bottom: 20%;
+  left: -70px;
+  background: radial-gradient(circle, rgba(175, 141, 17, 0.09), transparent 70%);
+  animation-delay: 4s;
+}
+
+@keyframes sidenav-float {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-10px, 14px);
+  }
+}
+
+.sidenav-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.5rem 1.25rem 0.75rem;
+
+  .app-sidenav.collapsed & {
+    justify-content: center;
+    padding: 0.5rem 0 1.25rem;
+  }
+}
+
+.sidenav-wordmark {
+  max-width: 148px;
+  height: auto;
+}
+
+.collapse-toggle {
+  color: #e8e8e8;
+  flex: 0 0 auto;
+
+  mat-icon {
+    color: #e8e8e8;
+  }
+
+  &:hover {
+    color: #fff;
+  }
+}
+
+.expand-toggle {
+  width: 42px;
+  height: 42px;
+  padding: 4px;
+  border-radius: 50%;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+}
+
+.sidenav-isotipo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  display: block;
+}
+
+.nav-divider {
+  position: relative;
+  z-index: 1;
+  height: 1px;
+  margin: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.sidenav-list {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+
+  a[mat-list-item] {
+    --mdc-list-list-item-container-shape: 16px;
+    color: #d4d4d4;
+    cursor: pointer;
+    width: 100%;
+    border: none;
+    border-radius: 16px;
+    transition:
+      background-color 0.16s ease,
+      color 0.16s ease;
+
+    mat-icon {
+      color: #9a9a9a;
+      transition: color 0.16s ease;
+    }
+
+    &:hover:not(.active-link) {
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+
+      mat-icon {
+        color: #ffffff;
+      }
+    }
+  }
+
+  // Seleccionado: pill blanca, texto e ícono oscuros — máximo contraste,
+  // igual criterio que la referencia. El span del título tiene su propio
+  // color puesto por Material (no hereda del <a>), así que hay que pisarlo
+  // ahí directo, no alcanza con ponerlo en el padre.
+  .active-link {
+    background: #f0f0f0 !important;
+    color: #17181a !important;
+
+    mat-icon,
+    [matListItemTitle] {
+      color: #17181a !important;
+    }
+  }
+}
+
+.app-sidenav.collapsed .sidenav-list a[mat-list-item] {
+  display: flex;
+  justify-content: center;
+
+  mat-icon[matListItemIcon] {
+    margin: 0 !important;
+  }
+}
+
+.sidenav-spacer {
+  flex: 1 1 auto;
+  min-height: 0.5rem;
+}
+
+.account-card {
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 0.85rem 0.5rem 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  .app-sidenav.collapsed & {
+    padding: 0.5rem 0.25rem;
+    border-color: transparent;
+  }
+}
+
+.account-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a8a8a;
+  padding: 0 0.5rem;
+}
+
+.logout-btn {
+  color: #d4d4d4;
+  border: none;
+  border-radius: 14px;
+  transition: background-color 0.16s ease;
+
+  mat-icon {
+    color: #9a9a9a;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+
+    mat-icon {
+      color: #ffffff;
+    }
+  }
+}
+
+.app-sidenav.collapsed .logout-btn {
+  display: flex;
+  justify-content: center;
+
+  mat-icon[matListItemIcon] {
+    margin: 0 !important;
+  }
+}
+
+// Contenido: crece para ocupar todo el ancho/alto restante del shell. Un solo
+// nivel de flex:1 hasta la página ruteada — nada de cadenas de height:100%.
+.app-content {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: transparent;
+}

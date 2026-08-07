@@ -1,0 +1,188 @@
+<div class="settings-page">
+  <h1>Configuración</h1>
+  <p class="page-hint">
+    Acá se configuran <strong>Estados</strong>, <strong>Categorías</strong>, <strong>Servicios</strong> y
+    <strong>Plantillas de WhatsApp</strong>. La Localidad de cada cliente sigue siendo texto libre — se
+    escribe directo en su ficha. Ojo que Categoría no es lo mismo que Servicio: la Categoría es el rubro del negocio
+    del cliente (Restaurante, Abogado…); el Servicio es lo que vos le vendés (Página web, Tarjeta de invitación…) y
+    se elige al armar su proyecto.
+  </p>
+
+  <mat-tab-group>
+    <mat-tab label="Estados">
+      <div class="tab-panel">
+        <p class="tab-hint">
+          Los estados son las etapas de tu embudo comercial (Nuevo, Contactado, Cliente, Perdido…). Se usa en todo el
+          recorrido de un cliente, desde el primer contacto hasta que ya compró — es el mismo campo "Estado" que ves
+          en la tabla. Marcá
+          <strong>Cliente</strong> en el estado que significa "ya me compró" (ahí aparece el botón de convertir a
+          proyecto), <strong>Perdido</strong> en el que significa "no va a avanzar", y <strong>Final</strong> en
+          cualquier estado que cierra el caso (para que no aparezca como pendiente en el Resumen).
+          <strong>Requiere servicio</strong> en cualquier estado "en serio" (cotización enviada, cliente…) — al pasar
+          un cliente ahí, te obliga a elegir qué servicio le vas a brindar antes de aplicar el cambio (y crea el
+          Proyecto solo si todavía no existía).
+        </p>
+
+        <mat-list>
+          @for (status of statuses(); track status.id) {
+            <mat-list-item>
+              <span matListItemIcon class="color-dot" [style.background]="status.color"></span>
+              <span matListItemTitle>{{ status.label }}</span>
+              <span matListItemLine>
+                orden {{ status.order }}
+                @if (status.isWon) { · cliente }
+                @if (status.isLost) { · perdido }
+                @if (status.isFinal) { · final }
+                @if (status.requiresService) { · requiere servicio }
+              </span>
+              <button mat-icon-button matListItemMeta (click)="editStatus(status)"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button matListItemMeta (click)="deleteStatus(status.id)"><mat-icon>delete</mat-icon></button>
+            </mat-list-item>
+          }
+        </mat-list>
+
+        <div class="add-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre</mat-label>
+            <input matInput [ngModel]="statusForm().label" (ngModelChange)="statusForm.set({ ...statusForm(), label: $event })" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="color-field">
+            <mat-label>Color</mat-label>
+            <input matInput type="color" [ngModel]="statusForm().color" (ngModelChange)="statusForm.set({ ...statusForm(), color: $event })" />
+          </mat-form-field>
+          <mat-checkbox [ngModel]="statusForm().isWon" (ngModelChange)="statusForm.set({ ...statusForm(), isWon: $event })">Cliente</mat-checkbox>
+          <mat-checkbox [ngModel]="statusForm().isLost" (ngModelChange)="statusForm.set({ ...statusForm(), isLost: $event })">Perdido</mat-checkbox>
+          <mat-checkbox [ngModel]="statusForm().isFinal" (ngModelChange)="statusForm.set({ ...statusForm(), isFinal: $event })">Final</mat-checkbox>
+          <mat-checkbox
+            [ngModel]="statusForm().requiresService"
+            (ngModelChange)="statusForm.set({ ...statusForm(), requiresService: $event })"
+          >
+            Requiere servicio
+          </mat-checkbox>
+          <button mat-flat-button color="primary" (click)="addStatus()">{{ editingStatusId() ? 'Guardar cambios' : 'Agregar estado' }}</button>
+          @if (editingStatusId()) {
+            <button mat-button type="button" (click)="cancelEditStatus()">Cancelar</button>
+          }
+        </div>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Categorías">
+      <div class="tab-panel">
+        <p class="tab-hint">
+          El rubro del negocio de tus clientes (Restaurante, Abogado, Veterinaria…). Se elige de esta
+          lista al cargar o editar un cliente — así no te quedan categorías repetidas por typos.
+        </p>
+
+        <mat-list>
+          @for (category of categories(); track category.id) {
+            <mat-list-item>
+              <span matListItemTitle>{{ category.name }}</span>
+              <button mat-icon-button matListItemMeta (click)="editCategory(category)"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button matListItemMeta (click)="deleteCategory(category.id)"><mat-icon>delete</mat-icon></button>
+            </mat-list-item>
+          } @empty {
+            <p class="empty-hint">Todavía no armaste tu lista de categorías.</p>
+          }
+        </mat-list>
+
+        <div class="add-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre</mat-label>
+            <input matInput [ngModel]="categoryForm().name" (ngModelChange)="categoryForm.set({ name: $event })" />
+          </mat-form-field>
+          <button mat-flat-button color="primary" (click)="addCategory()">{{ editingCategoryId() ? 'Guardar cambios' : 'Agregar categoría' }}</button>
+          @if (editingCategoryId()) {
+            <button mat-button type="button" (click)="cancelEditCategory()">Cancelar</button>
+          }
+        </div>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Plantillas">
+      <div class="tab-panel">
+        <mat-list>
+          @for (template of templates(); track template.id) {
+            <mat-list-item>
+              <span matListItemTitle>{{ template.name }}</span>
+              <span matListItemLine>{{ template.body }}</span>
+              <button mat-icon-button matListItemMeta (click)="editTemplate(template)"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button matListItemMeta (click)="deleteTemplate(template.id)"><mat-icon>delete</mat-icon></button>
+            </mat-list-item>
+          }
+        </mat-list>
+        <div class="add-form template-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre</mat-label>
+            <input matInput [ngModel]="templateForm().name" (ngModelChange)="templateForm.set({ ...templateForm(), name: $event })" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Categoría</mat-label>
+            <input matInput [ngModel]="templateForm().category" (ngModelChange)="templateForm.set({ ...templateForm(), category: $event })" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="grow">
+            <mat-label>Mensaje (usá {{ '{{nombre}}' }} para el nombre del cliente)</mat-label>
+            <textarea matInput rows="2" [ngModel]="templateForm().body" (ngModelChange)="templateForm.set({ ...templateForm(), body: $event })"></textarea>
+          </mat-form-field>
+          <button mat-flat-button color="primary" (click)="addTemplate()">{{ editingTemplateId() ? 'Guardar cambios' : 'Agregar plantilla' }}</button>
+          @if (editingTemplateId()) {
+            <button mat-button type="button" (click)="cancelEditTemplate()">Cancelar</button>
+          }
+        </div>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Servicios">
+      <div class="tab-panel">
+        <p class="tab-hint">
+          Lo que vos vendés — página web, tarjeta de invitación, etc. Al convertir un cliente elegís acá el servicio,
+          y su precio actual queda copiado en el proyecto (si después cambiás el precio, no te reescribe ventas
+          viejas).
+        </p>
+
+        <mat-list>
+          @for (service of services(); track service.id) {
+            <mat-list-item>
+              <span matListItemTitle>{{ service.name }}</span>
+              <span matListItemLine>
+                @if (service.price) { {{ service.price | money }} }
+                @if (service.description) { · {{ service.description }} }
+              </span>
+              <button mat-icon-button matListItemMeta (click)="editService(service)"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button matListItemMeta (click)="deleteService(service.id)"><mat-icon>delete</mat-icon></button>
+            </mat-list-item>
+          } @empty {
+            <p class="empty-hint">Todavía no armaste tu catálogo de servicios.</p>
+          }
+        </mat-list>
+
+        <div class="add-form template-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Nombre</mat-label>
+            <input matInput [ngModel]="serviceForm().name" (ngModelChange)="serviceForm.set({ ...serviceForm(), name: $event })" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Precio</mat-label>
+            <span matTextPrefix>$&nbsp;</span>
+            <input
+              matInput
+              type="text"
+              inputmode="numeric"
+              moneyInput
+              [ngModel]="serviceForm().price"
+              (ngModelChange)="serviceForm.set({ ...serviceForm(), price: $event })"
+            />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="grow">
+            <mat-label>Descripción</mat-label>
+            <textarea matInput rows="2" [ngModel]="serviceForm().description" (ngModelChange)="serviceForm.set({ ...serviceForm(), description: $event })"></textarea>
+          </mat-form-field>
+          <button mat-flat-button color="primary" (click)="addService()">{{ editingServiceId() ? 'Guardar cambios' : 'Agregar servicio' }}</button>
+          @if (editingServiceId()) {
+            <button mat-button type="button" (click)="cancelEditService()">Cancelar</button>
+          }
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

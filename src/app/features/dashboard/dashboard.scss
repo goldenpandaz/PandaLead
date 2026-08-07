@@ -1,0 +1,102 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.dashboard-page {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+
+  h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    color: var(--gold-light);
+  }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
+}
+
+.stat-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 1.1rem 0.5rem;
+  text-align: center;
+
+  mat-icon {
+    color: var(--gold-base);
+  }
+
+  .stat-value {
+    font-family: var(--font-display);
+    font-size: 1.85rem;
+    font-weight: 600;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    opacity: 0.65;
+  }
+
+  &.success .stat-value {
+    color: #6fcf7a;
+  }
+
+  &.danger .stat-value {
+    color: #ff7a72;
+  }
+}
+
+.chart-card {
+  max-width: 640px;
+}
+
+.status-bar-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 32px;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  font-size: 0.85rem;
+}
+
+.status-bar-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-bar-track {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.status-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.status-bar-count {
+  text-align: right;
+  opacity: 0.65;
+}
+
+.empty-hint {
+  opacity: 0.55;
+  font-size: 0.875rem;
+}
