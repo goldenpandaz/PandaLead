@@ -1,0 +1,42 @@
+PandaLead — comandos de despliegue (Firebase Hosting)
+========================================================
+
+Proyecto de Firebase: pandalead-b2e09
+Config ya lista en el repo: firebase.json + .firebaserc (apuntan solos al proyecto correcto)
+
+--------------------------------------------------------
+1) UNA SOLA VEZ (por máquina) — login en Firebase
+--------------------------------------------------------
+npx firebase login
+
+Abre el navegador para iniciar sesión con la cuenta de Google que tiene
+acceso al proyecto pandalead-b2e09. Después de esto no hace falta repetirlo
+en esta máquina (queda guardado el token de sesión).
+
+--------------------------------------------------------
+2) CADA VEZ que quieras desplegar
+--------------------------------------------------------
+npm run build
+npx firebase deploy --only hosting
+
+- El primer comando compila la app (deja el resultado en dist/pandalead/browser).
+- El segundo sube ese resultado a Firebase Hosting.
+
+--------------------------------------------------------
+3) URL donde queda publicada la app
+--------------------------------------------------------
+https://pandalead-b2e09.web.app
+https://pandalead-b2e09.firebaseapp.com
+
+(Las dos apuntan al mismo sitio — Firebase da ambos dominios por defecto.
+ Si el día de mañana se conecta un dominio propio, ese pasa a ser el principal
+ pero estos dos siguen funcionando igual.)
+
+--------------------------------------------------------
+Notas
+--------------------------------------------------------
+- Nunca hace falta "firebase init" — ya está todo configurado (firebase.json / .firebaserc).
+- Si algún día cambia el nombre del proyecto en angular.json, hay que actualizar
+  el "public" de firebase.json para que apunte a la carpeta dist/ correcta.
+- Reglas de RTDB y Auth se manejan aparte, desde la consola de Firebase — este
+  despliegue es SOLO el frontend (HTML/CSS/JS), no toca datos ni reglas.

@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "prospector-crm": {
+    "pandalead": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
