@@ -1,0 +1,1 @@
+import{M as Fd}from"./chunk-C8wGf5gp.js";var t=class r{transform(e){return e==null?`—`:`$${e.toLocaleString(`es-CO`)}`}static ɵfac=function(i){return new(i||r)};static ɵpipe=Fd({name:`money`,type:r,pure:!0})};export{t};
