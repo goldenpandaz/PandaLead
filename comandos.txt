@@ -1,42 +1,55 @@
-PandaLead — comandos de despliegue (Firebase Hosting)
-========================================================
+PandaLead — comandos de despliegue (GitHub Pages, igual que miCartera)
+========================================================================
 
-Proyecto de Firebase: pandalead-b2e09
-Config ya lista en el repo: firebase.json + .firebaserc (apuntan solos al proyecto correcto)
-
---------------------------------------------------------
-1) UNA SOLA VEZ (por máquina) — login en Firebase
---------------------------------------------------------
-npx firebase login
-
-Abre el navegador para iniciar sesión con la cuenta de Google que tiene
-acceso al proyecto pandalead-b2e09. Después de esto no hace falta repetirlo
-en esta máquina (queda guardado el token de sesión).
+Repo: https://github.com/goldenpandaz/PandaLead
+Método: angular-cli-ghpages — compila y pushea el resultado a la rama
+"gh-pages" del repo, que GitHub sirve como sitio estático. Mismo mecanismo
+que usa miCartera (Kontrol-Cash) — no es Firebase Hosting.
 
 --------------------------------------------------------
-2) CADA VEZ que quieras desplegar
+0) UNA SOLA VEZ — instalar la dependencia nueva
 --------------------------------------------------------
-npm run build
-npx firebase deploy --only hosting
+npm install
 
-- El primer comando compila la app (deja el resultado en dist/pandalead/browser).
-- El segundo sube ese resultado a Firebase Hosting.
-
---------------------------------------------------------
-3) URL donde queda publicada la app
---------------------------------------------------------
-https://pandalead-b2e09.web.app
-https://pandalead-b2e09.firebaseapp.com
-
-(Las dos apuntan al mismo sitio — Firebase da ambos dominios por defecto.
- Si el día de mañana se conecta un dominio propio, ese pasa a ser el principal
- pero estos dos siguen funcionando igual.)
+(Ya está agregada en package.json — esto solo la baja a node_modules. Si ya
+corriste npm install después de que se agregó, no hace falta de nuevo.)
 
 --------------------------------------------------------
-Notas
+1) CADA VEZ que quieras desplegar
 --------------------------------------------------------
-- Nunca hace falta "firebase init" — ya está todo configurado (firebase.json / .firebaserc).
-- Si algún día cambia el nombre del proyecto en angular.json, hay que actualizar
-  el "public" de firebase.json para que apunte a la carpeta dist/ correcta.
-- Reglas de RTDB y Auth se manejan aparte, desde la consola de Firebase — este
-  despliegue es SOLO el frontend (HTML/CSS/JS), no toca datos ni reglas.
+npm run deploy:pages
+
+Este único comando hace 3 cosas en cadena:
+  1. Compila la app con --base-href=/PandaLead/ (necesario: GitHub Pages
+     sirve el sitio desde ese subpath, no desde la raíz del dominio).
+  2. Copia index.html a 404.html — truco necesario para que andar bien las
+     rutas de Angular (/dashboard, /settings, etc.) al recargar la página o
+     entrar directo por URL, porque GitHub Pages no tiene rewrites como
+     Firebase — sin esto, F5 en cualquier ruta que no sea la home tira 404.
+  3. Pushea dist/pandalead/browser a la rama gh-pages del repo.
+
+--------------------------------------------------------
+2) URL donde queda publicada la app
+--------------------------------------------------------
+https://goldenpandaz.github.io/PandaLead/
+
+(Puede tardar 1-2 minutos en propagarse la primera vez que se crea la rama
+ gh-pages. Verificalo también en GitHub → Settings → Pages del repo, que
+ diga "Your site is live at...".)
+
+--------------------------------------------------------
+Requisito de Node
+--------------------------------------------------------
+Angular 22 necesita Node 22.22.3+ / 24.15.0+ / 26+. Si `npm run` tira error
+de versión, en PowerShell:
+
+  nvm list
+  nvm use 24.19.0
+
+--------------------------------------------------------
+Firebase Hosting (queda configurado pero SIN USAR)
+--------------------------------------------------------
+firebase.json y .firebaserc siguen en el repo por si en algún momento se
+quiere usar Firebase Hosting en vez de / además de GitHub Pages, pero el
+despliegue real de PandaLead es por GitHub Pages (arriba). No hace falta
+tocar esos archivos para nada de lo de este documento.
