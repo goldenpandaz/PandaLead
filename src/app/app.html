@@ -56,6 +56,13 @@
 
       <span class="sidenav-spacer"></span>
 
+      @if (installPrompt.canInstall() && !collapsed()) {
+        <button mat-stroked-button type="button" class="install-btn" (click)="installPrompt.promptInstall()">
+          <mat-icon>install_mobile</mat-icon>
+          Instalar app
+        </button>
+      }
+
       <div class="account-card">
         @if (!collapsed()) {
           <span class="account-label">Cuenta</span>

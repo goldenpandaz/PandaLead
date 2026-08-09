@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { AuthService } from '../../../core/auth/auth.service';
+import { InstallPromptService } from '../../../core/pwa/install-prompt.service';
 
 /** "Confirmar contraseña" solo tiene sentido comparado contra el campo
  * `password` hermano — se lee vía `control.parent`, no queda atado al form
@@ -36,6 +37,7 @@ export class Login {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  protected readonly installPrompt = inject(InstallPromptService);
 
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);

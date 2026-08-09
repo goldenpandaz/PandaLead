@@ -132,6 +132,26 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
   }
 }
 
+// Fuera de `.brand-panel` a propósito — se usa tanto ahí (desktop) como
+// dentro de `.form-panel .mobile-only` (mobile), mismo look en los dos lados.
+.install-btn {
+  margin-top: 0.5rem;
+  color: var(--gold-light);
+  border-color: var(--gold-base);
+}
+
+.install-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  opacity: 0.6;
+  max-width: 240px;
+
+  strong {
+    color: var(--gold-mid);
+  }
+}
+
 .form-panel {
   flex: 1;
   display: flex;
@@ -145,6 +165,14 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
     max-width: 70%;
     margin: 0 auto 1.5rem;
     display: block;
+  }
+
+  // Genérica — cualquier otra cosa (no solo el logo) que solo deba verse en
+  // mobile, como el botón/aviso de instalar la app, usa esta misma clase.
+  .mobile-only {
+    display: block;
+    text-align: center;
+    margin-bottom: 1rem;
   }
 }
 
@@ -237,7 +265,8 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
     display: flex;
   }
 
-  .form-panel .brand-logo.mobile-only {
+  .form-panel .brand-logo.mobile-only,
+  .form-panel .mobile-only {
     display: none;
   }
 }

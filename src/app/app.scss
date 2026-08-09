@@ -191,6 +191,14 @@
   min-height: 0.5rem;
 }
 
+.install-btn {
+  position: relative;
+  z-index: 1;
+  margin: 0 0.5rem 0.5rem;
+  color: var(--gold-light);
+  border-color: var(--gold-base);
+}
+
 .account-card {
   position: relative;
   z-index: 1;

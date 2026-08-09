@@ -13,10 +13,34 @@
     <div class="brand-panel">
       <img src="brand/wordmark.png" alt="PandaLead" class="brand-logo" />
       <p class="tagline">Encontrá clientes, hacé seguimiento y cerrá la venta — todo en un solo lugar.</p>
+
+      @if (installPrompt.canInstall()) {
+        <button mat-stroked-button type="button" class="install-btn" (click)="installPrompt.promptInstall()">
+          <mat-icon>install_mobile</mat-icon>
+          Instalar app
+        </button>
+      } @else if (installPrompt.isIos && !installPrompt.isInstalled()) {
+        <p class="install-hint">
+          En iPhone/iPad: tocá <strong>Compartir</strong> en Safari → <strong>Agregar a inicio</strong>.
+        </p>
+      }
     </div>
 
     <div class="form-panel">
       <img src="brand/wordmark.png" alt="PandaLead" class="brand-logo mobile-only" />
+
+      <div class="mobile-only">
+        @if (installPrompt.canInstall()) {
+          <button mat-stroked-button type="button" class="install-btn" (click)="installPrompt.promptInstall()">
+            <mat-icon>install_mobile</mat-icon>
+            Instalar app
+          </button>
+        } @else if (installPrompt.isIos && !installPrompt.isInstalled()) {
+          <p class="install-hint">
+            Tocá <strong>Compartir</strong> en Safari → <strong>Agregar a inicio</strong> para instalarla.
+          </p>
+        }
+      </div>
 
       <h2 class="form-title">{{ mode() === 'login' ? 'Iniciá sesión' : 'Creá tu cuenta' }}</h2>
       <p class="form-subtitle">
