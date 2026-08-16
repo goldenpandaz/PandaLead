@@ -2,6 +2,26 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.3.
 
+## Environment Setup
+
+Before running the project, you must configure Firebase credentials:
+
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Get your Firebase API Key from [Firebase Console](https://console.firebase.google.com/):
+   - Go to Project Settings → Web API Key
+   - Copy the API key
+
+3. Set the environment variable in `.env`:
+   ```
+   FIREBASE_API_KEY=your_firebase_api_key_here
+   ```
+
+**IMPORTANT:** Never commit `.env` with real credentials. It is excluded by `.gitignore`. Only commit `.env.example`.
+
 ## Development server
 
 To start a local development server, run:

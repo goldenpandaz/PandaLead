@@ -20,6 +20,27 @@ function passwordsMatchValidator(control: AbstractControl): ValidationErrors | n
   return control.value === password ? null : { mismatch: true };
 }
 
+/** Validador de fortaleza de contraseña: mínimo 8 caracteres, 1 mayúscula, 1 número.
+ * Se aplica solo en modo registro. */
+function passwordStrengthValidator(control: AbstractControl): ValidationErrors | null {
+  if (!control.value) return null;
+
+  const password = control.value;
+  const errors: ValidationErrors = {};
+
+  if (password.length < 8) {
+    errors['minLength'] = { requiredLength: 8, actualLength: password.length };
+  }
+  if (!/[A-Z]/.test(password)) {
+    errors['uppercase'] = true;
+  }
+  if (!/[0-9]/.test(password)) {
+    errors['digit'] = true;
+  }
+
+  return Object.keys(errors).length > 0 ? errors : null;
+}
+
 @Component({
   selector: 'app-login',
   imports: [
@@ -46,7 +67,7 @@ export class Login {
   readonly form = this.fb.nonNullable.group({
     name: [''],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [Validators.required, Validators.minLength(8)]],
     confirmPassword: [''],
   });
 
@@ -78,12 +99,19 @@ export class Login {
   }
 
   /** Nombre y Confirmar contraseña solo son obligatorios en modo registro —
-   * en login no tiene sentido pedirlos (ni mostrarlos, ver el template). */
+   * en login no tiene sentido pedirlos (ni mostrarlos, ver el template).
+   * En registro, la contraseña requiere además fortaleza (8+ chars, 1 mayúscula, 1 número). */
   private applyValidatorsForMode(): void {
     const isRegister = this.mode() === 'register';
     this.form.controls.name.setValidators(isRegister ? [Validators.required] : []);
+    this.form.controls.password.setValidators(
+      isRegister
+        ? [Validators.required, Validators.minLength(8), passwordStrengthValidator]
+        : [Validators.required, Validators.minLength(8)]
+    );
     this.form.controls.confirmPassword.setValidators(isRegister ? [Validators.required, passwordsMatchValidator] : []);
     this.form.controls.name.updateValueAndValidity();
+    this.form.controls.password.updateValueAndValidity();
     this.form.controls.confirmPassword.updateValueAndValidity();
   }
 
@@ -94,11 +122,33 @@ export class Login {
   private async attempt(action: () => Promise<void>): Promise<void> {
     this.loading.set(true);
     this.errorMessage.set(null);
+
+    // Performance tracking: mark login start
+    performance.mark('login-start');
+
     try {
       await action();
+
+      // Performance tracking: mark login end
+      performance.mark('login-end');
+      performance.measure('login-duration', 'login-start', 'login-end');
+
+      // Log performance metrics
+      const loginMetrics = performance.getEntriesByName('login-duration');
+      if (loginMetrics.length > 0) {
+        const duration = loginMetrics[loginMetrics.length - 1].duration;
+        console.log(`Login completed in ${duration.toFixed(2)}ms`, {
+          duration,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
       await this.router.navigateByUrl('/prospects');
     } catch (error) {
       this.errorMessage.set(this.describeError(error));
+      // Mark login end even on error for error tracking
+      performance.mark('login-end');
+      performance.measure('login-duration', 'login-start', 'login-end');
     } finally {
       this.loading.set(false);
     }

@@ -280,3 +280,31 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
     padding: 2rem 1.25rem;
   }
 }
+
+// Indicador de requisitos de contraseña — se muestra en modo registro
+.password-requirements {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  margin-top: 0.5rem;
+
+  span {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+
+    &.valid {
+      opacity: 1;
+      color: var(--gold-mid);
+    }
+  }
+
+  .requirement-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}

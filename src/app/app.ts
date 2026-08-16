@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,6 +14,9 @@ import { InstallPromptService } from './core/pwa/install-prompt.service';
  * sidebar siempre está "side, opened", solo cambia de ancho), y pelear con el
  * posicionamiento interno de Material sin poder inspeccionarlo en vivo costó
  * más de lo que valía. Layout simple y 100% bajo control propio.
+ *
+ * El componente también inicia el monitor de inactividad (idle timeout) que
+ * desconecta automáticamente al usuario tras 30 minutos sin interacción.
  */
 @Component({
   selector: 'app-root',
@@ -21,7 +24,7 @@ import { InstallPromptService } from './core/pwa/install-prompt.service';
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {
+export class App implements OnInit, OnDestroy {
   protected readonly auth = inject(AuthService);
   // Inyectado acá (no solo donde se usa) a propósito — el constructor de este
   // servicio engancha el listener de `beforeinstallprompt`, y ese evento se
@@ -34,6 +37,28 @@ export class App {
   /** Solo tiene efecto en mobile (ver media query en app.scss) — el sidebar
    * ahí es un drawer superpuesto, no un panel que reduce el ancho vivible. */
   readonly mobileNavOpen = signal(false);
+
+  constructor() {
+    // Effect: cuando el usuario se autentica, inicia el idle timeout (30 minutos).
+    // Cuando se desautentica, detiene el timeout.
+    effect(() => {
+      const user = this.auth.currentUser();
+      if (user) {
+        this.auth.startIdleTimeout(30); // 30 minutos de inactividad
+      } else {
+        this.auth.stopIdleTimeout();
+      }
+    });
+  }
+
+  ngOnInit(): void {
+    // Placeholder para inicializaciones futuras si se necesitan
+  }
+
+  ngOnDestroy(): void {
+    // Limpiar el idle timeout cuando se destruye la app (por si acaso)
+    this.auth.stopIdleTimeout();
+  }
 
   toggleCollapsed(): void {
     this.collapsed.set(!this.collapsed());
@@ -53,6 +78,7 @@ export class App {
   }
 
   async logout(): Promise<void> {
+    this.auth.stopIdleTimeout();
     await this.auth.signOut();
     await this.router.navigateByUrl('/login');
   }

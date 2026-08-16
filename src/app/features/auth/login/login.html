@@ -74,8 +74,37 @@
             formControlName="password"
             [autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'"
           />
-          @if (form.controls.password.invalid && form.controls.password.touched) {
-            <mat-error>Mínimo 6 caracteres</mat-error>
+          @if (form.controls.password.touched && form.controls.password.hasError('required')) {
+            <mat-error>La contraseña es obligatoria</mat-error>
+          } @else if (form.controls.password.touched && form.controls.password.hasError('minLength')) {
+            <mat-error>Mínimo 8 caracteres</mat-error>
+          } @else if (form.controls.password.touched && form.controls.password.hasError('uppercase')) {
+            <mat-error>Debe contener al menos 1 mayúscula</mat-error>
+          } @else if (form.controls.password.touched && form.controls.password.hasError('digit')) {
+            <mat-error>Debe contener al menos 1 número</mat-error>
+          }
+
+          @if (mode() === 'register' && form.controls.password.value) {
+            <mat-hint class="password-requirements">
+              <span [class.valid]="form.controls.password.value.length >= 8">
+                <mat-icon class="requirement-icon">
+                  {{ form.controls.password.value.length >= 8 ? 'check_circle' : 'radio_button_unchecked' }}
+                </mat-icon>
+                8+ caracteres
+              </span>
+              <span [class.valid]="form.controls.password.value.match(/[A-Z]/)">
+                <mat-icon class="requirement-icon">
+                  {{ form.controls.password.value.match(/[A-Z]/) ? 'check_circle' : 'radio_button_unchecked' }}
+                </mat-icon>
+                1 mayúscula
+              </span>
+              <span [class.valid]="form.controls.password.value.match(/[0-9]/)">
+                <mat-icon class="requirement-icon">
+                  {{ form.controls.password.value.match(/[0-9]/) ? 'check_circle' : 'radio_button_unchecked' }}
+                </mat-icon>
+                1 número
+              </span>
+            </mat-hint>
           }
         </mat-form-field>
 

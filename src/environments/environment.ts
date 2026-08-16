@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
   firebase: {
-    apiKey: 'AIzaSyAqOJ4g5UoA4wiRq2SGwP0XSsAcVrywa38',
+    apiKey: process.env['FIREBASE_API_KEY'] || '',
     authDomain: 'pandalead-b2e09.firebaseapp.com',
     databaseURL: 'https://pandalead-b2e09-default-rtdb.firebaseio.com',
     projectId: 'pandalead-b2e09',
