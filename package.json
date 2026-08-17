@@ -7,7 +7,7 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "deploy:pages": "ng build --base-href=/PandaLead/ && node -e \"require('fs').copyFileSync('dist/pandalead/browser/index.html','dist/pandalead/browser/404.html')\" && npx angular-cli-ghpages --dir=dist/pandalead/browser",
+    "deploy:pages": "ng build --configuration production --base-href=/PandaLead/ && node -e \"require('fs').copyFileSync('dist/pandalead/browser/index.html','dist/pandalead/browser/404.html')\" && npx angular-cli-ghpages --dir=dist/pandalead/browser",
     "deploy:rules": "firebase deploy --only database"
   },
   "private": true,
