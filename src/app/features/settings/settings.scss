@@ -59,6 +59,12 @@
   .tab-hint {
     flex: 1;
   }
+
+  .toolbar-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
 }
 
 .import-feedback {

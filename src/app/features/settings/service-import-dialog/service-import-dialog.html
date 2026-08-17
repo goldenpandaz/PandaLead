@@ -1,0 +1,157 @@
+<h2 mat-dialog-title>Importar servicios</h2>
+
+<mat-dialog-content>
+  @if (step() === 'input') {
+    <div class="input-step">
+      <p class="step-hint">Pegá o subí una tabla/CSV con tus servicios (Nombre, Precio, Descripción).</p>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Tabla o CSV</mat-label>
+        <textarea
+          matInput
+          rows="8"
+          [ngModel]="rawText()"
+          (ngModelChange)="rawText.set($event)"
+          placeholder="Nombre,Precio,Descripción&#10;Página web,$1500,Sitio WordPress&#10;Logo,$300,"
+        ></textarea>
+      </mat-form-field>
+
+      <div class="file-upload">
+        <input
+          #fileInput
+          type="file"
+          accept=".csv,.txt"
+          (change)="onFileSelected($event)"
+          style="display: none"
+        />
+        <button mat-stroked-button type="button" (click)="fileInput.click()">
+          <mat-icon>upload_file</mat-icon>
+          Subir archivo CSV
+        </button>
+      </div>
+
+      @if (parseError()) {
+        <p class="error-message">
+          <mat-icon>error</mat-icon>
+          {{ parseError() }}
+        </p>
+      }
+    </div>
+  }
+
+  @if (step() === 'preview') {
+    <div class="preview-step">
+      <div class="import-summary">
+        <div class="chip fresh">{{ summaryStats().fresh }} nuevos</div>
+        <div class="chip conflict">{{ summaryStats().conflicts }} conflictos</div>
+        @if (summaryStats().incomplete) {
+          <div class="chip incomplete">{{ summaryStats().incomplete }} incompletos</div>
+        }
+      </div>
+
+      @if (fresh().length > 0) {
+        <div class="section">
+          <h3>Nuevos servicios</h3>
+          <mat-list>
+            @for (row of fresh(); track row.line) {
+              <mat-list-item>
+                <span matListItemTitle>{{ row.name }}</span>
+                <span matListItemLine>
+                  @if (row.price) {
+                    {{ row.price | currency : '$' : 'symbol' : '1.0-0' }}
+                  } @else {
+                    —
+                  }
+                  @if (row.description) {
+                    · {{ row.description }}
+                  }
+                </span>
+              </mat-list-item>
+            }
+          </mat-list>
+        </div>
+      }
+
+      @if (conflicts().length > 0) {
+        <div class="section">
+          <h3>Conflictos</h3>
+          <p class="section-hint">Estos servicios ya existen con ese nombre. Elegí si saltarlos o sobrescribir.</p>
+          @for (conflict of conflicts(); let i = $index; track conflict.name) {
+            <div class="conflict-group">
+              <div class="conflict-header">
+                <span class="conflict-name">{{ conflict.name }}</span>
+                <span class="conflict-line">Fila {{ conflict.line }}</span>
+              </div>
+              <div class="conflict-existing">
+                <strong>Existente:</strong>
+                @if (conflict.existingService?.price) {
+                  {{ conflict.existingService.price | currency : '$' : 'symbol' : '1.0-0' }}
+                } @else {
+                  —
+                }
+                @if (conflict.existingService?.description) {
+                  · {{ conflict.existingService.description }}
+                }
+              </div>
+              <div class="conflict-new">
+                <strong>Nuevo:</strong>
+                {{ conflict.importRow.price ? (conflict.importRow.price | currency : '$' : 'symbol' : '1.0-0') : '—' }}
+                @if (conflict.importRow.description) {
+                  · {{ conflict.importRow.description }}
+                }
+              </div>
+              <div class="conflict-actions">
+                <span class="extra-label">¿Qué hacemos?</span>
+                <button
+                  mat-button
+                  type="button"
+                  [class.active]="getResolution(i).action === 'skip'"
+                  (click)="setResolution(i, 'skip')"
+                >
+                  Saltear
+                </button>
+                <button
+                  mat-button
+                  type="button"
+                  [class.active]="getResolution(i).action === 'overwrite'"
+                  (click)="setResolution(i, 'overwrite')"
+                >
+                  Sobrescribir
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      @if (incomplete().length > 0) {
+        <div class="section incomplete-list">
+          <h3>Incompletos — se ignoran</h3>
+          @for (row of incomplete(); track row.line) {
+            <div class="incomplete-item">Fila {{ row.line }}: sin nombre o precio inválido</div>
+          }
+        </div>
+      }
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  @if (step() === 'input') {
+    <button mat-button type="button" (click)="cancel()">Cancelar</button>
+    <button mat-flat-button color="primary" (click)="parse()" [disabled]="!rawText().trim()">
+      <mat-icon>preview</mat-icon>
+      Ver previsualización
+    </button>
+  }
+
+  @if (step() === 'preview') {
+    <button mat-button type="button" (click)="back()" [disabled]="saving()">Volver</button>
+    <button mat-button type="button" (click)="cancel()" [disabled]="saving()">Cancelar</button>
+    <button mat-flat-button color="primary" (click)="confirm()" [disabled]="saving()">
+      @if (saving()) { <mat-icon matSpinner diameter="20"></mat-icon> }
+      @if (!saving()) { <mat-icon>check</mat-icon> }
+      Confirmar importación
+    </button>
+  }
+</mat-dialog-actions>

@@ -106,13 +106,29 @@
             Variables soportadas: <code>{{ '{{nombre}}' }}</code>, <code>{{ '{{telefono}}' }}</code>,
             <code>{{ '{{servicio}}' }}</code>, <code>{{ '{{precio}}' }}</code> y otras — se reemplazan solas al abrir WhatsApp.
           </p>
-          <button mat-stroked-button type="button" (click)="openImportDialog()">
-            <mat-icon>upload_file</mat-icon>
-            Importar plantillas
-          </button>
+          <div class="toolbar-actions">
+            <button mat-stroked-button type="button" (click)="openTemplateImportDialog()">
+              <mat-icon>upload_file</mat-icon>
+              Importar
+            </button>
+            <button mat-stroked-button type="button" [matMenuTriggerFor]="templatesExportMenu" [disabled]="!templates().length">
+              <mat-icon>download</mat-icon>
+              Exportar
+            </button>
+            <mat-menu #templatesExportMenu="matMenu">
+              <button mat-menu-item (click)="exportTemplates('csv')">
+                <mat-icon>table_chart</mat-icon>
+                <span>CSV</span>
+              </button>
+              <button mat-menu-item (click)="exportTemplates('xlsx')">
+                <mat-icon>file_download</mat-icon>
+                <span>Excel</span>
+              </button>
+            </mat-menu>
+          </div>
         </div>
 
-        @if (lastImportSummary(); as summary) {
+        @if (lastTemplateImportSummary(); as summary) {
           <p class="import-feedback">
             Importación lista: {{ summary.created }} nuevas, {{ summary.updated }} actualizadas
             @if (summary.discarded) {
@@ -162,11 +178,42 @@
 
     <mat-tab label="Servicios">
       <div class="tab-panel">
-        <p class="tab-hint">
-          Lo que vos vendés — página web, tarjeta de invitación, etc. Al convertir un cliente elegís acá el servicio,
-          y su precio actual queda copiado en el proyecto (si después cambiás el precio, no te reescribe ventas
-          viejas).
-        </p>
+        <div class="tab-toolbar">
+          <p class="tab-hint">
+            Lo que vos vendés — página web, tarjeta de invitación, etc. Al convertir un cliente elegís acá el servicio,
+            y su precio actual queda copiado en el proyecto (si después cambiás el precio, no te reescribe ventas
+            viejas).
+          </p>
+          <div class="toolbar-actions">
+            <button mat-stroked-button type="button" (click)="openServiceImportDialog()">
+              <mat-icon>upload_file</mat-icon>
+              Importar
+            </button>
+            <button mat-stroked-button type="button" [matMenuTriggerFor]="servicesExportMenu" [disabled]="!services().length">
+              <mat-icon>download</mat-icon>
+              Exportar
+            </button>
+            <mat-menu #servicesExportMenu="matMenu">
+              <button mat-menu-item (click)="exportServices('csv')">
+                <mat-icon>table_chart</mat-icon>
+                <span>CSV</span>
+              </button>
+              <button mat-menu-item (click)="exportServices('xlsx')">
+                <mat-icon>file_download</mat-icon>
+                <span>Excel</span>
+              </button>
+            </mat-menu>
+          </div>
+        </div>
+
+        @if (lastServiceImportSummary(); as summary) {
+          <p class="import-feedback">
+            Importación lista: {{ summary.created }} nuevos, {{ summary.duplicates }} actualizados
+            @if (summary.skipped) {
+              , {{ summary.skipped }} saltados
+            }.
+          </p>
+        }
 
         <mat-list>
           @for (service of services(); track service.id) {

@@ -8,17 +8,23 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
 import { ConfigRepository } from '../../data/repositories/config.repository';
 import { MoneyInputDirective } from '../../shared/directives/money-input.directive';
 import { MoneyPipe } from '../../shared/pipes/money.pipe';
 import { extractVariables, findUnknownVariables } from '../../shared/utils/template-fields.util';
+import { servicesToCsv } from '../../shared/utils/service-csv.util';
+import { templatesToCsv } from '../../shared/utils/template-csv.util';
+import { exportServicesToExcel, exportTemplatesToExcel } from '../../shared/utils/excel-export.util';
 import { StatusConfig } from '../../domain/models/status.model';
 import { MessageTemplate } from '../../domain/models/template.model';
 import { ServiceConfig } from '../../domain/models/service.model';
 import { CategoryConfig } from '../../domain/models/category.model';
 import { ImportSummary, TemplateImportDialog } from './template-import-dialog/template-import-dialog';
+import { ServiceImportDialog, ServiceImportSummary } from './service-import-dialog/service-import-dialog';
 
 const EMPTY_STATUS_FORM = { label: '', color: '#2196f3', order: 0, isWon: false, isLost: false, isFinal: false, requiresService: false };
 const EMPTY_TEMPLATE_FORM = { name: '', category: '', body: '' };
@@ -45,6 +51,8 @@ const EMPTY_CATEGORY_FORM = { name: '' };
     MatIconModule,
     MatInputModule,
     MatListModule,
+    MatMenuModule,
+    MatSnackBarModule,
     MatTabsModule,
     MoneyInputDirective,
     MoneyPipe,
@@ -55,6 +63,7 @@ const EMPTY_CATEGORY_FORM = { name: '' };
 export class Settings {
   private readonly configRepo = inject(ConfigRepository);
   private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
 
   readonly statuses = toSignal(this.configRepo.watchStatuses(), { initialValue: [] as StatusConfig[] });
   readonly templates = toSignal(this.configRepo.watchTemplates(), { initialValue: [] as MessageTemplate[] });
@@ -76,7 +85,8 @@ export class Settings {
    * recién cuando el mensaje ya salió con las llaves literales adentro. */
   readonly templateUnknownVariables = computed(() => findUnknownVariables(this.templateForm().body));
 
-  readonly lastImportSummary = signal<ImportSummary | null>(null);
+  readonly lastTemplateImportSummary = signal<ImportSummary | null>(null);
+  readonly lastServiceImportSummary = signal<ServiceImportSummary | null>(null);
 
   // --- Estados ---
 
@@ -144,13 +154,76 @@ export class Settings {
     await this.configRepo.deleteTemplate(id);
   }
 
-  openImportDialog(): void {
+  openTemplateImportDialog(): void {
     this.dialog
       .open<TemplateImportDialog, void, ImportSummary | undefined>(TemplateImportDialog, { width: '620px', maxWidth: '95vw' })
       .afterClosed()
       .subscribe((summary) => {
-        if (summary) this.lastImportSummary.set(summary);
+        if (summary) {
+          this.lastTemplateImportSummary.set(summary);
+          this.snackBar.open('Plantillas importadas correctamente', 'Cerrar', { duration: 3000 });
+        }
       });
+  }
+
+  openServiceImportDialog(): void {
+    this.dialog
+      .open<ServiceImportDialog, void, ServiceImportSummary | undefined>(ServiceImportDialog, { width: '620px', maxWidth: '95vw' })
+      .afterClosed()
+      .subscribe((summary) => {
+        if (summary) {
+          this.lastServiceImportSummary.set(summary);
+          this.snackBar.open('Servicios importados correctamente', 'Cerrar', { duration: 3000 });
+        }
+      });
+  }
+
+  exportTemplates(format: 'csv' | 'xlsx' = 'csv'): void {
+    const templates = this.templates();
+    if (templates.length === 0) return;
+
+    if (format === 'xlsx') {
+      exportTemplatesToExcel(templates, `plantillas-${this.getFormattedDate()}.xlsx`);
+    } else {
+      const csv = templatesToCsv(templates);
+      this.downloadCsv(csv, `plantillas-${this.getFormattedDate()}.csv`);
+    }
+
+    this.snackBar.open(`Plantillas exportadas como ${format.toUpperCase()}`, 'Cerrar', { duration: 2000 });
+  }
+
+  exportServices(format: 'csv' | 'xlsx' = 'csv'): void {
+    const services = this.services();
+    if (services.length === 0) return;
+
+    if (format === 'xlsx') {
+      exportServicesToExcel(services, `servicios-${this.getFormattedDate()}.xlsx`);
+    } else {
+      const csv = servicesToCsv(services);
+      this.downloadCsv(csv, `servicios-${this.getFormattedDate()}.csv`);
+    }
+
+    this.snackBar.open(`Servicios exportados como ${format.toUpperCase()}`, 'Cerrar', { duration: 2000 });
+  }
+
+  private downloadCsv(csv: string, filename: string): void {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  private getFormattedDate(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
   }
 
   // --- Servicios ---

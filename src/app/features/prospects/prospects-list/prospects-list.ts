@@ -39,6 +39,8 @@ import { StatusConfig } from '../../../domain/models/status.model';
 import { CategoryConfig } from '../../../domain/models/category.model';
 import { ServiceConfig } from '../../../domain/models/service.model';
 import { CaptureSource } from '../../../domain/enums/capture-source.enum';
+import { prospectsToCsv, prospectsToMarkdown } from '../../../shared/utils/prospect-export.util';
+import { exportProspectsToExcel } from '../../../shared/utils/excel-export.util';
 
 /** Vista rápida para el día a día: lo mínimo para reconocer, contactar y
  * mover de estado un prospecto sin abrir la ficha. Sin "Creado" acá — no
@@ -473,5 +475,42 @@ export class ProspectsList {
 
     // Toast de confirmación
     this.snackBar.open(`${count} cliente${count !== 1 ? 's' : ''} eliminado${count !== 1 ? 's' : ''} correctamente.`, 'Cerrar', { duration: 3000 });
+  }
+
+  exportProspects(format: 'csv' | 'md' | 'xlsx'): void {
+    const data = this.filtered();
+    if (data.length === 0) return;
+
+    const filename = `clientes-${this.getFormattedDate()}`;
+
+    if (format === 'xlsx') {
+      exportProspectsToExcel(data, this.statuses(), `${filename}.xlsx`);
+    } else {
+      const content = format === 'csv' ? prospectsToCsv(data, this.statuses()) : prospectsToMarkdown(data, this.statuses());
+      const ext = format === 'csv' ? 'csv' : 'md';
+      this.downloadFile(content, `${filename}.${ext}`, format === 'csv' ? 'text/csv;charset=utf-8;' : 'text/markdown;charset=utf-8;');
+    }
+
+    this.snackBar.open(`Exportados ${data.length} cliente${data.length !== 1 ? 's' : ''} como ${format.toUpperCase()}`, 'Cerrar', { duration: 3000 });
+  }
+
+  private getFormattedDate(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+  }
+
+  private downloadFile(content: string, filename: string, mimeType: string): void {
+    const blob = new Blob([content], { type: mimeType });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 }
