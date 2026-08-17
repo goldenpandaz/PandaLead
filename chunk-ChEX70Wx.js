@@ -1,0 +1,1 @@
+import{ut as Rl}from"./chunk-DccdDA0k.js";var t=class r{transform(e){return e==null?`—`:`$${e.toLocaleString(`es-CO`)}`}static ɵfac=function(i){return new(i||r)};static ɵpipe=Rl({name:`money`,type:r,pure:!0})};export{t};
