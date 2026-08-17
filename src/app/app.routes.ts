@@ -1,10 +1,11 @@
 import { Routes } from '@angular/router';
 
-import { authGuard } from './core/auth/auth.guard';
+import { authGuard, redirectIfAuthenticatedGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
   {
     path: 'login',
+    canActivate: [redirectIfAuthenticatedGuard],
     loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
   },
   {

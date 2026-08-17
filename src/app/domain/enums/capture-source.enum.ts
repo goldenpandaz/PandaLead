@@ -9,5 +9,6 @@ export enum CaptureSource {
   TikTok = 'tiktok',
   YouTube = 'youtube',
   LinkedIn = 'linkedin',
+  Import = 'import',
   Other = 'other',
 }

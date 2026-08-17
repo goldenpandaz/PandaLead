@@ -17,11 +17,13 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 
 import { ProspectCapture, ProspectCaptureData } from '../prospect-capture/prospect-capture';
+import { ProspectImportDialog } from '../prospect-import-dialog/prospect-import-dialog';
 import { WhatsappTemplatePicker } from '../whatsapp/whatsapp-template-picker/whatsapp-template-picker';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { ConfirmDialog, ConfirmDialogData } from '../../../shared/dialogs/confirm-dialog/confirm-dialog';
@@ -93,6 +95,7 @@ const COLUMNS_STORAGE_KEY = 'pandalead.prospects.visibleColumns';
     MatMenuModule,
     MatBadgeModule,
     MatDialogModule,
+    MatSnackBarModule,
     FormsModule,
     DatePipe,
   ],
@@ -107,6 +110,7 @@ export class ProspectsList {
   private readonly dialog = inject(MatDialog);
   private readonly whatsapp = inject(WhatsappService);
   private readonly router = inject(Router);
+  private readonly snackBar = inject(MatSnackBar);
 
   private readonly sort = viewChild.required(MatSort);
   private readonly paginator = viewChild.required(MatPaginator);
@@ -249,6 +253,33 @@ export class ProspectsList {
       autoFocus: false,
       data: { skipCapture: true },
     });
+  }
+
+  openImport(): void {
+    this.dialog
+      .open<ProspectImportDialog>(ProspectImportDialog, {
+        width: '90vw',
+        maxWidth: '800px',
+        autoFocus: false,
+      })
+      .afterClosed()
+      .subscribe((summary) => {
+        if (!summary) return;
+
+        const parts: string[] = [];
+        if (summary.created > 0) {
+          parts.push(`${summary.created} nuevo${summary.created !== 1 ? 's' : ''}`);
+        }
+        if (summary.duplicates > 0) {
+          parts.push(`${summary.duplicates} actualizado${summary.duplicates !== 1 ? 's' : ''}`);
+        }
+        if (summary.skipped > 0) {
+          parts.push(`${summary.skipped} omitido${summary.skipped !== 1 ? 's' : ''}`);
+        }
+
+        const message = parts.length > 0 ? parts.join(', ') + ' — importación completada.' : 'Importación completada.';
+        this.snackBar.open(message, 'Cerrar', { duration: 5000 });
+      });
   }
 
   statusOf(prospect: Prospect): StatusConfig | undefined {
@@ -418,5 +449,29 @@ export class ProspectsList {
     });
     if (!confirmed) return;
     await this.prospectRepo.delete(prospect.id);
+  }
+
+  async deleteSelectedBatch(): Promise<void> {
+    const count = this.selection.selected.length;
+    if (count === 0) return;
+
+    const confirmed = await this.confirmDialog({
+      title: `¿Eliminar ${count} cliente${count !== 1 ? 's' : ''}?`,
+      message: `Se borra${count !== 1 ? 'n' : ''} ${count} cliente${count !== 1 ? 's' : ''} para siempre — esta acción no se puede deshacer.`,
+      confirmLabel: 'Eliminar',
+      icon: 'delete',
+      danger: true,
+    });
+    if (!confirmed) return;
+
+    // Eliminar en paralelo
+    const prospectIds = this.selection.selected.map((p) => p.id);
+    await Promise.all(prospectIds.map((id) => this.prospectRepo.delete(id)));
+
+    // Limpiar selección
+    this.selection.clear();
+
+    // Toast de confirmación
+    this.snackBar.open(`${count} cliente${count !== 1 ? 's' : ''} eliminado${count !== 1 ? 's' : ''} correctamente.`, 'Cerrar', { duration: 3000 });
   }
 }

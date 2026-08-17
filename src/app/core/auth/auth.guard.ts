@@ -20,3 +20,18 @@ export const authGuard: CanActivateFn = () => {
     map(() => (authService.isAuthenticated() ? true : router.parseUrl('/login'))),
   );
 };
+
+/**
+ * Guard inverso: redirecciona a /prospects si el usuario ya está autenticado.
+ * Se usa en la ruta de login para evitar que usuarios autenticados vean el formulario.
+ */
+export const redirectIfAuthenticatedGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  return toObservable(authService.authReady).pipe(
+    filter((ready) => ready),
+    take(1),
+    map(() => (authService.isAuthenticated() ? router.parseUrl('/prospects') : true)),
+  );
+};

@@ -94,11 +94,25 @@
 
     @if (selection.selected.length > 0) {
       <span class="selection-count">{{ selection.selected.length }} seleccionados</span>
+      <button
+        mat-stroked-button
+        class="delete-selected-btn"
+        (click)="deleteSelectedBatch()"
+        matTooltip="Eliminar todos los seleccionados"
+      >
+        <mat-icon>delete_sweep</mat-icon>
+        Eliminar
+      </button>
     }
 
     <button mat-stroked-button class="new-client-btn" (click)="openNewClient()">
       <mat-icon>handshake</mat-icon>
       Nuevo cliente
+    </button>
+
+    <button mat-stroked-button class="import-btn" (click)="openImport()">
+      <mat-icon>file_upload</mat-icon>
+      Importar clientes
     </button>
 
     <button mat-flat-button color="primary" class="new-prospect-btn" (click)="openCapture()">

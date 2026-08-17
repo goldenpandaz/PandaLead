@@ -1,0 +1,126 @@
+<h2 mat-dialog-title>Importar clientes</h2>
+
+<mat-dialog-content class="import-content">
+  @if (step() === 'input') {
+    <p class="hint">
+      Pegá la tabla (<code>Nombre | Teléfono | Categoría | etc</code>, en markdown o CSV) o subí un archivo <code>.csv</code>/<code>.md</code>.
+      Se buscan automáticamente: <code>Nombre negocio</code>, <code>Teléfono</code>, <code>Categoría</code>, <code>Localidad</code>,
+      <code>Estado</code>, <code>Notas</code>.
+    </p>
+
+    <mat-form-field appearance="outline" class="grow">
+      <mat-label>Pegá la tabla acá</mat-label>
+      <textarea matInput rows="12" [ngModel]="rawText()" (ngModelChange)="rawText.set($event)"></textarea>
+    </mat-form-field>
+
+    <button mat-stroked-button type="button" (click)="fileInput.click()">
+      <mat-icon>upload_file</mat-icon>
+      Subir archivo .csv/.md
+    </button>
+    <input #fileInput type="file" accept=".md,.csv,text/markdown,text/csv" hidden (change)="onFileSelected($event)" />
+
+    @if (parseError()) {
+      <p class="parse-error"><mat-icon>error_outline</mat-icon> {{ parseError() }}</p>
+    }
+  }
+
+  @if (step() === 'preview') {
+    <div class="import-summary">
+      <span class="chip fresh">{{ summaryStats().fresh }} nuevos</span>
+      @if (summaryStats().conflicts) {
+        <span class="chip conflict">{{ summaryStats().conflicts }} duplicados</span>
+      }
+      @if (summaryStats().incomplete) {
+        <span class="chip incomplete">{{ summaryStats().incomplete }} incompletos</span>
+      }
+    </div>
+
+    @if (summaryStats().fresh) {
+      <h3>Se van a crear</h3>
+      <mat-list class="fresh-list">
+        @for (row of fresh(); track row.line) {
+          <mat-list-item class="fresh-item">
+            <strong matListItemTitle>{{ row.name }}</strong>
+            <span matListItemLine>{{ row.phone || '–' }} • {{ row.category || '–' }} • {{ row.locality || '–' }} • {{ row.state || '–' }}</span>
+            @if (row.notes) {
+              <span matListItemLine class="notes">{{ (row.notes | slice : 0 : 80) }}</span>
+            }
+          </mat-list-item>
+        }
+      </mat-list>
+    }
+
+    @if (summaryStats().conflicts) {
+      <h3>Duplicados — mismo nombre + teléfono</h3>
+      @for (group of conflicts(); track group.line; let gi = $index) {
+        <div class="conflict-group">
+          <strong>{{ group.name }} / {{ group.phone }}</strong>
+          <p class="hint">Este cliente ya existe. ¿Qué hacemos?</p>
+
+          <label class="candidate">
+            <input
+              type="radio"
+              [name]="'keeper-' + gi"
+              [checked]="getResolution(gi).keeper === 'existing'"
+              (change)="setResolution(gi, 'existing')"
+            />
+            <span><strong>Mantener el existente</strong> — no cambiar nada</span>
+          </label>
+
+          <label class="candidate">
+            <input
+              type="radio"
+              [name]="'keeper-' + gi"
+              [checked]="getResolution(gi).keeper === 'new'"
+              (change)="setResolution(gi, 'new')"
+            />
+            <span><strong>Actualizar con datos nuevos</strong> — fila {{ group.line }} del pegado</span>
+          </label>
+
+          @if (getResolution(gi).keeper === 'new') {
+            <div class="extra-action">
+              <span class="extra-label">¿Qué hacer?</span>
+              <button
+                mat-button
+                type="button"
+                [class.active]="getResolution(gi).action?.action === 'skip'"
+                (click)="setDuplicateAction(gi, 'skip')"
+              >
+                Descartar (ignorar fila)
+              </button>
+              <button
+                mat-button
+                type="button"
+                [class.active]="getResolution(gi).action?.action === 'overwrite'"
+                (click)="setDuplicateAction(gi, 'overwrite')"
+              >
+                Sobrescribir (actualizar cliente)
+              </button>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    @if (summaryStats().incomplete) {
+      <h3>Sin datos requeridos</h3>
+      <div class="incomplete-list">
+        @for (row of incomplete(); track row.line) {
+          <p class="incomplete-item"><strong>Fila {{ row.line }}:</strong> Faltan datos obligatorios (nombre y/o teléfono válido)</p>
+        }
+      </div>
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (step() === 'input') {
+    <button mat-button type="button" (click)="cancel()">Cancelar</button>
+    <button mat-flat-button color="primary" type="button" [disabled]="!rawText().trim()" (click)="parse()">Previsualizar</button>
+  } @else {
+    <button mat-button type="button" (click)="back()">Volver</button>
+    <button mat-flat-button color="primary" type="button" [disabled]="saving()" (click)="confirm()">
+      {{ saving() ? 'Importando…' : 'Confirmar importación' }}
+    </button>
+  }
+</mat-dialog-actions>
