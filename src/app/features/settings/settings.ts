@@ -1,8 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -12,10 +13,12 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { ConfigRepository } from '../../data/repositories/config.repository';
 import { MoneyInputDirective } from '../../shared/directives/money-input.directive';
 import { MoneyPipe } from '../../shared/pipes/money.pipe';
+import { extractVariables, findUnknownVariables } from '../../shared/utils/template-fields.util';
 import { StatusConfig } from '../../domain/models/status.model';
 import { MessageTemplate } from '../../domain/models/template.model';
 import { ServiceConfig } from '../../domain/models/service.model';
 import { CategoryConfig } from '../../domain/models/category.model';
+import { ImportSummary, TemplateImportDialog } from './template-import-dialog/template-import-dialog';
 
 const EMPTY_STATUS_FORM = { label: '', color: '#2196f3', order: 0, isWon: false, isLost: false, isFinal: false, requiresService: false };
 const EMPTY_TEMPLATE_FORM = { name: '', category: '', body: '' };
@@ -37,6 +40,7 @@ const EMPTY_CATEGORY_FORM = { name: '' };
     FormsModule,
     MatButtonModule,
     MatCheckboxModule,
+    MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -50,6 +54,7 @@ const EMPTY_CATEGORY_FORM = { name: '' };
 })
 export class Settings {
   private readonly configRepo = inject(ConfigRepository);
+  private readonly dialog = inject(MatDialog);
 
   readonly statuses = toSignal(this.configRepo.watchStatuses(), { initialValue: [] as StatusConfig[] });
   readonly templates = toSignal(this.configRepo.watchTemplates(), { initialValue: [] as MessageTemplate[] });
@@ -65,6 +70,13 @@ export class Settings {
   readonly editingTemplateId = signal<string | null>(null);
   readonly editingServiceId = signal<string | null>(null);
   readonly editingCategoryId = signal<string | null>(null);
+
+  /** `{{...}}` en el mensaje que se está cargando a mano que no matchean ningún
+   * campo soportado — mismo chequeo que la importación masiva, para no enterarse
+   * recién cuando el mensaje ya salió con las llaves literales adentro. */
+  readonly templateUnknownVariables = computed(() => findUnknownVariables(this.templateForm().body));
+
+  readonly lastImportSummary = signal<ImportSummary | null>(null);
 
   // --- Estados ---
 
@@ -120,7 +132,7 @@ export class Settings {
   async addTemplate(): Promise<void> {
     const value = this.templateForm();
     if (!value.name.trim() || !value.body.trim()) return;
-    const variables = [...value.body.matchAll(/\{\{\s*(\w+)\s*\}\}/g)].map((m) => m[1]);
+    const variables = extractVariables(value.body);
     await this.configRepo.saveTemplate({ ...value, variables, id: this.editingTemplateId() ?? undefined });
     this.templateForm.set({ ...EMPTY_TEMPLATE_FORM });
     this.editingTemplateId.set(null);
@@ -130,6 +142,15 @@ export class Settings {
     if (!confirm('¿Eliminar esta plantilla?')) return;
     if (this.editingTemplateId() === id) this.cancelEditTemplate();
     await this.configRepo.deleteTemplate(id);
+  }
+
+  openImportDialog(): void {
+    this.dialog
+      .open<TemplateImportDialog, void, ImportSummary | undefined>(TemplateImportDialog, { width: '620px', maxWidth: '95vw' })
+      .afterClosed()
+      .subscribe((summary) => {
+        if (summary) this.lastImportSummary.set(summary);
+      });
   }
 
   // --- Servicios ---

@@ -101,6 +101,26 @@
 
     <mat-tab label="Plantillas">
       <div class="tab-panel">
+        <div class="tab-toolbar">
+          <p class="tab-hint">
+            Variables soportadas: <code>{{ '{{nombre}}' }}</code>, <code>{{ '{{telefono}}' }}</code>,
+            <code>{{ '{{servicio}}' }}</code>, <code>{{ '{{precio}}' }}</code> y otras — se reemplazan solas al abrir WhatsApp.
+          </p>
+          <button mat-stroked-button type="button" (click)="openImportDialog()">
+            <mat-icon>upload_file</mat-icon>
+            Importar plantillas
+          </button>
+        </div>
+
+        @if (lastImportSummary(); as summary) {
+          <p class="import-feedback">
+            Importación lista: {{ summary.created }} nuevas, {{ summary.updated }} actualizadas
+            @if (summary.discarded) {
+              , {{ summary.discarded }} descartadas
+            }.
+          </p>
+        }
+
         <mat-list>
           @for (template of templates(); track template.id) {
             <mat-list-item>
@@ -124,6 +144,14 @@
             <mat-label>Mensaje (usá {{ '{{nombre}}' }} para el nombre del cliente)</mat-label>
             <textarea matInput rows="2" [ngModel]="templateForm().body" (ngModelChange)="templateForm.set({ ...templateForm(), body: $event })"></textarea>
           </mat-form-field>
+          @if (templateUnknownVariables().length) {
+            <p class="var-warning">
+              <mat-icon>warning</mat-icon>
+              {{ '{{' }}{{ templateUnknownVariables().join('}}, {{') }}{{ '}}' }} no
+              {{ templateUnknownVariables().length > 1 ? 'son campos reconocidos' : 'es un campo reconocido' }} — se va a
+              guardar tal cual, sin reemplazar.
+            </p>
+          }
           <button mat-flat-button color="primary" (click)="addTemplate()">{{ editingTemplateId() ? 'Guardar cambios' : 'Agregar plantilla' }}</button>
           @if (editingTemplateId()) {
             <button mat-button type="button" (click)="cancelEditTemplate()">Cancelar</button>

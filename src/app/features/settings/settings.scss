@@ -40,6 +40,48 @@
     color: var(--gold-light);
     font-weight: 600;
   }
+
+  code {
+    background: color-mix(in srgb, var(--gold-base) 12%, transparent);
+    color: var(--gold-light);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    font-size: 0.85em;
+  }
+}
+
+.tab-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+
+  .tab-hint {
+    flex: 1;
+  }
+}
+
+.import-feedback {
+  font-size: 0.85rem;
+  color: #81c784;
+  margin: -0.25rem 0 0;
+}
+
+.var-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin: -0.25rem 0 0;
+  font-size: 0.8rem;
+  color: #ffb74d;
+  width: 100%;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-top: 0.1em;
+  }
 }
 
 .tab-panel {

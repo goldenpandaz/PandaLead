@@ -3,9 +3,11 @@ import { Injectable, inject } from '@angular/core';
 import { HistoryEventType } from '../../../domain/enums/history-event-type.enum';
 import { MessageTemplate } from '../../../domain/models/template.model';
 import { Prospect } from '../../../domain/models/prospect.model';
+import { Project } from '../../../domain/models/project.model';
 import { HistoryRepository } from '../../../data/repositories/history.repository';
 import { ProspectRepository } from '../../../data/repositories/prospect.repository';
 import { normalizePhone } from '../../../shared/utils/normalize.util';
+import { interpolateTemplate } from '../../../shared/utils/template-fields.util';
 
 /**
  * NUNCA automatiza envíos ni usa librerías no oficiales — solo arma el link de
@@ -17,15 +19,17 @@ export class WhatsappService {
   private readonly history = inject(HistoryRepository);
   private readonly prospectRepo = inject(ProspectRepository);
 
-  interpolate(template: MessageTemplate, prospect: Prospect): string {
-    return template.body.replace(/\{\{\s*nombre\s*\}\}/gi, prospect.name);
+  /** `project` es opcional porque no todo prospecto tiene uno todavía — variables
+   * como `{{servicio}}` simplemente quedan literales si no hay proyecto. */
+  interpolate(template: MessageTemplate, prospect: Prospect, project: Project | null = null): string {
+    return interpolateTemplate(template.body, prospect, project);
   }
 
-  async openWithTemplate(prospect: Prospect, template: MessageTemplate | null): Promise<void> {
+  async openWithTemplate(prospect: Prospect, template: MessageTemplate | null, project: Project | null = null): Promise<void> {
     const number = normalizePhone(prospect.phone ?? '');
     if (!number) return;
 
-    const message = template ? this.interpolate(template, prospect) : '';
+    const message = template ? this.interpolate(template, prospect, project) : '';
     const url = message ? `https://wa.me/${number}?text=${encodeURIComponent(message)}` : `https://wa.me/${number}`;
     window.open(url, '_blank', 'noopener');
 

@@ -344,7 +344,7 @@ export class ProspectDetail {
       .afterClosed()
       .subscribe((template) => {
         if (template === undefined) return;
-        void this.whatsapp.openWithTemplate(prospect, template);
+        void this.whatsapp.openWithTemplate(prospect, template, this.projects()[0] ?? null);
       });
   }
 

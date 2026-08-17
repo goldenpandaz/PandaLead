@@ -116,7 +116,8 @@
             "$templateId": {
               "name": { ".validate": "newData.isString() && newData.val().length > 0" },
               "category": { ".validate": "newData.isString()" },
-              "body": { ".validate": "newData.isString()" }
+              "body": { ".validate": "newData.isString()" },
+              "shortcut": { ".validate": "newData.isString()" }
             }
           },
 

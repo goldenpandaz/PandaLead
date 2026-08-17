@@ -1,0 +1,113 @@
+<h2 mat-dialog-title>Importar plantillas</h2>
+
+<mat-dialog-content class="import-content">
+  @if (step() === 'input') {
+    <p class="hint">
+      Pegá la tabla (<code>Atajo | Momento | Mensaje</code>, en markdown o CSV) o subí un archivo <code>.md</code>/<code>.csv</code>.
+      "Momento" se usa como nombre de la plantilla, "Mensaje" como contenido.
+    </p>
+
+    <mat-form-field appearance="outline" class="grow">
+      <mat-label>Categoría para este lote (opcional)</mat-label>
+      <input matInput [ngModel]="batchCategory()" (ngModelChange)="batchCategory.set($event)" placeholder="Ej: Objeciones" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="grow">
+      <mat-label>Pegá la tabla acá</mat-label>
+      <textarea matInput rows="12" [ngModel]="rawText()" (ngModelChange)="rawText.set($event)"></textarea>
+    </mat-form-field>
+
+    <button mat-stroked-button type="button" (click)="fileInput.click()">
+      <mat-icon>upload_file</mat-icon>
+      Subir archivo .md/.csv
+    </button>
+    <input #fileInput type="file" accept=".md,.csv,text/markdown,text/csv" hidden (change)="onFileSelected($event)" />
+
+    @if (parseError()) {
+      <p class="parse-error"><mat-icon>error_outline</mat-icon> {{ parseError() }}</p>
+    }
+  }
+
+  @if (step() === 'preview' && plan(); as p) {
+    <div class="import-summary">
+      <span class="chip fresh">{{ p.fresh.length }} nuevas</span>
+      <span class="chip unchanged">{{ p.unchanged.length }} sin cambios</span>
+      @if (p.conflicts.length) {
+        <span class="chip conflict">{{ p.conflicts.length }} para revisar</span>
+      }
+    </div>
+
+    @if (p.fresh.length) {
+      <h3>Se van a crear</h3>
+      <mat-list>
+        @for (row of p.fresh; track row.line) {
+          <mat-list-item>
+            <span matListItemTitle>{{ row.name }}</span>
+            <span matListItemLine>{{ row.body }}</span>
+          </mat-list-item>
+          @if (unknownVariablesFor(row.body).length) {
+            <p class="var-warning">
+              <mat-icon>warning</mat-icon>
+              Usa {{ '{{' }}{{ unknownVariablesFor(row.body).join('}}, {{') }}{{ '}}' }}, que no
+              {{ unknownVariablesFor(row.body).length > 1 ? 'son campos reconocidos' : 'es un campo reconocido' }} — revisala.
+            </p>
+          }
+        }
+      </mat-list>
+    }
+
+    @if (p.conflicts.length) {
+      <h3>Conflictos — el mismo nombre con mensajes distintos</h3>
+      @for (group of p.conflicts; track group.name; let gi = $index) {
+        <div class="conflict-group">
+          <strong>{{ group.name }}</strong>
+          <p class="hint">Elegí qué versión se guarda con este nombre.</p>
+
+          @if (group.existing; as existing) {
+            <label class="candidate">
+              <input type="radio" [name]="'keeper-' + gi" [checked]="isKeeper(gi, 'existing')" (change)="setKeeper(gi, 'existing')" />
+              <span><strong>La actual</strong> (ya guardada) — {{ existing.body }}</span>
+            </label>
+          }
+
+          @for (version of group.importVersions; track version.line; let vi = $index) {
+            <label class="candidate">
+              <input type="radio" [name]="'keeper-' + gi" [checked]="isKeeper(gi, vi)" (change)="setKeeper(gi, vi)" />
+              <span><strong>Fila {{ version.line }}</strong> del pegado — {{ version.body }}</span>
+            </label>
+
+            @if (!isKeeper(gi, vi)) {
+              <div class="extra-action">
+                <span class="extra-label">Esta otra versión (fila {{ version.line }}):</span>
+                <button mat-button type="button" [class.active]="extraActionOf(gi, vi) === 'discard'" (click)="setExtraAction(gi, vi, 'discard')">
+                  Descartar
+                </button>
+                <button mat-button type="button" [class.active]="extraActionOf(gi, vi) === 'rename'" (click)="setExtraAction(gi, vi, 'rename')">
+                  Guardar aparte
+                </button>
+                @if (extraActionOf(gi, vi) === 'rename') {
+                  <mat-form-field appearance="outline" class="rename-field">
+                    <mat-label>Nuevo nombre</mat-label>
+                    <input matInput [ngModel]="extraNameOf(gi, vi)" (ngModelChange)="setExtraName(gi, vi, $event)" />
+                  </mat-form-field>
+                }
+              </div>
+            }
+          }
+        </div>
+      }
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (step() === 'input') {
+    <button mat-button type="button" (click)="cancel()">Cancelar</button>
+    <button mat-flat-button color="primary" type="button" [disabled]="!rawText().trim()" (click)="parse()">Previsualizar</button>
+  } @else {
+    <button mat-button type="button" (click)="back()">Volver</button>
+    <button mat-flat-button color="primary" type="button" [disabled]="saving()" (click)="confirm()">
+      {{ saving() ? 'Importando…' : 'Confirmar importación' }}
+    </button>
+  }
+</mat-dialog-actions>

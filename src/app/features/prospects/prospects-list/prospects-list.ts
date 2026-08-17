@@ -403,7 +403,7 @@ export class ProspectsList {
         // `undefined` = canceló el diálogo (backdrop/Escape) → no abrir nada.
         // `null` = eligió "Sin plantilla" a propósito → abrir sin mensaje.
         if (template === undefined) return;
-        void this.whatsapp.openWithTemplate(prospect, template);
+        void this.whatsapp.openWithTemplate(prospect, template, this.projectByProspectId().get(prospect.id) ?? null);
       });
   }
 
