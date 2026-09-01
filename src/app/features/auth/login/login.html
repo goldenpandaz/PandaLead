@@ -70,11 +70,20 @@
           <mat-label>Contraseña</mat-label>
           <input
             matInput
-            type="password"
+            [type]="showPassword() ? 'text' : 'password'"
             formControlName="password"
             name="password"
             autocomplete="password"
           />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="showPassword.set(!showPassword())"
+            [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+          >
+            <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
           @if (form.controls.password.touched && form.controls.password.hasError('required')) {
             <mat-error>La contraseña es obligatoria</mat-error>
           } @else if (form.controls.password.touched && form.controls.password.hasError('minLength')) {
@@ -112,7 +121,21 @@
         @if (mode() === 'register') {
           <mat-form-field appearance="outline">
             <mat-label>Confirmar contraseña</mat-label>
-            <input matInput type="password" formControlName="confirmPassword" autocomplete="new-password" />
+            <input
+              matInput
+              [type]="showConfirmPassword() ? 'text' : 'password'"
+              formControlName="confirmPassword"
+              autocomplete="new-password"
+            />
+            <button
+              mat-icon-button
+              matSuffix
+              type="button"
+              (click)="showConfirmPassword.set(!showConfirmPassword())"
+              [attr.aria-label]="showConfirmPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            >
+              <mat-icon>{{ showConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
             @if (form.controls.confirmPassword.hasError('mismatch') && form.controls.confirmPassword.touched) {
               <mat-error>No coincide con la contraseña</mat-error>
             } @else if (form.controls.confirmPassword.hasError('required') && form.controls.confirmPassword.touched) {

@@ -14,6 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { CaptureSource } from '../../../domain/enums/capture-source.enum';
 import { HistoryEventType } from '../../../domain/enums/history-event-type.enum';
@@ -62,6 +63,7 @@ export interface ProspectCaptureData {
     MatProgressBarModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    MatTooltipModule,
   ],
   templateUrl: './prospect-capture.html',
   styleUrl: './prospect-capture.scss',

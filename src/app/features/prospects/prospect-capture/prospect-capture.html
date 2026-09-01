@@ -173,7 +173,14 @@
 <mat-dialog-actions align="end">
   <button mat-button type="button" (click)="close()">Cancelar</button>
   @if (step() === 'preview') {
-    <button mat-flat-button type="button" color="primary" [disabled]="saving()" (click)="save()">
+    <button
+      mat-flat-button
+      type="button"
+      color="primary"
+      [disabled]="saving() || duplicates().length > 0"
+      (click)="save()"
+      [matTooltip]="duplicates().length > 0 ? 'No se puede crear — existe un cliente con este nombre/teléfono. Actualiza el existente.' : ''"
+    >
       @if (saving()) {
         <mat-spinner diameter="20" />
       } @else {

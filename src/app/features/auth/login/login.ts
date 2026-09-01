@@ -63,6 +63,8 @@ export class Login {
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly mode = signal<'login' | 'register'>('login');
+  readonly showPassword = signal(false);
+  readonly showConfirmPassword = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     name: [''],
