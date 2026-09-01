@@ -22,11 +22,11 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline">
-      <mat-label>Fuente</mat-label>
-      <mat-select [ngModel]="sourceFilter()" (ngModelChange)="sourceFilter.set($event)">
+      <mat-label>Categoría</mat-label>
+      <mat-select [ngModel]="categoryFilter()" (ngModelChange)="categoryFilter.set($event)">
         <mat-option [value]="null">Todas</mat-option>
-        @for (src of sources; track src) {
-          <mat-option [value]="src">{{ src }}</mat-option>
+        @for (cat of categories(); track cat.id) {
+          <mat-option [value]="cat.name">{{ cat.name }}</mat-option>
         }
       </mat-select>
     </mat-form-field>
@@ -38,9 +38,11 @@
       </mat-chip-option>
     </mat-chip-listbox>
 
+    <!-- COMENTADO: Botón "Más filtros" deshabilitado por el usuario
     <button
       mat-stroked-button
       [matMenuTriggerFor]="filtersMenu"
+      [disabled]="!advancedFiltersActive()"
       [matBadge]="advancedFiltersActive() ? '•' : ''"
       matBadgeColor="warn"
       matBadgeSize="small"
@@ -73,6 +75,7 @@
         </button>
       </div>
     </mat-menu>
+    -->
 
     @if (viewMode() === 'detailed') {
       <button mat-stroked-button [matMenuTriggerFor]="columnsMenu">

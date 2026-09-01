@@ -25,22 +25,22 @@
       <mat-tab label="General">
         <form [formGroup]="form" class="general-form">
           <div class="name-phone-row span-2">
-            <mat-form-field appearance="outline" class="name-field">
-              <mat-label>Nombre *</mat-label>
-              <input matInput formControlName="name" />
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="dial-code">
-              <mat-label>Indicativo</mat-label>
-              <mat-select formControlName="dialCode">
+            <div class="form-field-custom">
+              <label class="field-label">Nombre</label>
+              <input type="text" formControlName="name" class="field-input" />
+            </div>
+            <div class="form-field-custom dial-code-custom">
+              <label class="field-label">Prefijo</label>
+              <select formControlName="dialCode" class="field-select">
                 @for (dial of dialCodes; track dial.code) {
-                  <mat-option [value]="dial.code">{{ dial.label }}</mat-option>
+                  <option [value]="dial.code">{{ dial.code }}</option>
                 }
-              </mat-select>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="local-number">
-              <mat-label>Teléfono *</mat-label>
-              <input matInput formControlName="localNumber" />
-            </mat-form-field>
+              </select>
+            </div>
+            <div class="form-field-custom">
+              <label class="field-label">Teléfono</label>
+              <input type="text" formControlName="localNumber" class="field-input" />
+            </div>
           </div>
 
           <mat-form-field appearance="outline">

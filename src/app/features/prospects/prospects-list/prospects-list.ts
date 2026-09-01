@@ -118,7 +118,6 @@ export class ProspectsList {
   private readonly paginator = viewChild.required(MatPaginator);
 
   readonly viewMode = signal<'simple' | 'detailed'>('simple');
-  readonly sources = Object.values(CaptureSource);
   readonly optionalColumns = OPTIONAL_COLUMNS;
 
   readonly visibleColumns = signal<Set<string>>(this.loadVisibleColumns());
@@ -158,12 +157,9 @@ export class ProspectsList {
   private readonly projectByProspectId = computed(() => new Map(this.projects().map((p) => [p.prospectId, p])));
 
   // --- filtros ---
-  // Localidad sigue siendo texto libre — sin filtro de "igual a", queda cubierta
-  // por la búsqueda general. Categoría (ahora catálogo cerrado) también se busca
-  // por texto acá; no amerita un select propio además del de Estado.
   readonly search = signal('');
   readonly statusFilter = signal<string | null>(null);
-  readonly sourceFilter = signal<string | null>(null);
+  readonly categoryFilter = signal<string | null>(null);
   readonly favoritesOnly = signal(false);
 
   // --- filtros avanzados (panel aparte, no saturan la barra principal) ---
@@ -189,7 +185,7 @@ export class ProspectsList {
   readonly filtered = computed(() => {
     const term = this.search().trim().toLowerCase();
     const status = this.statusFilter();
-    const source = this.sourceFilter();
+    const category = this.categoryFilter();
     const onlyFavorites = this.favoritesOnly();
     const needsPhone = this.hasPhoneFilter();
     const needsWebsite = this.hasWebsiteFilter();
@@ -200,7 +196,7 @@ export class ProspectsList {
 
     return this.prospects().filter((p) => {
       if (status && p.statusId !== status) return false;
-      if (source && p.source !== source) return false;
+      if (category && p.category !== category) return false;
       if (onlyFavorites && !p.favorite) return false;
       if (needsPhone && !p.phone) return false;
       if (needsWebsite && !p.website) return false;

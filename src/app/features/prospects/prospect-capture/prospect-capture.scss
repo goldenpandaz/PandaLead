@@ -67,16 +67,54 @@
   flex-wrap: wrap;
   gap: 0.5rem;
 
-  .name-field {
-    flex: 1.6 1 200px;
+  .form-field-custom {
+    flex: 1 1 140px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
   }
 
   .dial-code {
     flex: 0 0 130px;
   }
+}
 
-  .local-number {
-    flex: 1 1 140px;
+.field-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface);
+  opacity: 0.85;
+}
+
+.field-input,
+.field-select {
+  padding: 0.75rem;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--mat-sys-on-surface);
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: var(--gold-base);
+    box-shadow: 0 0 0 3px rgba(175, 141, 17, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.field-select {
+  cursor: pointer;
+
+  option {
+    background: var(--mat-sys-surface);
+    color: var(--mat-sys-on-surface);
   }
 }
 
