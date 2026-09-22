@@ -1,10 +1,5 @@
 <div class="prospects-page">
   <header class="toolbar">
-    <mat-button-toggle-group class="view-toggle" [value]="viewMode()" (change)="viewMode.set($event.value)">
-      <mat-button-toggle value="simple">Simple</mat-button-toggle>
-      <mat-button-toggle value="detailed">Detallada</mat-button-toggle>
-    </mat-button-toggle-group>
-
     <mat-form-field appearance="outline" class="search-field">
       <mat-label>Buscar</mat-label>
       <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Nombre, teléfono, email, localidad, categoría…" />
@@ -32,9 +27,8 @@
     </mat-form-field>
 
     <mat-chip-listbox>
-      <mat-chip-option [selected]="favoritesOnly()" (click)="favoritesOnly.set(!favoritesOnly())">
+      <mat-chip-option [selected]="favoritesOnly()" (click)="favoritesOnly.set(!favoritesOnly())" [matTooltip]="'Favoritos'">
         <mat-icon matChipAvatar>star</mat-icon>
-        Favoritos
       </mat-chip-option>
     </mat-chip-listbox>
 
@@ -119,7 +113,6 @@
 
     @if (dataSource.data.length > 0) {
       <button mat-stroked-button [matMenuTriggerFor]="exportMenu" matTooltip="Exportar clientes">
-        <mat-icon>download</mat-icon>
         Exportar
       </button>
 
@@ -140,17 +133,14 @@
     }
 
     <button mat-stroked-button class="new-client-btn" (click)="openNewClient()">
-      <mat-icon>handshake</mat-icon>
       Nuevo cliente
     </button>
 
     <button mat-stroked-button class="import-btn" (click)="openImport()">
-      <mat-icon>file_upload</mat-icon>
       Importar clientes
     </button>
 
     <button mat-flat-button color="primary" class="new-prospect-btn" (click)="openCapture()">
-      <mat-icon>add_a_photo</mat-icon>
       Capturar cliente
     </button>
   </header>
@@ -325,4 +315,9 @@
 
     <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" [pageSize]="25" showFirstLastButtons />
   </div>
+
+  <mat-button-toggle-group class="view-toggle-floating" [value]="viewMode()" (change)="viewMode.set($event.value)">
+    <mat-button-toggle value="simple">Simple</mat-button-toggle>
+    <mat-button-toggle value="detailed">Detallada</mat-button-toggle>
+  </mat-button-toggle-group>
 </div>
