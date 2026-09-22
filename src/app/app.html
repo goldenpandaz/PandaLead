@@ -70,19 +70,19 @@
       }
 
       <div class="account-card">
-        @if (!collapsed()) {
-          <span class="account-label">Cuenta</span>
-          <span class="app-version">v2.0.6</span>
-        }
         <mat-nav-list class="sidenav-list">
-          <button mat-list-item type="button" class="logout-btn" (click)="logout()" [matTooltip]="collapsed() ? 'Cerrar sesión' : ''">
+          <button mat-list-item type="button" class="logout-btn" (click)="logout()" [matTooltip]="collapsed() ? 'Salir' : ''">
             <mat-icon matListItemIcon>logout</mat-icon>
             @if (!collapsed()) {
-              <span matListItemTitle>Cerrar sesión</span>
+              <span matListItemTitle>Salir</span>
             }
           </button>
         </mat-nav-list>
       </div>
+
+      @if (!collapsed()) {
+        <span class="app-footer">© 2025 Golden Panda — v2.0.7</span>
+      }
     </aside>
 
     <main class="app-content">

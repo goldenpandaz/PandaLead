@@ -202,17 +202,9 @@
 .account-card {
   position: relative;
   z-index: 1;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  padding: 0.85rem 0.5rem 0.6rem;
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
-
-  .app-sidenav.collapsed & {
-    padding: 0.5rem 0.25rem;
-    border-color: transparent;
-  }
 }
 
 .account-label {
@@ -224,12 +216,17 @@
   padding: 0 0.5rem;
 }
 
-.app-version {
+.app-footer {
+  position: relative;
+  z-index: 1;
   display: block;
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: #6a6a6a;
-  padding: 0 0.5rem 0.5rem;
+  padding: 0.5rem;
+  margin-top: auto;
   font-family: monospace;
+  text-align: center;
+  letter-spacing: 0.02em;
 }
 
 .logout-btn {
