@@ -129,8 +129,9 @@
 }
 
 // Deliberadamente apagado — lo obligatorio (nombre, teléfono, categoría, estado)
-// va primero y con el peso visual normal del form; las redes son opcionales y
-// quedan colapsadas acá para no competir por atención.
+// va primero y con el peso visual normal del form; las opcionales quedan
+// colapsadas acá para no competir por atención.
+.optional-panel,
 .social-panel {
   background: transparent;
   border: 1px solid var(--mat-sys-outline-variant);
@@ -178,25 +179,32 @@
 
 .discount-row {
   display: flex;
-  align-items: flex-start;
-  gap: 1rem;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .discount-toggle {
-  align-self: flex-end;
+  flex-shrink: 0;
 }
 
-.discount-input {
-  flex: 1;
-  max-width: 200px;
+.discount-simple-input {
+  width: 80px;
+  padding: 0.5rem;
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--mat-sys-on-surface);
+  font-size: 0.95rem;
+
+  &:focus {
+    outline: none;
+    border-color: var(--gold-base);
+    box-shadow: 0 0 0 3px rgba(175, 141, 17, 0.1);
+  }
 }
 
-.discount-display {
-  align-self: flex-end;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
-  background: var(--mat-sys-surface-dim);
+.discount-total {
   font-size: 0.875rem;
-  opacity: 0.9;
+  opacity: 0.85;
   white-space: nowrap;
 }
