@@ -5,6 +5,7 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { Router } from '@angular/router';
 
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -46,6 +47,7 @@ import { MoneyPipe } from '../../../shared/pipes/money.pipe';
     ReactiveFormsModule,
     FormsModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatCardModule,
     MatCheckboxModule,
     MatDialogModule,
@@ -150,6 +152,30 @@ export class ProspectDetail {
     observations: [''],
   });
 
+  readonly discountTypeControl = this.fb.nonNullable.control<'fixed' | 'percentage'>('fixed');
+  readonly discountValueControl = this.fb.nonNullable.control(0);
+
+  readonly discountDisplay = computed(() => {
+    const serviceId = this.projectForm.get('serviceId')?.value;
+    if (!serviceId) return null;
+
+    const service = this.services().find((s) => s.id === serviceId);
+    if (!service || !service.price) return null;
+
+    const discountType = this.discountTypeControl.value;
+    const discountValue = this.discountValueControl.value || 0;
+
+    let amount = 0;
+    if (discountType === 'fixed') {
+      amount = discountValue;
+    } else {
+      amount = (service.price * discountValue) / 100;
+    }
+
+    const total = Math.max(0, service.price - amount);
+    return { amount, total };
+  });
+
   constructor() {
     // Solo repatchea si el form no tiene cambios sin guardar — no queremos pisar
     // lo que el usuario está tipeando si llega una actualización en vivo de RTDB.
@@ -213,6 +239,8 @@ export class ProspectDetail {
           },
           { emitEvent: false },
         );
+        this.discountTypeControl.setValue(project.discountType ?? 'fixed', { emitEvent: false });
+        this.discountValueControl.setValue(project.discountValue ?? 0, { emitEvent: false });
       }
     });
 
@@ -387,6 +415,8 @@ export class ProspectDetail {
         domain: value.domain || undefined,
         hosting: value.hosting || undefined,
         observations: value.observations || undefined,
+        discountType: this.discountTypeControl.value,
+        discountValue: this.discountValueControl.value || undefined,
       });
       this.projectForm.markAsPristine();
     } finally {

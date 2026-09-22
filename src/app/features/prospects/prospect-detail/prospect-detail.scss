@@ -204,6 +204,32 @@
   opacity: 0.6;
 }
 
+.discount-row {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.discount-toggle {
+  align-self: flex-end;
+}
+
+.discount-input {
+  flex: 1;
+  max-width: 200px;
+}
+
+.discount-display {
+  align-self: flex-end;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: var(--mat-sys-surface-dim);
+  font-size: 0.875rem;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
 @media (max-width: 640px) {
   .general-form {
     grid-template-columns: 1fr;

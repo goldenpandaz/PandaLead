@@ -95,6 +95,16 @@
   color: white;
 }
 
+.discount-badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 4px;
+  background: var(--gold-base);
+  color: var(--mat-sys-inverse-surface);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 .color-dot {
   display: inline-block;
   width: 10px;

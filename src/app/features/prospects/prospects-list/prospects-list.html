@@ -269,6 +269,15 @@
         </td>
       </ng-container>
 
+      <ng-container matColumnDef="discount">
+        <th mat-header-cell *matHeaderCellDef>Descuento</th>
+        <td mat-cell *matCellDef="let row">
+          @if (discountOf(row); as discount) {
+            <span class="discount-badge">{{ discount }}</span>
+          }
+        </td>
+      </ng-container>
+
       <ng-container matColumnDef="source">
         <th mat-header-cell *matHeaderCellDef>Fuente</th>
         <td mat-cell *matCellDef="let row">{{ row.source }}</td>

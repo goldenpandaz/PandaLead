@@ -10,6 +10,8 @@ export interface Project {
   serviceId?: string;
   serviceName?: string;
   servicePrice?: number;
+  discountType?: 'fixed' | 'percentage';
+  discountValue?: number;
   deposit?: number;
   balance?: number;
   domain?: string;

@@ -59,6 +59,7 @@ const DETAILED_COLUMN_ORDER = [
   'phone',
   'statusId',
   'service',
+  'discount',
   'source',
   'createdAt',
   'lastContactAt',
@@ -295,6 +296,17 @@ export class ProspectsList {
 
   isPaidOf(prospect: Prospect): boolean {
     return !!this.projectByProspectId().get(prospect.id)?.paid;
+  }
+
+  discountOf(prospect: Prospect): string | undefined {
+    const project = this.projectByProspectId().get(prospect.id);
+    if (!project?.discountValue) return undefined;
+
+    if (project.discountType === 'fixed') {
+      return `$${project.discountValue}`;
+    } else {
+      return `${project.discountValue}%`;
+    }
   }
 
   /** Edición en línea — cambiar categoría o estado no debería obligarte a

@@ -81,6 +81,29 @@
             </mat-hint>
           </mat-form-field>
 
+          @if (form.get('serviceId')?.value) {
+            <div class="discount-row span-2">
+              <mat-button-toggle-group [formControl]="discountTypeControl" class="discount-toggle">
+                <mat-button-toggle value="fixed">$</mat-button-toggle>
+                <mat-button-toggle value="percentage">%</mat-button-toggle>
+              </mat-button-toggle-group>
+              <mat-form-field appearance="outline" class="discount-input">
+                <mat-label>Descuento</mat-label>
+                @if (discountTypeControl.value === 'fixed') {
+                  <span matTextPrefix>$&nbsp;</span>
+                } @else {
+                  <span matTextSuffix>&nbsp;%</span>
+                }
+                <input matInput type="number" [formControl]="discountValueControl" />
+              </mat-form-field>
+              @if (discountDisplay(); as display) {
+                <div class="discount-display">
+                  Descuento: {{ display.amount | money }} · Total: {{ display.total | money }}
+                </div>
+              }
+            </div>
+          }
+
           <mat-form-field appearance="outline"><mat-label>Email</mat-label><input matInput formControlName="email" /></mat-form-field>
           <mat-form-field appearance="outline"><mat-label>Sitio web</mat-label><input matInput formControlName="website" /></mat-form-field>
           <mat-form-field appearance="outline" class="span-2"><mat-label>Localidad</mat-label><input matInput formControlName="locality" placeholder="Barrio, ciudad…" /></mat-form-field>

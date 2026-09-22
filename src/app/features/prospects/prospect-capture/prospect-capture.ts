@@ -1,10 +1,11 @@
-import { Component, HostListener, effect, inject, signal } from '@angular/core';
+import { Component, HostListener, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { debounceTime } from 'rxjs';
 
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -31,6 +32,7 @@ import { DuplicateDetectionService } from '../../../data/duplicate-detection.ser
 import { DIAL_CODES } from '../../../shared/constants/dial-codes';
 import { normalizeName } from '../../../shared/utils/normalize.util';
 import { joinPhone, splitPhone } from '../../../shared/utils/phone.util';
+import { MoneyPipe } from '../../../shared/pipes/money.pipe';
 import { ImageCaptureService } from '../../ocr/image-capture.service';
 import { OcrService } from '../../ocr/ocr.service';
 import { ParserRegistryService } from '../../ocr/parsers/parser-registry.service';
@@ -54,6 +56,7 @@ export interface ProspectCaptureData {
   imports: [
     ReactiveFormsModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatCardModule,
     MatDialogModule,
     MatExpansionModule,
@@ -64,6 +67,7 @@ export interface ProspectCaptureData {
     MatProgressSpinnerModule,
     MatSelectModule,
     MatTooltipModule,
+    MoneyPipe,
   ],
   templateUrl: './prospect-capture.html',
   styleUrl: './prospect-capture.scss',
@@ -119,6 +123,9 @@ export class ProspectCapture {
     serviceId: [{ value: '', disabled: true }],
   });
 
+  readonly discountTypeControl = this.fb.nonNullable.control<'fixed' | 'percentage'>('fixed');
+  readonly discountValueControl = this.fb.nonNullable.control(0);
+
   private readonly statusIdValue = toSignal(this.form.controls.statusId.valueChanges, {
     initialValue: this.form.controls.statusId.value,
   });
@@ -126,6 +133,27 @@ export class ProspectCapture {
   /** El estado elegido en este momento, para saber si requiere servicio —
    * usado tanto acá como en el template (mensaje de ayuda del campo). */
   readonly currentStatus = () => this.statuses().find((s) => s.id === this.statusIdValue());
+
+  readonly discountDisplay = computed(() => {
+    const serviceId = this.form.get('serviceId')?.value;
+    if (!serviceId) return null;
+
+    const service = this.services().find((s) => s.id === serviceId);
+    if (!service || !service.price) return null;
+
+    const discountType = this.discountTypeControl.value;
+    const discountValue = this.discountValueControl.value || 0;
+
+    let amount = 0;
+    if (discountType === 'fixed') {
+      amount = discountValue;
+    } else {
+      amount = (service.price * discountValue) / 100;
+    }
+
+    const total = Math.max(0, service.price - amount);
+    return { amount, total };
+  });
 
   constructor() {
     // Recalcula duplicados mientras el usuario edita el preview — no solo al pegar.
