@@ -350,6 +350,7 @@ export class ProspectCapture {
         statusId,
         source,
         favorite: false,
+        archived: false,
       });
 
       if (this.ocrText()) {

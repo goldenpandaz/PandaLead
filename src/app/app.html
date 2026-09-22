@@ -29,10 +29,16 @@
       </div>
 
       <mat-nav-list class="sidenav-list">
-        <a mat-list-item routerLink="/prospects" routerLinkActive="active-link" (click)="closeMobileNav()" [matTooltip]="collapsed() ? 'Clientes' : ''">
+        <a mat-list-item routerLink="/prospects" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMobileNav()" [matTooltip]="collapsed() ? 'Clientes' : ''">
           <mat-icon matListItemIcon>groups</mat-icon>
           @if (!collapsed()) {
             <span matListItemTitle>Clientes</span>
+          }
+        </a>
+        <a mat-list-item routerLink="/prospects/archived" routerLinkActive="active-link" (click)="closeMobileNav()" [matTooltip]="collapsed() ? 'Archivados' : ''">
+          <mat-icon matListItemIcon>archive</mat-icon>
+          @if (!collapsed()) {
+            <span matListItemTitle>Archivados</span>
           }
         </a>
         <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link" (click)="closeMobileNav()" [matTooltip]="collapsed() ? 'Resumen' : ''">

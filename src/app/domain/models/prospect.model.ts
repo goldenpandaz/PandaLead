@@ -34,6 +34,7 @@ export interface Prospect {
   statusId: string;
   source: CaptureSource;
   favorite: boolean;
+  archived: boolean;
 
   score?: number;
   rating?: number;

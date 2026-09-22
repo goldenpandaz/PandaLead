@@ -99,6 +99,15 @@
       <span class="selection-count">{{ selection.selected.length }} seleccionados</span>
       <button
         mat-stroked-button
+        class="archive-selected-btn"
+        (click)="archiveSelectedBatch()"
+        matTooltip="Archivar todos los seleccionados"
+      >
+        <mat-icon>archive</mat-icon>
+        Archivar
+      </button>
+      <button
+        mat-stroked-button
         class="delete-selected-btn"
         (click)="deleteSelectedBatch()"
         matTooltip="Eliminar todos los seleccionados"

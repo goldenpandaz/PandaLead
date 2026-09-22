@@ -195,6 +195,7 @@ export class ProspectsList {
     const toMs = this.dateTo() ? new Date(this.dateTo()).getTime() + 86_400_000 - 1 : null;
 
     return this.prospects().filter((p) => {
+      if (p.archived) return false;
       if (status && p.statusId !== status) return false;
       if (category && p.category !== category) return false;
       if (onlyFavorites && !p.favorite) return false;
@@ -488,6 +489,25 @@ export class ProspectsList {
     }
 
     this.snackBar.open(`Exportados ${data.length} cliente${data.length !== 1 ? 's' : ''} como ${format.toUpperCase()}`, 'Cerrar', { duration: 3000 });
+  }
+
+  async archiveSelectedBatch(): Promise<void> {
+    const count = this.selection.selected.length;
+    if (count === 0) return;
+
+    const confirmed = await this.confirmDialog({
+      title: `¿Archivar ${count} cliente${count !== 1 ? 's' : ''}?`,
+      message: `Se archiva${count !== 1 ? 'n' : ''} ${count} cliente${count !== 1 ? 's' : ''} — los recuperás después desde "Archivados".`,
+      confirmLabel: 'Archivar',
+      icon: 'archive',
+    });
+    if (!confirmed) return;
+
+    const prospectIds = this.selection.selected.map((p) => p.id);
+    await Promise.all(prospectIds.map((id) => this.prospectRepo.update(id, { archived: true })));
+
+    this.selection.clear();
+    this.snackBar.open(`${count} cliente${count !== 1 ? 's' : ''} archivado${count !== 1 ? 's' : ''} correctamente.`, 'Cerrar', { duration: 3000 });
   }
 
   private getFormattedDate(): string {

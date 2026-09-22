@@ -14,6 +14,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/prospects/prospects-list/prospects-list').then((m) => m.ProspectsList),
   },
   {
+    path: 'prospects/archived',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/prospects/archived-prospects-list/archived-prospects-list').then((m) => m.ArchivedProspectsList),
+  },
+  {
     path: 'prospects/:id',
     canActivate: [authGuard],
     loadComponent: () => import('./features/prospects/prospect-detail/prospect-detail').then((m) => m.ProspectDetail),

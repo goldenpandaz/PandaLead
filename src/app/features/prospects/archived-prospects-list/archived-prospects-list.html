@@ -1,0 +1,118 @@
+<div class="archived-page">
+  <header class="toolbar">
+    <h1>Clientes Archivados</h1>
+
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Buscar</mat-label>
+      <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Nombre, teléfono…" />
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+
+    @if (selection.selected.length > 0) {
+      <span class="selection-count">{{ selection.selected.length }} seleccionados</span>
+      <button
+        mat-stroked-button
+        class="unarchive-selected-btn"
+        (click)="unarchiveSelectedBatch()"
+        matTooltip="Recuperar todos los seleccionados"
+      >
+        <mat-icon>unarchive</mat-icon>
+        Recuperar
+      </button>
+      <button
+        mat-stroked-button
+        class="delete-selected-btn"
+        (click)="deleteSelectedBatch()"
+        matTooltip="Eliminar todos los seleccionados"
+      >
+        <mat-icon>delete_sweep</mat-icon>
+        Eliminar
+      </button>
+    }
+  </header>
+
+  <div class="table-container">
+    <table mat-table [dataSource]="dataSource" matSort class="archived-table">
+      <ng-container matColumnDef="select">
+        <th mat-header-cell *matHeaderCellDef>
+          <mat-checkbox
+            [checked]="isAllSelected()"
+            [indeterminate]="selection.selected.length > 0 && !isAllSelected()"
+            (change)="toggleAllSelection()"
+          />
+        </th>
+        <td mat-cell *matCellDef="let row">
+          <mat-checkbox
+            [checked]="selection.isSelected(row)"
+            (click)="$event.stopPropagation()"
+            (change)="selection.toggle(row)"
+          />
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="favorite">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button (click)="toggleFavorite(row, $event)" [attr.aria-label]="'Favorito'">
+            <mat-icon [class.favorite-active]="row.favorite">{{ row.favorite ? 'star' : 'star_border' }}</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
+        <td mat-cell *matCellDef="let row">{{ row.name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="phone">
+        <th mat-header-cell *matHeaderCellDef>Teléfono</th>
+        <td mat-cell *matCellDef="let row">{{ row.phone || '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="statusId">
+        <th mat-header-cell *matHeaderCellDef>Estado</th>
+        <td mat-cell *matCellDef="let row">
+          @if (statusOf(row); as status) {
+            <span class="status-chip" [style.background]="status.color">{{ status.label }}</span>
+          } @else {
+            —
+          }
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="service">
+        <th mat-header-cell *matHeaderCellDef>Servicio</th>
+        <td mat-cell *matCellDef="let row">{{ serviceNameOf(row) || '—' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Acciones</th>
+        <td mat-cell *matCellDef="let row">
+          <button mat-icon-button matTooltip="Editar" (click)="openDetail(row, $event)">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Abrir WhatsApp" [disabled]="!row.phone" (click)="openWhatsapp(row, $event)">
+            <mat-icon>chat</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Recuperar" (click)="unarchiveOne(row, $event)">
+            <mat-icon>unarchive</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Eliminar" (click)="remove(row, $event)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="columns"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns" (click)="openDetail(row)" class="clickable-row"></tr>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell no-data" [attr.colspan]="columns.length">
+          No hay clientes archivados.
+        </td>
+      </tr>
+    </table>
+
+    <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" [pageSize]="25" showFirstLastButtons />
+  </div>
+</div>

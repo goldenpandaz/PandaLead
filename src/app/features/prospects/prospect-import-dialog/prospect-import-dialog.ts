@@ -263,6 +263,7 @@ export class ProspectImportDialog {
       statusId: this.mapStatus(row.state, defaultStatus),
       source: CaptureSource.Import,
       favorite: false,
+      archived: false,
     });
 
     if (row.notes) {
