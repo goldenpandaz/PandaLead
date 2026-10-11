@@ -9,6 +9,7 @@ import { AuthService } from './core/auth/auth.service';
 import { InstallPromptService } from './core/pwa/install-prompt.service';
 import { PublicIncomeSyncService } from './core/sync/public-income-sync.service';
 import { UiStateService } from './core/ui-state.service';
+import { APP_VERSION } from './core/version';
 
 /**
  * El shell (sidebar + contenido) se arma con flexbox propio, NO con
@@ -39,6 +40,8 @@ export class App implements OnInit, OnDestroy {
   // UI state (temas de acento): el effect() aplica clases a <html> apenas carga.
   private readonly uiState = inject(UiStateService);
   private readonly router = inject(Router);
+
+  protected readonly version = APP_VERSION;
 
   readonly collapsed = signal(false);
   /** Solo tiene efecto en mobile (ver media query en app.scss) — el sidebar

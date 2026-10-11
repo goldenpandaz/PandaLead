@@ -7,6 +7,18 @@ export interface ChangelogEntry {
 /** Notas de versión, de la más nueva a la más vieja. Solo cambios notorios para el usuario. */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.1.2',
+    fecha: '11/10/2026',
+    cambios: [
+      'Temas de color: elegí entre dorado, azul y rosa desde Preferencias.',
+      'Categorías múltiples: cada cliente puede tener una o más categorías.',
+      'Formularios más simples: un campo sobre otro, con teléfono y prefijo en una sola línea.',
+      'Estados con punto de color, íconos de acciones con color y botones más grandes.',
+      'Tipografía y títulos unificados en toda la app.',
+      'Al editar un cliente ahora se cargan su teléfono, categorías y servicio.',
+    ],
+  },
+  {
     version: '2.1.0',
     fecha: '21/09/2026',
     cambios: [
