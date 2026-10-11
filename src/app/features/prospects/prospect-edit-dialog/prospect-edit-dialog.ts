@@ -15,8 +15,6 @@ export interface ProspectEditDialogData {
   prospect: Prospect;
   categories: CategoryConfig[];
   statuses: { id: string; label: string }[];
-  services: { id: string; name: string }[];
-  serviceId: string;
   dialCodes: { code: string; label: string }[];
 }
 
@@ -46,7 +44,6 @@ export class ProspectEditDialog {
     phone: this.initialPhone.localNumber,
     categories: [...this.data.prospect.categories],
     statusId: this.data.prospect.statusId || '',
-    serviceId: this.data.serviceId || '',
   };
 
   save(): void {
@@ -56,7 +53,6 @@ export class ProspectEditDialog {
       phone: joinPhone(this.form.dialCode, this.form.phone),
       categories: this.form.categories,
       statusId: this.form.statusId,
-      serviceId: this.form.serviceId,
     });
   }
 

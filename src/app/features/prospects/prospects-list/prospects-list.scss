@@ -198,15 +198,15 @@ button:disabled .action-chat {
   ::ng-deep .mat-mdc-select-arrow-wrapper {
     display: none;
   }
+}
 
-  // Estado requiere servicio y todavía no se eligió ninguno — se resalta para
-  // que salte a la vista en vez de quedar en un "—" indistinguible de siempre.
-  &.needs-service {
-    ::ng-deep .mat-mdc-select-trigger {
-      border-radius: 4px;
-      box-shadow: 0 0 0 1px var(--accent-soft);
-    }
-  }
+.service-cell {
+  white-space: nowrap;
+}
+
+// El tooltip de Servicio lista un trabajo por renglón.
+::ng-deep .multiline-tooltip {
+  white-space: pre-line;
 }
 
 .view-toggle-floating {

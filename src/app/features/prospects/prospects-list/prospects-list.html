@@ -227,10 +227,11 @@
         <th mat-header-cell *matHeaderCellDef matTooltip="Se agregan/editan desde Configuración → Estados">Estado</th>
         <td mat-cell *matCellDef="let row">
           <mat-select
+            #statusSelect
             class="inline-status-select"
             [value]="row.statusId"
             (click)="$event.stopPropagation()"
-            (selectionChange)="updateStatus(row, $event.value)"
+            (selectionChange)="updateStatus(row, $event.value, statusSelect)"
           >
             <mat-select-trigger>
               @if (statusOf(row); as status) {
@@ -250,24 +251,11 @@
       </ng-container>
 
       <ng-container matColumnDef="service">
-        <th mat-header-cell *matHeaderCellDef matTooltip="Habilitado solo si el Estado lo requiere (Configuración → Estados)">
-          Servicio
-        </th>
+        <th mat-header-cell *matHeaderCellDef matTooltip="Los trabajos se gestionan desde la ficha (Ver → Trabajos)">Servicio</th>
         <td mat-cell *matCellDef="let row">
-          <mat-select
-            class="inline-status-select"
-            [class.needs-service]="statusOf(row)?.requiresService && !serviceIdOf(row)"
-            [value]="serviceIdOf(row)"
-            [disabled]="!statusOf(row)?.requiresService || isPaidOf(row)"
-            (click)="$event.stopPropagation()"
-            (selectionChange)="updateService(row, $event.value)"
-          >
-            <mat-select-trigger>{{ serviceNameOf(row) || '—' }}</mat-select-trigger>
-            <mat-option value="">—</mat-option>
-            @for (service of services(); track service.id) {
-              <mat-option [value]="service.id">{{ service.name }}</mat-option>
-            }
-          </mat-select>
+          <span class="service-cell" [matTooltip]="servicesTooltipOf(row)" matTooltipClass="multiline-tooltip">{{
+            serviceLabelOf(row)
+          }}</span>
         </td>
       </ng-container>
 

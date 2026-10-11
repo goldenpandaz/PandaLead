@@ -20,7 +20,6 @@ import { CaptureSource } from '../../../domain/enums/capture-source.enum';
 import { HistoryEventType } from '../../../domain/enums/history-event-type.enum';
 import { DuplicateCandidate } from '../../../domain/models/duplicate-candidate.model';
 import { Prospect } from '../../../domain/models/prospect.model';
-import { Project } from '../../../domain/models/project.model';
 import { StatusConfig } from '../../../domain/models/status.model';
 import { CaptureRepository } from '../../../data/repositories/capture.repository';
 import { ConfigRepository } from '../../../data/repositories/config.repository';
@@ -358,26 +357,28 @@ export class ProspectCapture {
   /** Mismo criterio que `ProspectDetail.convertToClient()` — crea el Proyecto
    * si todavía no existe, y si vino un servicio elegido, lo copia ahí (nombre +
    * precio de ese momento, no una referencia viva al catálogo). Si el estado
-   * ya es Final, asume que el precio del servicio ya se cobró completo. */
+   * ya es Final, asume que el precio del servicio ya se cobró completo y lo
+   * registra como un abono. */
   private async ensureProjectAndService(prospectId: string, serviceId: string, status: StatusConfig | undefined): Promise<void> {
+    const startDate = new Date().toISOString().slice(0, 10);
+    const service = serviceId ? this.services().find((s) => s.id === serviceId) : undefined;
+
     const projectId = await this.projectRepo.create({
       prospectId,
-      startDate: new Date().toISOString().slice(0, 10),
-      status: 'Activo',
+      startDate,
+      status: 'Pendiente',
+      payments:
+        service && status?.isFinal && service.price
+          ? [{ id: crypto.randomUUID(), amount: service.price, date: startDate, note: 'Pago completo' }]
+          : [],
+      notes: [],
+      ...(service ? { serviceId: service.id, serviceName: service.name, servicePrice: service.price } : {}),
     });
     await this.historyRepo.log(prospectId, HistoryEventType.ProjectCreated, { projectId });
 
-    if (!serviceId) return;
-    const service = this.services().find((s) => s.id === serviceId);
-    if (!service) return;
-
-    const updates: Partial<Project> = { serviceId: service.id, serviceName: service.name, servicePrice: service.price };
-    if (status?.isFinal && service.price) {
-      updates.deposit = service.price;
+    if (service) {
+      await this.historyRepo.log(prospectId, HistoryEventType.ServiceAssigned, { serviceId: service.id, serviceName: service.name });
     }
-
-    await this.projectRepo.update(projectId, updates);
-    await this.historyRepo.log(prospectId, HistoryEventType.ServiceAssigned, { serviceId: service.id, serviceName: service.name });
   }
 
   viewExisting(candidate: DuplicateCandidate): void {

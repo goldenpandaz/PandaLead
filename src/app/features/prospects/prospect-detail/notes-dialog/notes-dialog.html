@@ -1,0 +1,35 @@
+<div class="dialog-header">
+  <h2 mat-dialog-title>Seguimiento — {{ project()?.serviceName || 'Sin servicio' }}</h2>
+  <button mat-icon-button mat-dialog-close aria-label="Cerrar"><mat-icon>close</mat-icon></button>
+</div>
+
+<mat-dialog-content>
+  <ul class="entries">
+    @for (n of sortedNotes(); track n.id) {
+      <li class="entry" [class.editing]="editingId() === n.id">
+        <div class="entry-main">
+          <span class="entry-date">{{ n.createdAt | date: 'dd/MM/yy HH:mm' }}</span>
+          <span class="entry-text">{{ n.text }}</span>
+        </div>
+        <button mat-icon-button matTooltip="Editar" (click)="startEdit(n)"><mat-icon class="action-edit">edit</mat-icon></button>
+        <button mat-icon-button matTooltip="Eliminar" (click)="remove(n)"><mat-icon class="action-delete">delete</mat-icon></button>
+      </li>
+    } @empty {
+      <li class="empty-hint">Todavía no hay notas.</li>
+    }
+  </ul>
+
+  <div class="form-field-group">
+    <label>Nota</label>
+    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+      <textarea matInput rows="3" [ngModel]="text()" (ngModelChange)="text.set($event)" name="text"></textarea>
+    </mat-form-field>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (editingId()) {
+    <button mat-button (click)="cancelEdit()">Cancelar edición</button>
+  }
+  <button mat-flat-button color="primary" [disabled]="!text().trim() || saving()" (click)="save()">Guardar</button>
+</mat-dialog-actions>

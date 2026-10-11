@@ -107,3 +107,8 @@
 .action-delete {
   color: #ff5252;
 }
+
+// El tooltip de Servicio lista un trabajo por renglón.
+::ng-deep .multiline-tooltip {
+  white-space: pre-line;
+}

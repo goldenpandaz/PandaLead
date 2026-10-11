@@ -33,14 +33,12 @@ import { MessageTemplate } from '../../../domain/models/template.model';
 import { ProspectRepository } from '../../../data/repositories/prospect.repository';
 import { ConfigRepository } from '../../../data/repositories/config.repository';
 import { ProjectRepository } from '../../../data/repositories/project.repository';
-import { HistoryRepository } from '../../../data/repositories/history.repository';
 import { AuthService } from '../../../core/auth/auth.service';
-import { HistoryEventType } from '../../../domain/enums/history-event-type.enum';
 import { Prospect } from '../../../domain/models/prospect.model';
 import { Project } from '../../../domain/models/project.model';
 import { StatusConfig } from '../../../domain/models/status.model';
 import { CategoryConfig } from '../../../domain/models/category.model';
-import { ServiceConfig } from '../../../domain/models/service.model';
+import { PAYMENT_STATUS_LABEL, primaryProject, projectPaymentStatus } from '../../../shared/utils/project-finance.util';
 import { CaptureSource } from '../../../domain/enums/capture-source.enum';
 import { prospectsToCsv, prospectsToMarkdown } from '../../../shared/utils/prospect-export.util';
 import { exportProspectsToExcel } from '../../../shared/utils/excel-export.util';
@@ -112,7 +110,6 @@ export class ProspectsList {
   private readonly prospectRepo = inject(ProspectRepository);
   private readonly configRepo = inject(ConfigRepository);
   private readonly projectRepo = inject(ProjectRepository);
-  private readonly historyRepo = inject(HistoryRepository);
   private readonly prospectEdit = inject(ProspectEditService);
   private readonly auth = inject(AuthService);
   private readonly dialog = inject(MatDialog);
@@ -198,11 +195,18 @@ export class ProspectsList {
   readonly isLoadingProspects = computed(() => this.prospects() === null);
   readonly statuses = toSignal(this.configRepo.watchStatuses(), { initialValue: [] as StatusConfig[] });
   readonly categories = toSignal(this.configRepo.watchCategories(), { initialValue: [] as CategoryConfig[] });
-  readonly services = toSignal(this.configRepo.watchServices(), { initialValue: [] as ServiceConfig[] });
   private readonly projects = toSignal(this.projectRepo.watchAll(), { initialValue: [] as Project[] });
 
   private readonly statusById = computed(() => new Map(this.statuses().map((s) => [s.id, s])));
-  private readonly projectByProspectId = computed(() => new Map(this.projects().map((p) => [p.prospectId, p])));
+  private readonly projectsByProspectId = computed(() => {
+    const map = new Map<string, Project[]>();
+    for (const p of this.projects()) {
+      const list = map.get(p.prospectId);
+      if (list) list.push(p);
+      else map.set(p.prospectId, [p]);
+    }
+    return map;
+  });
 
   // --- filtros ---
   private readonly savedFilters = this.loadFilters();
@@ -347,27 +351,29 @@ export class ProspectsList {
     return this.statusById().get(prospect.statusId);
   }
 
-  serviceIdOf(prospect: Prospect): string {
-    return this.projectByProspectId().get(prospect.id)?.serviceId ?? '';
+  projectsOf(prospect: Prospect): Project[] {
+    return this.projectsByProspectId().get(prospect.id) ?? [];
   }
 
-  serviceNameOf(prospect: Prospect): string | undefined {
-    return this.projectByProspectId().get(prospect.id)?.serviceName;
+  /** Servicio del primer trabajo + ` +N` si hay más. */
+  serviceLabelOf(prospect: Prospect): string {
+    const projects = this.projectsOf(prospect);
+    if (projects.length === 0) return '—';
+    const first = projects[0].serviceName || 'Sin servicio';
+    return projects.length > 1 ? `${first} +${projects.length - 1}` : first;
   }
 
-  isPaidOf(prospect: Prospect): boolean {
-    return !!this.projectByProspectId().get(prospect.id)?.paid;
+  /** Tooltip: un renglón por trabajo con su estado de pago. */
+  servicesTooltipOf(prospect: Prospect): string {
+    return this.projectsOf(prospect)
+      .map((p) => `${p.serviceName || 'Sin servicio'} — ${PAYMENT_STATUS_LABEL[projectPaymentStatus(p)]}`)
+      .join('\n');
   }
 
   discountOf(prospect: Prospect): string | undefined {
-    const project = this.projectByProspectId().get(prospect.id);
-    if (!project?.discountValue) return undefined;
-
-    if (project.discountType === 'fixed') {
-      return `$${project.discountValue}`;
-    } else {
-      return `${project.discountValue}%`;
-    }
+    const project = this.projectsOf(prospect).find((p) => !!p.discountValue);
+    if (!project) return undefined;
+    return project.discountType === 'fixed' ? `$${project.discountValue}` : `${project.discountValue}%`;
   }
 
   /** Edición en línea — cambiar categoría o estado no debería obligarte a
@@ -390,68 +396,19 @@ export class ProspectsList {
     );
   }
 
-  /** El propio select de Estado dispara la confirmación — sin checkbox aparte.
-   * Entrar a un estado Final pide confirmar "¿ya pagó?" y bloquea el Servicio
-   * (candado = `project.paid`). Salir de un estado Final ya pagado pide
-   * confirmar que se quiere reabrir, y destilda el candado. Cualquier otro
-   * cambio de Estado (que no entra ni sale de un Final pagado) va directo. */
-  async updateStatus(prospect: Prospect, statusId: string): Promise<void> {
+  /** Un Estado que requiere servicio (`requiresService`) exige que el cliente
+   * ya tenga al menos un trabajo — se cargan desde la ficha. */
+  async updateStatus(prospect: Prospect, statusId: string, select?: MatSelect): Promise<void> {
     if (statusId === prospect.statusId) return;
 
-    const project = this.projectByProspectId().get(prospect.id);
     const newStatus = this.statusById().get(statusId);
-    const wasPaid = !!project?.paid;
-
-    if (newStatus?.isFinal && !wasPaid) {
-      const confirmed = await this.confirmDialog({
-        title: '¿Ya pagó?',
-        message: `"${prospect.name}" pasa a "${newStatus.label}". Se bloquea el Servicio hasta que vuelvas a cambiar el Estado.`,
-        confirmLabel: 'Sí, ya pagó',
-        icon: 'paid',
-      });
-      if (!confirmed) return;
-
-      let projectId = project?.id;
-      if (!projectId) {
-        projectId = await this.projectRepo.create({
-          prospectId: prospect.id,
-          startDate: new Date().toISOString().slice(0, 10),
-          status: 'Activo',
-        });
-        await this.historyRepo.log(prospect.id, HistoryEventType.ProjectCreated, { projectId });
-      }
-
-      const updates: Partial<Project> = { paid: true };
-      if (!project?.deposit && project?.servicePrice) {
-        updates.deposit = project.servicePrice;
-      }
-      await this.projectRepo.update(projectId, updates);
-      await this.prospectRepo.update(prospect.id, { statusId });
-      await this.historyRepo.log(prospect.id, HistoryEventType.StatusChanged, { statusId });
-      return;
-    }
-
-    if (wasPaid && !newStatus?.isFinal) {
-      const confirmed = await this.confirmDialog({
-        title: '¿Reabrir este cliente?',
-        message: `"${prospect.name}" ya estaba marcado como pagado. Cambiar el Estado destilda el candado, vuelve a habilitar el Servicio y vacía el Anticipo cargado — ya no cuenta como ingreso hasta que se vuelva a marcar como pagado.`,
-        confirmLabel: 'Sí, cambiar igual',
-        icon: 'lock_open',
-      });
-      if (!confirmed) return;
-      if (project) await this.projectRepo.update(project.id, { paid: false, deposit: null });
-      await this.prospectRepo.update(prospect.id, { statusId });
+    if (newStatus?.requiresService && this.projectsOf(prospect).length === 0) {
+      if (select) select.value = prospect.statusId;
+      this.snackBar.open('Agregá un trabajo primero (Ver → Trabajos).', 'Cerrar', { duration: 4000 });
       return;
     }
 
     await this.prospectRepo.update(prospect.id, { statusId });
-  }
-
-  /** Mismo criterio que en los formularios: crea el Proyecto si todavía no
-   * existe (recién ahí tiene sentido guardar un servicio) y le asigna el
-   * servicio elegido, con nombre + precio copiados de ese momento. */
-  updateService(prospect: Prospect, serviceId: string): Promise<void> {
-    return this.prospectEdit.assignService(prospect, serviceId);
   }
 
   toggleFavorite(prospect: Prospect, event: Event): void {
@@ -504,7 +461,7 @@ export class ProspectsList {
         // `undefined` = canceló el diálogo (backdrop/Escape) → no abrir nada.
         // `null` = eligió "Sin plantilla" a propósito → abrir sin mensaje.
         if (template === undefined) return;
-        void this.whatsapp.openWithTemplate(prospect, template, this.projectByProspectId().get(prospect.id) ?? null);
+        void this.whatsapp.openWithTemplate(prospect, template, primaryProject(this.projectsOf(prospect)));
       });
   }
 

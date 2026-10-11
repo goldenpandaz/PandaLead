@@ -1,0 +1,78 @@
+<div class="dialog-header">
+  <h2 mat-dialog-title>{{ isEdit ? 'Editar trabajo' : 'Nuevo trabajo' }}</h2>
+  <button mat-icon-button mat-dialog-close aria-label="Cerrar"><mat-icon>close</mat-icon></button>
+</div>
+
+<mat-dialog-content>
+  <div class="job-form">
+    <div class="form-field-group">
+      <label>Servicio</label>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-select [ngModel]="serviceId()" (ngModelChange)="serviceId.set($event)" name="serviceId">
+          <mat-option value="">—</mat-option>
+          @for (service of services(); track service.id) {
+            <mat-option [value]="service.id">
+              {{ service.name }}@if (service.price) { · {{ service.price | money }} }
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    @if (serviceId()) {
+      <div class="form-field-group">
+        <label>Descuento</label>
+        <div class="discount-row">
+          <mat-button-toggle-group [ngModel]="discountType()" (ngModelChange)="discountType.set($event)" name="discountType">
+            <mat-button-toggle value="percentage">%</mat-button-toggle>
+            <mat-button-toggle value="fixed">$</mat-button-toggle>
+          </mat-button-toggle-group>
+          <input type="number" min="0" class="discount-input" placeholder="0" [ngModel]="discountValue()" (ngModelChange)="discountValue.set($event)" name="discountValue" />
+        </div>
+        @if (discountDisplay(); as display) {
+          @if (display.price > 0) {
+            <div class="price-summary">
+              <span>Precio: {{ display.price | money }}</span>
+              <span>Descuento: {{ display.amount | money }}</span>
+              <strong>Total: {{ display.total | money }}</strong>
+            </div>
+          } @else {
+            <span class="discount-total">Este servicio no tiene precio cargado en el catálogo.</span>
+          }
+        }
+      </div>
+    }
+
+    <div class="form-field-group">
+      <label>Estado del trabajo</label>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-select [ngModel]="status()" (ngModelChange)="status.set($event)" name="status">
+          @for (s of workStatuses; track s) {
+            <mat-option [value]="s">{{ s }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-field-group">
+      <label>Fecha de entrega</label>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <input matInput [matDatepicker]="duePicker" [ngModel]="dueDate()" (ngModelChange)="dueDate.set($event)" name="dueDate" placeholder="dd/mm/aaaa" />
+        <mat-datepicker-toggle matIconSuffix [for]="duePicker" />
+        <mat-datepicker #duePicker />
+      </mat-form-field>
+    </div>
+
+    <div class="form-field-group">
+      <label>Observaciones</label>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <textarea matInput rows="2" [ngModel]="observations()" (ngModelChange)="observations.set($event)" name="observations"></textarea>
+      </mat-form-field>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancelar</button>
+  <button mat-flat-button color="primary" [disabled]="saving()" (click)="save()">Guardar</button>
+</mat-dialog-actions>

@@ -1,6 +1,23 @@
 /**
- * Vive en `/tenants/{uid}/projects/{id}`. Se crea al convertir un prospecto en cliente.
+ * Un "trabajo" de un cliente. Un cliente (Prospect) puede tener varios.
+ * Vive en `/tenants/{uid}/projects/{id}`.
  */
+export interface ProjectPayment {
+  id: string;
+  amount: number;
+  /** yyyy-mm-dd */
+  date: string;
+  note?: string;
+}
+
+export interface ProjectNote {
+  id: string;
+  text: string;
+  createdAt: number;
+}
+
+export const WORK_STATUSES = ['Pendiente', 'En proceso', 'Entregado'] as const;
+
 export interface Project {
   id: string;
   prospectId: string;
@@ -12,15 +29,11 @@ export interface Project {
   servicePrice?: number;
   discountType?: 'fixed' | 'percentage';
   discountValue?: number;
-  deposit?: number;
-  balance?: number;
-  domain?: string;
-  hosting?: string;
   observations?: string;
+  /** Uno de `WORK_STATUSES`. */
   status: string;
-  /** Marca manual de "ya pagó, quedó cerrado" — pasa el Estado del prospecto a
-   * un estado Final y bloquea Estado/Servicio en la tabla hasta que se destilde
-   * (con confirmación en ambos sentidos). No confundir con `deposit`/`balance`:
-   * esto es un candado, no un monto. */
-  paid?: boolean;
+  /** Abonos del trabajo. El pagado/saldo se derivan con `project-finance.util`. Siempre array. */
+  payments: ProjectPayment[];
+  /** Seguimiento del trabajo. Siempre array. */
+  notes: ProjectNote[];
 }

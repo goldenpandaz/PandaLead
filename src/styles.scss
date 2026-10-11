@@ -316,3 +316,16 @@ html {
 }
 
 /* You can add global styles to this file, and also import other style files */
+
+// Cabecera de diálogos: título + botón X.
+.dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 0.5rem;
+
+  h2 {
+    margin: 0;
+    flex: 1;
+  }
+}

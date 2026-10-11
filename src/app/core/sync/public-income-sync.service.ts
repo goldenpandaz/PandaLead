@@ -1,11 +1,12 @@
 import { Injectable, effect, inject } from '@angular/core';
 
 import { ProjectRepository } from '../../data/repositories/project.repository';
+import { projectPaidAmount } from '../../shared/utils/project-finance.util';
 import { AuthService } from '../auth/auth.service';
 import { SyncEngine } from './sync-engine.service';
 
 /**
- * Publica el total de ingresos cobrados (suma de `deposit` de todos los projects
+ * Publica el total de ingresos cobrados (suma de los abonos de todos los projects
  * del tenant) en un nodo público y acotado — `tenants/{uid}/public/incomeCobrado` —
  * para que otra app propia (Kontrol Cash) lo pueda leer sin autenticarse contra
  * este proyecto de Firebase. Ver la excepción de lectura puntual en
@@ -27,7 +28,7 @@ export class PublicIncomeSyncService {
       if (!user) return;
 
       const sub = this.projectRepo.watchAll().subscribe((projects) => {
-        const total = projects.reduce((sum, p) => sum + (p.deposit ?? 0), 0);
+        const total = projects.reduce((sum, p) => sum + projectPaidAmount(p), 0);
         void this.sync.write('publicStats', 'income', `tenants/${user.uid}/public`, 'update', {
           incomeCobrado: total,
           incomeCobradoUpdatedAt: Date.now(),

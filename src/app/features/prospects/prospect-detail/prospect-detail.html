@@ -13,15 +13,68 @@
         WhatsApp
       </button>
 
-      @if (projects().length === 0) {
-        <button mat-flat-button color="primary" (click)="convertToClient()">
-          <mat-icon>handshake</mat-icon>
-          Convertir a cliente
-        </button>
-      }
+      <button mat-flat-button color="primary" (click)="openJobDialog()">
+        <mat-icon>add</mat-icon>
+        Agregar trabajo
+      </button>
     </header>
 
     <mat-tab-group class="detail-tabs" animationDuration="0ms">
+      <mat-tab label="Trabajos ({{ projects().length }})">
+        <div class="tab-panel jobs-panel">
+          @for (job of sortedProjects(); track job.id) {
+            <article class="job-card">
+              <div class="job-head">
+                <span class="job-title">{{ job.serviceName || 'Sin servicio' }}</span>
+                <span class="job-status">
+                  <span class="color-dot" [style.background]="workStatusColor[job.status] || '#9e9e9e'"></span>{{ job.status }}
+                </span>
+              </div>
+
+              <div class="job-amounts">
+                <span>Precio: {{ job.servicePrice ?? 0 | money }}</span>
+                @if (discountOf(job) > 0) {
+                  <span>Descuento: {{ discountOf(job) | money }}</span>
+                }
+                <span class="job-total">Total: {{ total(job) | money }}</span>
+              </div>
+
+              <div class="job-payments">
+                <div class="job-bar"><div class="job-bar-fill" [style.width.%]="paidPercent(job)"></div></div>
+                <div class="job-payments-line">
+                  <span>Pagado {{ paidAmount(job) | money }} de {{ total(job) | money }} · Saldo {{ balanceOf(job) | money }}</span>
+                  <span class="pay-tag" [class.pay-tag-paid]="paymentStatus(job) === 'paid'">{{ paymentStatusLabel[paymentStatus(job)] }}</span>
+                </div>
+              </div>
+
+              @if (job.dueDate) {
+                <div class="job-due">Entrega: {{ job.dueDate + 'T00:00' | date: 'dd/MM/yy' }}</div>
+              }
+
+              <div class="job-actions">
+                <button mat-button (click)="openPayments(job)"><mat-icon>payments</mat-icon>Pagos</button>
+                <button mat-button (click)="openJobNotes(job)"><mat-icon>forum</mat-icon>Seguimiento ({{ job.notes.length }})</button>
+                <span class="spacer"></span>
+                <button mat-icon-button matTooltip="Editar" (click)="openJobDialog(job)">
+                  <mat-icon class="action-edit">edit</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Eliminar" (click)="deleteJob(job)">
+                  <mat-icon class="action-delete">delete</mat-icon>
+                </button>
+              </div>
+            </article>
+          } @empty {
+            <div class="jobs-empty">
+              <p>Todavía no hay trabajos. Agregá el primero.</p>
+              <button mat-flat-button color="primary" (click)="openJobDialog()">
+                <mat-icon>add</mat-icon>
+                Agregar trabajo
+              </button>
+            </div>
+          }
+        </div>
+      </mat-tab>
+
       <mat-tab label="General">
         <form [formGroup]="form" class="general-form">
           <div class="name-phone-row span-2">
@@ -61,67 +114,12 @@
                 <mat-option [value]="status.id">{{ status.label }}</mat-option>
               }
             </mat-select>
+            @if (currentStatus()?.requiresService && projects().length === 0) {
+              <mat-hint>Este estado requiere al menos un trabajo (pestaña Trabajos).</mat-hint>
+            }
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="span-2">
-            <mat-label>Servicio{{ currentStatus()?.requiresService ? ' *' : '' }}</mat-label>
-            <mat-select formControlName="serviceId">
-              <mat-option value="">—</mat-option>
-              @for (service of services(); track service.id) {
-                <mat-option [value]="service.id">{{ service.name }}</mat-option>
-              }
-            </mat-select>
-            <mat-hint>
-              @if (currentStatus()?.requiresService) {
-                Este estado requiere elegir qué le vas a brindar.
-              } @else {
-                Se habilita cuando el Estado lo requiere.
-              }
-            </mat-hint>
-          </mat-form-field>
-
-          @if (form.get('serviceId')?.value) {
-            <div class="discount-row span-2">
-              <mat-button-toggle-group [formControl]="discountTypeControl" class="discount-toggle">
-                <mat-button-toggle value="fixed">$</mat-button-toggle>
-                <mat-button-toggle value="percentage">%</mat-button-toggle>
-              </mat-button-toggle-group>
-              <input type="number" [formControl]="discountValueControl" class="discount-simple-input" placeholder="0" />
-              @if (discountDisplay(); as display) {
-                <span class="discount-total">
-                  Descuento: {{ display.amount | money }} · Total: {{ display.total | money }}
-                </span>
-              }
-            </div>
-          }
-
-          <mat-expansion-panel class="optional-panel span-2">
-            <mat-expansion-panel-header>
-              <mat-panel-title>Datos adicionales</mat-panel-title>
-              <mat-panel-description>Opcional</mat-panel-description>
-            </mat-expansion-panel-header>
-
-            <div class="general-form">
-              <mat-form-field appearance="outline"><mat-label>Email</mat-label><input matInput formControlName="email" /></mat-form-field>
-              <mat-form-field appearance="outline"><mat-label>Sitio web</mat-label><input matInput formControlName="website" /></mat-form-field>
-              <mat-form-field appearance="outline" class="span-2"><mat-label>Localidad</mat-label><input matInput formControlName="locality" placeholder="Barrio, ciudad…" /></mat-form-field>
-              <mat-checkbox class="span-2" formControlName="favorite">Favorito</mat-checkbox>
-            </div>
-          </mat-expansion-panel>
-
-          <mat-expansion-panel class="social-panel span-2">
-            <mat-expansion-panel-header>
-              <mat-panel-title>Redes sociales (opcional)</mat-panel-title>
-            </mat-expansion-panel-header>
-
-            <div class="general-form">
-              <mat-form-field appearance="outline"><mat-label>Instagram</mat-label><input matInput formControlName="instagram" /></mat-form-field>
-              <mat-form-field appearance="outline"><mat-label>Facebook</mat-label><input matInput formControlName="facebook" /></mat-form-field>
-              <mat-form-field appearance="outline"><mat-label>TikTok</mat-label><input matInput formControlName="tiktok" /></mat-form-field>
-              <mat-form-field appearance="outline"><mat-label>YouTube</mat-label><input matInput formControlName="youtube" /></mat-form-field>
-              <mat-form-field appearance="outline" class="span-2"><mat-label>LinkedIn</mat-label><input matInput formControlName="linkedin" /></mat-form-field>
-            </div>
-          </mat-expansion-panel>
+          <mat-checkbox class="span-2" formControlName="favorite">Favorito</mat-checkbox>
 
           @if (errorMessage()) {
             <p class="error-text span-2">{{ errorMessage() }}</p>
@@ -238,50 +236,6 @@
         </div>
       </mat-tab>
 
-      @if (projects().length > 0) {
-        <mat-tab label="Proyecto">
-          <form [formGroup]="projectForm" class="general-form">
-            <p class="project-start-hint">Inicio del proyecto: {{ projects()[0].startDate }}</p>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Servicio</mat-label>
-              <mat-select formControlName="serviceId">
-                <mat-option value="">—</mat-option>
-                @for (service of services(); track service.id) {
-                  <mat-option [value]="service.id">
-                    {{ service.name }}@if (service.price) { · {{ service.price | money }} }
-                  </mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline"><mat-label>Estado del proyecto</mat-label><input matInput formControlName="status" /></mat-form-field>
-            <mat-form-field appearance="outline"><mat-label>Fecha de entrega</mat-label><input matInput type="date" formControlName="dueDate" /></mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Anticipo</mat-label>
-              <span matTextPrefix>$&nbsp;</span>
-              <input matInput type="text" inputmode="numeric" moneyInput formControlName="deposit" />
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Saldo pendiente</mat-label>
-              <span matTextPrefix>$&nbsp;</span>
-              <input matInput type="text" inputmode="numeric" moneyInput formControlName="balance" />
-            </mat-form-field>
-            <mat-form-field appearance="outline"><mat-label>Dominio</mat-label><input matInput formControlName="domain" /></mat-form-field>
-            <mat-form-field appearance="outline"><mat-label>Hosting</mat-label><input matInput formControlName="hosting" /></mat-form-field>
-            <mat-form-field appearance="outline" class="grow">
-              <mat-label>Observaciones</mat-label>
-              <textarea matInput rows="2" formControlName="observations"></textarea>
-            </mat-form-field>
-
-            <div class="form-actions">
-              <button mat-flat-button color="primary" type="button" [disabled]="!projectForm.dirty || savingProject()" (click)="saveProject()">
-                Guardar proyecto
-              </button>
-            </div>
-          </form>
-        </mat-tab>
-      }
     </mat-tab-group>
   </div>
 } @else {

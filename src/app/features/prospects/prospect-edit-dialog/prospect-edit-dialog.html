@@ -46,18 +46,6 @@
         </mat-select>
       </mat-form-field>
     </div>
-
-    <div class="form-field-group">
-      <label>Servicio</label>
-      <mat-form-field appearance="outline" subscriptSizing="dynamic">
-        <mat-select [(ngModel)]="form.serviceId" name="serviceId">
-          <mat-option value="">Sin seleccionar</mat-option>
-          @for (service of data.services; track service.id) {
-            <mat-option [value]="service.id">{{ service.name }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-    </div>
   </form>
 </mat-dialog-content>
 

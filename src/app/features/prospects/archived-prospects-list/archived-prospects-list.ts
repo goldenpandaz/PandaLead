@@ -24,7 +24,7 @@ import { ProjectRepository } from '../../../data/repositories/project.repository
 import { Prospect } from '../../../domain/models/prospect.model';
 import { Project } from '../../../domain/models/project.model';
 import { StatusConfig } from '../../../domain/models/status.model';
-import { ServiceConfig } from '../../../domain/models/service.model';
+import { PAYMENT_STATUS_LABEL, projectPaymentStatus } from '../../../shared/utils/project-finance.util';
 
 const SIMPLE_COLUMNS = ['select', 'favorite', 'name', 'phone', 'statusId', 'service', 'actions'] as const;
 
@@ -64,11 +64,18 @@ export class ArchivedProspectsList {
 
   private readonly prospects = toSignal(this.prospectRepo.watchAll(), { initialValue: [] as Prospect[] });
   readonly statuses = toSignal(this.configRepo.watchStatuses(), { initialValue: [] as StatusConfig[] });
-  readonly services = toSignal(this.configRepo.watchServices(), { initialValue: [] as ServiceConfig[] });
   private readonly projects = toSignal(this.projectRepo.watchAll(), { initialValue: [] as Project[] });
 
   private readonly statusById = computed(() => new Map(this.statuses().map((s) => [s.id, s])));
-  private readonly projectByProspectId = computed(() => new Map(this.projects().map((p) => [p.prospectId, p])));
+  private readonly projectsByProspectId = computed(() => {
+    const map = new Map<string, Project[]>();
+    for (const p of this.projects()) {
+      const list = map.get(p.prospectId);
+      if (list) list.push(p);
+      else map.set(p.prospectId, [p]);
+    }
+    return map;
+  });
 
   readonly search = signal('');
 
@@ -115,16 +122,23 @@ export class ArchivedProspectsList {
     return this.statusById().get(prospect.statusId);
   }
 
-  serviceIdOf(prospect: Prospect): string {
-    return this.projectByProspectId().get(prospect.id)?.serviceId ?? '';
+  projectsOf(prospect: Prospect): Project[] {
+    return this.projectsByProspectId().get(prospect.id) ?? [];
   }
 
-  serviceNameOf(prospect: Prospect): string | undefined {
-    return this.projectByProspectId().get(prospect.id)?.serviceName;
+  /** Servicio del primer trabajo + ` +N` si hay más. */
+  serviceLabelOf(prospect: Prospect): string {
+    const projects = this.projectsOf(prospect);
+    if (projects.length === 0) return '—';
+    const first = projects[0].serviceName || 'Sin servicio';
+    return projects.length > 1 ? `${first} +${projects.length - 1}` : first;
   }
 
-  isPaidOf(prospect: Prospect): boolean {
-    return !!this.projectByProspectId().get(prospect.id)?.paid;
+  /** Tooltip: un renglón por trabajo con su estado de pago. */
+  servicesTooltipOf(prospect: Prospect): string {
+    return this.projectsOf(prospect)
+      .map((p) => `${p.serviceName || 'Sin servicio'} — ${PAYMENT_STATUS_LABEL[projectPaymentStatus(p)]}`)
+      .join('\n');
   }
 
   toggleFavorite(prospect: Prospect, event: Event): void {

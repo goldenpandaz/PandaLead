@@ -1,0 +1,75 @@
+.summary {
+  display: flex;
+  gap: 1.25rem;
+  padding: 0.5rem 0 0.75rem;
+  font-size: 0.85rem;
+
+  div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .label {
+    opacity: 0.65;
+    font-size: 0.75rem;
+  }
+}
+
+.entries {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  font-size: 0.85rem;
+
+  &.editing {
+    background: rgba(var(--accent-rgb), 0.08);
+  }
+}
+
+.entry-main {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.75rem;
+  min-width: 0;
+}
+
+.entry-amount {
+  font-weight: 600;
+}
+
+.entry-date,
+.entry-note {
+  opacity: 0.7;
+  font-size: 0.8rem;
+}
+
+.action-edit {
+  color: #ffffff;
+}
+.action-delete {
+  color: #ff5252;
+}
+
+.pay-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.paid-notice,
+.empty-hint {
+  opacity: 0.7;
+  font-size: 0.85rem;
+}

@@ -1,5 +1,6 @@
 import { Prospect } from '../../domain/models/prospect.model';
 import { Project } from '../../domain/models/project.model';
+import { projectBalance, projectPaidAmount } from './project-finance.util';
 
 /**
  * Variables `{{var}}` dentro del body de una plantilla — un solo lugar para
@@ -28,10 +29,9 @@ const TEMPLATE_FIELDS: Record<string, FieldResolver> = {
   categoria: (p) => p.categories.join(', '),
   servicio: (_p, proj) => proj?.serviceName,
   precio: (_p, proj) => formatMoney(proj?.servicePrice),
-  deposito: (_p, proj) => formatMoney(proj?.deposit),
-  saldo: (_p, proj) => formatMoney(proj?.balance),
-  dominio: (_p, proj) => proj?.domain,
-  hosting: (_p, proj) => proj?.hosting,
+  // Abonado hasta ahora (suma de abonos) y lo que falta, del trabajo principal.
+  deposito: (_p, proj) => (proj ? formatMoney(projectPaidAmount(proj)) : undefined),
+  saldo: (_p, proj) => (proj?.servicePrice != null ? formatMoney(projectBalance(proj)) : undefined),
   vencimiento: (_p, proj) => proj?.dueDate,
 };
 

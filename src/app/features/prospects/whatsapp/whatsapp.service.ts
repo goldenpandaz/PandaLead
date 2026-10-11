@@ -19,8 +19,8 @@ export class WhatsappService {
   private readonly history = inject(HistoryRepository);
   private readonly prospectRepo = inject(ProspectRepository);
 
-  /** `project` es opcional porque no todo prospecto tiene uno todavía — variables
-   * como `{{servicio}}` simplemente quedan literales si no hay proyecto. */
+  /** `project` es el trabajo principal del cliente (`primaryProject(...)`); opcional
+   * porque no todo cliente tiene uno — `{{servicio}}` queda literal si es null. */
   interpolate(template: MessageTemplate, prospect: Prospect, project: Project | null = null): string {
     return interpolateTemplate(template.body, prospect, project);
   }

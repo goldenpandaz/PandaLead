@@ -10,6 +10,7 @@ import { FollowupRepository } from '../../data/repositories/followup.repository'
 import { Prospect } from '../../domain/models/prospect.model';
 import { StatusConfig } from '../../domain/models/status.model';
 import { MoneyPipe } from '../../shared/pipes/money.pipe';
+import { projectBalance, projectPaidAmount } from '../../shared/utils/project-finance.util';
 
 interface StatBar {
   label: string;
@@ -74,8 +75,8 @@ export class Dashboard {
 
   readonly pendingFollowupsCount = computed(() => this.pendingFollowups().length);
 
-  readonly income = computed(() => this.projects().reduce((sum, p) => sum + (p.deposit ?? 0), 0));
-  readonly pendingIncome = computed(() => this.projects().reduce((sum, p) => sum + (p.balance ?? 0), 0));
+  readonly income = computed(() => this.projects().reduce((sum, p) => sum + projectPaidAmount(p), 0));
+  readonly pendingIncome = computed(() => this.projects().reduce((sum, p) => sum + projectBalance(p), 0));
 
   readonly statusBars = computed<StatBar[]>(() => {
     const prospects = this.prospects();

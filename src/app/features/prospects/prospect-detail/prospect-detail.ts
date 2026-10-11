@@ -1,15 +1,13 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { switchMap } from 'rxjs';
+import { firstValueFrom, switchMap } from 'rxjs';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -33,12 +31,14 @@ import { joinPhone, splitPhone } from '../../../shared/utils/phone.util';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { WhatsappTemplatePicker } from '../whatsapp/whatsapp-template-picker/whatsapp-template-picker';
 import { MessageTemplate } from '../../../domain/models/template.model';
-import { ServiceConfig } from '../../../domain/models/service.model';
 import { CategoryConfig } from '../../../domain/models/category.model';
-import { StatusConfig } from '../../../domain/models/status.model';
 import { Project } from '../../../domain/models/project.model';
+import { ConfirmDialog, ConfirmDialogData } from '../../../shared/dialogs/confirm-dialog/confirm-dialog';
+import { projectBalance, projectDiscountAmount, projectPaidAmount, projectPaymentStatus, projectTotal, PAYMENT_STATUS_LABEL, primaryProject } from '../../../shared/utils/project-finance.util';
+import { JobDialog, JobDialogData } from './job-dialog/job-dialog';
+import { NotesDialog, NotesDialogData } from './notes-dialog/notes-dialog';
+import { PaymentsDialog, PaymentsDialogData } from './payments-dialog/payments-dialog';
 import { Followup } from '../../../domain/models/followup.model';
-import { MoneyInputDirective } from '../../../shared/directives/money-input.directive';
 import { MoneyPipe } from '../../../shared/pipes/money.pipe';
 
 @Component({
@@ -47,11 +47,9 @@ import { MoneyPipe } from '../../../shared/pipes/money.pipe';
     ReactiveFormsModule,
     FormsModule,
     MatButtonModule,
-    MatButtonToggleModule,
     MatCardModule,
     MatCheckboxModule,
     MatDialogModule,
-    MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -60,7 +58,6 @@ import { MoneyPipe } from '../../../shared/pipes/money.pipe';
     MatTabsModule,
     MatTooltipModule,
     DatePipe,
-    MoneyInputDirective,
     MoneyPipe,
   ],
   templateUrl: './prospect-detail.html',
@@ -93,12 +90,10 @@ export class ProspectDetail {
   readonly projects = toSignal(this.id$.pipe(switchMap((id) => this.projectRepo.watchByProspect(id))), { initialValue: [] });
 
   readonly statuses = toSignal(this.configRepo.watchStatuses(), { initialValue: [] });
-  readonly services = toSignal(this.configRepo.watchServices(), { initialValue: [] as ServiceConfig[] });
   readonly categories = toSignal(this.configRepo.watchCategories(), { initialValue: [] as CategoryConfig[] });
   readonly dialCodes = DIAL_CODES;
 
   readonly saving = signal(false);
-  readonly savingProject = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly newNoteText = signal('');
   readonly newFollowup = signal({ date: '', time: '', description: '' });
@@ -110,7 +105,6 @@ export class ProspectDetail {
     // Validators.required falla con array vacío: mínimo una categoría.
     categories: [[] as string[], Validators.required],
     statusId: [''],
-    serviceId: [{ value: '', disabled: true }],
     favorite: [false],
   });
 
@@ -132,50 +126,26 @@ export class ProspectDetail {
   });
 
   /** El estado elegido en este momento en el form (no necesariamente guardado
-   * todavía) — para saber si el campo Servicio debe estar habilitado. */
+   * todavía) — para avisar si requiere al menos un trabajo. */
   readonly currentStatus = () => this.statuses().find((s) => s.id === this.statusIdValue());
 
-  readonly projectForm = this.fb.nonNullable.group({
-    serviceId: [''],
-    status: ['Activo'],
-    dueDate: [''],
-    deposit: [0],
-    balance: [0],
-    domain: [''],
-    hosting: [''],
-    observations: [''],
-  });
+  readonly workStatusColor: Record<string, string> = {
+    Pendiente: '#ffb74d',
+    'En proceso': '#4fc3f7',
+    Entregado: '#66bb6a',
+  };
+  readonly paymentStatusLabel = PAYMENT_STATUS_LABEL;
 
-  readonly discountTypeControl = this.fb.nonNullable.control<'fixed' | 'percentage'>('fixed');
-  readonly discountValueControl = this.fb.nonNullable.control(0);
-
-  readonly discountDisplay = computed(() => {
-    const serviceId = this.projectForm.get('serviceId')?.value;
-    if (!serviceId) return null;
-
-    const service = this.services().find((s) => s.id === serviceId);
-    if (!service || !service.price) return null;
-
-    const discountType = this.discountTypeControl.value;
-    const discountValue = this.discountValueControl.value || 0;
-
-    let amount = 0;
-    if (discountType === 'fixed') {
-      amount = discountValue;
-    } else {
-      amount = (service.price * discountValue) / 100;
-    }
-
-    const total = Math.max(0, service.price - amount);
-    return { amount, total };
-  });
+  /** Trabajos del cliente, el más reciente primero. */
+  readonly sortedProjects = computed(() =>
+    [...this.projects()].sort((a, b) => (b.startDate ?? '').localeCompare(a.startDate ?? '')),
+  );
 
   constructor() {
     // Solo repatchea si el form no tiene cambios sin guardar — no queremos pisar
     // lo que el usuario está tipeando si llega una actualización en vivo de RTDB.
     effect(() => {
       const p = this.prospect();
-      const project = this.projects()[0];
       if (p && !this.form.dirty) {
         const { dialCode, localNumber } = splitPhone(p.phone);
         this.form.patchValue(
@@ -185,48 +155,10 @@ export class ProspectDetail {
             localNumber,
             categories: p.categories,
             statusId: p.statusId ?? '',
-            serviceId: project?.serviceId ?? '',
             favorite: p.favorite,
           },
           { emitEvent: false },
         );
-      }
-    });
-
-    // Campo Servicio: habilitado y obligatorio solo si el estado elegido lo
-    // pide (Configuración → Estados → "Requiere servicio"). Para cualquier
-    // otro estado queda deshabilitado y se limpia.
-    effect(() => {
-      const requiresService = !!this.currentStatus()?.requiresService;
-      const control = this.form.controls.serviceId;
-      if (requiresService) {
-        if (control.disabled) control.enable({ emitEvent: false });
-      } else if (control.enabled) {
-        control.setValue('', { emitEvent: false });
-        control.disable({ emitEvent: false });
-      }
-    });
-
-    // Mismo criterio que el form General: no pisar lo que el usuario está
-    // editando si llega una actualización en vivo de RTDB.
-    effect(() => {
-      const project = this.projects()[0];
-      if (project && !this.projectForm.dirty) {
-        this.projectForm.patchValue(
-          {
-            serviceId: project.serviceId ?? '',
-            status: project.status,
-            dueDate: project.dueDate ?? '',
-            deposit: project.deposit ?? 0,
-            balance: project.balance ?? 0,
-            domain: project.domain ?? '',
-            hosting: project.hosting ?? '',
-            observations: project.observations ?? '',
-          },
-          { emitEvent: false },
-        );
-        this.discountTypeControl.setValue(project.discountType ?? 'fixed', { emitEvent: false });
-        this.discountValueControl.setValue(project.discountValue ?? 0, { emitEvent: false });
       }
     });
 
@@ -264,64 +196,21 @@ export class ProspectDetail {
     }
 
     const value = this.form.getRawValue();
-    const status = this.statuses().find((s) => s.id === value.statusId);
-
-    if (status?.requiresService && !value.serviceId) {
-      this.errorMessage.set('Este estado requiere elegir un servicio antes de guardar.');
-      return;
-    }
 
     this.saving.set(true);
     this.errorMessage.set(null);
     try {
-      const { dialCode, localNumber, serviceId, ...rest } = value;
+      const { dialCode, localNumber, ...rest } = value;
       await this.prospectRepo.update(this.id(), {
         ...rest,
         phone: joinPhone(dialCode, localNumber),
         normalizedName: normalizeName(value.name),
       });
       await this.historyRepo.log(this.id(), HistoryEventType.Edited, {});
-
-      // Cualquier estado "en serio" (isWon, isFinal, o requiresService) necesita
-      // Proyecto para poder trackear plata — se crea acá si hace falta, y si el
-      // campo Servicio quedó cargado, se le asigna.
-      if (status?.isWon || status?.isFinal || status?.requiresService) {
-        await this.ensureProjectAndService(serviceId, status);
-      }
-
       this.form.markAsPristine();
     } finally {
       this.saving.set(false);
     }
-  }
-
-  /** Crea el Proyecto si todavía no existe, y si vino un servicio elegido, lo
-   * copia ahí (nombre + precio de ese momento, no una referencia viva al catálogo).
-   * Si el estado ya es Final y todavía no hay anticipo cargado, asume que el
-   * precio del servicio ya se cobró completo. */
-  private async ensureProjectAndService(serviceId: string, status: StatusConfig | undefined): Promise<void> {
-    const project = this.projects()[0];
-    let projectId = project?.id;
-    if (!projectId) {
-      projectId = await this.projectRepo.create({
-        prospectId: this.id(),
-        startDate: new Date().toISOString().slice(0, 10),
-        status: 'Activo',
-      });
-      await this.historyRepo.log(this.id(), HistoryEventType.ProjectCreated, { projectId });
-    }
-
-    if (!serviceId) return;
-    const service = this.services().find((s) => s.id === serviceId);
-    if (!service) return;
-
-    const updates: Partial<Project> = { serviceId: service.id, serviceName: service.name, servicePrice: service.price };
-    if (status?.isFinal && !project?.deposit && service.price) {
-      updates.deposit = service.price;
-    }
-
-    await this.projectRepo.update(projectId, updates);
-    await this.historyRepo.log(this.id(), HistoryEventType.ServiceAssigned, { serviceId: service.id, serviceName: service.name });
   }
 
   async addNote(): Promise<void> {
@@ -358,55 +247,66 @@ export class ProspectDetail {
       .afterClosed()
       .subscribe((template) => {
         if (template === undefined) return;
-        void this.whatsapp.openWithTemplate(prospect, template, this.projects()[0] ?? null);
+        void this.whatsapp.openWithTemplate(prospect, template, primaryProject(this.projects()));
       });
   }
 
-  /** No guarda directo — solo precarga el estado "Cliente" en el form General
-   * (donde el campo Servicio se habilita/obliga solo) para que el usuario lo
-   * revise y confirme con "Guardar cambios", igual que cualquier otro cambio. */
-  convertToClient(): void {
-    const wonStatus = this.statuses().find((s) => s.isWon);
-    if (!wonStatus) return;
-    this.form.controls.statusId.setValue(wonStatus.id);
-    this.form.markAsDirty();
+  // ----- Trabajos -----
+
+  readonly total = projectTotal;
+  readonly paidAmount = projectPaidAmount;
+  readonly balanceOf = projectBalance;
+  readonly discountOf = projectDiscountAmount;
+
+  paidPercent(project: Project): number {
+    const total = projectTotal(project);
+    if (total <= 0) return projectPaidAmount(project) > 0 ? 100 : 0;
+    return Math.min(100, Math.round((projectPaidAmount(project) / total) * 100));
   }
 
-  async saveProject(): Promise<void> {
-    const project = this.projects()[0];
-    if (!project) return;
+  paymentStatus(project: Project) {
+    return projectPaymentStatus(project);
+  }
 
-    this.savingProject.set(true);
-    try {
-      const value = this.projectForm.getRawValue();
-      const service = this.services().find((s) => s.id === value.serviceId);
-      const currentStatus = this.statuses().find((s) => s.id === this.prospect()?.statusId);
-      // Si ya está en un estado Final y no cargaste ningún anticipo a mano,
-      // se asume que el precio del servicio ya se cobró completo.
-      const deposit = currentStatus?.isFinal && !value.deposit && service?.price ? service.price : value.deposit;
+  openJobDialog(project?: Project): void {
+    this.dialog.open<JobDialog, JobDialogData, boolean>(JobDialog, {
+      width: '90vw',
+      maxWidth: '440px',
+      data: { prospectId: this.id(), project },
+    });
+  }
 
-      if (!value.serviceId) {
-        // `undefined` no alcanza para borrar en RTDB — ver comentario en
-        // ProjectRepository.clearService.
-        await this.projectRepo.clearService(project.id);
-      } else {
-        await this.projectRepo.update(project.id, { serviceId: service?.id, serviceName: service?.name, servicePrice: service?.price });
-      }
+  openPayments(project: Project): void {
+    this.dialog.open<PaymentsDialog, PaymentsDialogData>(PaymentsDialog, {
+      width: '90vw',
+      maxWidth: '480px',
+      data: { prospectId: this.id(), projectId: project.id },
+    });
+  }
 
-      await this.projectRepo.update(project.id, {
-        status: value.status,
-        dueDate: value.dueDate || undefined,
-        deposit,
-        balance: value.balance,
-        domain: value.domain || undefined,
-        hosting: value.hosting || undefined,
-        observations: value.observations || undefined,
-        discountType: this.discountTypeControl.value,
-        discountValue: this.discountValueControl.value || undefined,
-      });
-      this.projectForm.markAsPristine();
-    } finally {
-      this.savingProject.set(false);
-    }
+  openJobNotes(project: Project): void {
+    this.dialog.open<NotesDialog, NotesDialogData>(NotesDialog, {
+      width: '90vw',
+      maxWidth: '480px',
+      data: { prospectId: this.id(), projectId: project.id },
+    });
+  }
+
+  async deleteJob(project: Project): Promise<void> {
+    const ok = await firstValueFrom(
+      this.dialog
+        .open<ConfirmDialog, ConfirmDialogData, boolean>(ConfirmDialog, {
+          width: '380px',
+          data: {
+            title: 'Eliminar trabajo',
+            message: `¿Seguro que querés eliminar "${project.serviceName || 'Sin servicio'}"? Se pierden también sus pagos y seguimiento.`,
+            confirmLabel: 'Eliminar',
+            danger: true,
+            icon: 'delete',
+          },
+        })
+        .afterClosed(),
+    );
+    if (ok) await this.projectRepo.delete(project.id);
   }
 }

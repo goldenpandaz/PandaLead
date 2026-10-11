@@ -1,0 +1,65 @@
+<div class="dialog-header">
+  <h2 mat-dialog-title>Pagos — {{ project()?.serviceName || 'Sin servicio' }}</h2>
+  <button mat-icon-button mat-dialog-close aria-label="Cerrar"><mat-icon>close</mat-icon></button>
+</div>
+
+<mat-dialog-content>
+  <div class="summary">
+    <div><span class="label">Total</span><strong>{{ total() | money }}</strong></div>
+    <div><span class="label">Pagado</span><strong>{{ paid() | money }}</strong></div>
+    <div><span class="label">Saldo</span><strong>{{ balance() | money }}</strong></div>
+  </div>
+
+  <ul class="entries">
+    @for (p of sortedPayments(); track p.id) {
+      <li class="entry" [class.editing]="editingId() === p.id">
+        <div class="entry-main">
+          <span class="entry-amount">{{ p.amount | money }}</span>
+          <span class="entry-date">{{ p.date + 'T00:00' | date: 'dd/MM/yy' }}</span>
+          @if (p.note) {
+            <span class="entry-note">{{ p.note }}</span>
+          }
+        </div>
+        <button mat-icon-button matTooltip="Editar" (click)="startEdit(p)"><mat-icon class="action-edit">edit</mat-icon></button>
+        <button mat-icon-button matTooltip="Eliminar" (click)="remove(p)"><mat-icon class="action-delete">delete</mat-icon></button>
+      </li>
+    } @empty {
+      <li class="empty-hint">Todavía no hay abonos.</li>
+    }
+  </ul>
+
+  @if (showForm()) {
+    <div class="pay-form">
+      <div class="form-field-group">
+        <label>Monto</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <span matTextPrefix>$&nbsp;</span>
+          <input matInput type="text" inputmode="numeric" moneyInput [ngModel]="amount()" (ngModelChange)="amount.set($event)" name="amount" />
+        </mat-form-field>
+      </div>
+      <div class="form-field-group">
+        <label>Fecha</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <input matInput type="date" [ngModel]="date()" (ngModelChange)="date.set($event)" name="date" />
+        </mat-form-field>
+      </div>
+      <div class="form-field-group">
+        <label>Nota (opcional)</label>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <input matInput [ngModel]="note()" (ngModelChange)="note.set($event)" name="note" />
+        </mat-form-field>
+      </div>
+    </div>
+  } @else {
+    <p class="paid-notice">Este trabajo está pagado por completo.</p>
+  }
+</mat-dialog-content>
+
+@if (showForm()) {
+  <mat-dialog-actions align="end">
+    @if (editingId()) {
+      <button mat-button (click)="cancelEdit()">Cancelar edición</button>
+    }
+    <button mat-flat-button color="primary" [disabled]="!canSave()" (click)="save()">Guardar</button>
+  </mat-dialog-actions>
+}

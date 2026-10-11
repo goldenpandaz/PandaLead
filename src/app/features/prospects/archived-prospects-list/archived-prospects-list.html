@@ -85,7 +85,9 @@
 
       <ng-container matColumnDef="service">
         <th mat-header-cell *matHeaderCellDef>Servicio</th>
-        <td mat-cell *matCellDef="let row">{{ serviceNameOf(row) || '—' }}</td>
+        <td mat-cell *matCellDef="let row">
+          <span [matTooltip]="servicesTooltipOf(row)" matTooltipClass="multiline-tooltip">{{ serviceLabelOf(row) }}</span>
+        </td>
       </ng-container>
 
       <ng-container matColumnDef="actions">
