@@ -38,7 +38,7 @@ import { Prospect } from '../../../domain/models/prospect.model';
 import { Project } from '../../../domain/models/project.model';
 import { StatusConfig } from '../../../domain/models/status.model';
 import { CategoryConfig } from '../../../domain/models/category.model';
-import { PAYMENT_STATUS_LABEL, primaryProject, projectPaymentStatus } from '../../../shared/utils/project-finance.util';
+import { PAYMENT_STATUS_LABEL, describeJobsLoss, primaryProject, projectPaymentStatus } from '../../../shared/utils/project-finance.util';
 import { CaptureSource } from '../../../domain/enums/capture-source.enum';
 import { prospectsToCsv, prospectsToMarkdown } from '../../../shared/utils/prospect-export.util';
 import { exportProspectsToExcel } from '../../../shared/utils/excel-export.util';
@@ -469,7 +469,7 @@ export class ProspectsList {
     event.stopPropagation();
     const confirmed = await this.confirmDialog({
       title: '¿Eliminar cliente?',
-      message: `"${prospect.name}" se borra para siempre — esta acción no se puede deshacer.`,
+      message: `"${prospect.name}" se borra para siempre.${describeJobsLoss(this.projectsOf(prospect))} Esta acción no se puede deshacer.`,
       confirmLabel: 'Eliminar',
       icon: 'delete',
       danger: true,
@@ -484,7 +484,7 @@ export class ProspectsList {
 
     const confirmed = await this.confirmDialog({
       title: `¿Eliminar ${count} cliente${count !== 1 ? 's' : ''}?`,
-      message: `Se borra${count !== 1 ? 'n' : ''} ${count} cliente${count !== 1 ? 's' : ''} para siempre — esta acción no se puede deshacer.`,
+      message: `Se borra${count !== 1 ? 'n' : ''} ${count} cliente${count !== 1 ? 's' : ''} para siempre.${describeJobsLoss(this.selection.selected.flatMap((p) => this.projectsOf(p)))} Esta acción no se puede deshacer.`,
       confirmLabel: 'Eliminar',
       icon: 'delete',
       danger: true,

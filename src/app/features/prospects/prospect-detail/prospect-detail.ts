@@ -34,8 +34,10 @@ import { MessageTemplate } from '../../../domain/models/template.model';
 import { CategoryConfig } from '../../../domain/models/category.model';
 import { Project } from '../../../domain/models/project.model';
 import { ConfirmDialog, ConfirmDialogData } from '../../../shared/dialogs/confirm-dialog/confirm-dialog';
-import { projectBalance, projectDiscountAmount, projectPaidAmount, projectPaymentStatus, projectTotal, PAYMENT_STATUS_LABEL, primaryProject } from '../../../shared/utils/project-finance.util';
+import { projectBalance, projectDiscountAmount, projectPaidAmount, projectPaymentStatus, projectTotal, PAYMENT_STATUS_LABEL, WORK_STATUS_COLOR, primaryProject } from '../../../shared/utils/project-finance.util';
+import { describeHistoryEvent } from '../../../shared/utils/history-event.util';
 import { JobDialog, JobDialogData } from './job-dialog/job-dialog';
+import { JobViewDialog, JobViewDialogData } from './job-view-dialog/job-view-dialog';
 import { NotesDialog, NotesDialogData } from './notes-dialog/notes-dialog';
 import { PaymentsDialog, PaymentsDialogData } from './payments-dialog/payments-dialog';
 import { Followup } from '../../../domain/models/followup.model';
@@ -129,11 +131,8 @@ export class ProspectDetail {
    * todavía) — para avisar si requiere al menos un trabajo. */
   readonly currentStatus = () => this.statuses().find((s) => s.id === this.statusIdValue());
 
-  readonly workStatusColor: Record<string, string> = {
-    Pendiente: '#ffb74d',
-    'En proceso': '#4fc3f7',
-    Entregado: '#66bb6a',
-  };
+  readonly workStatusColor = WORK_STATUS_COLOR;
+  readonly describeEvent = describeHistoryEvent;
   readonly paymentStatusLabel = PAYMENT_STATUS_LABEL;
 
   /** Trabajos del cliente, el más reciente primero. */
@@ -276,6 +275,14 @@ export class ProspectDetail {
     });
   }
 
+  openJobView(project: Project): void {
+    this.dialog.open<JobViewDialog, JobViewDialogData>(JobViewDialog, {
+      width: '90vw',
+      maxWidth: '480px',
+      data: { prospectId: this.id(), projectId: project.id },
+    });
+  }
+
   openPayments(project: Project): void {
     this.dialog.open<PaymentsDialog, PaymentsDialogData>(PaymentsDialog, {
       width: '90vw',
@@ -299,7 +306,11 @@ export class ProspectDetail {
           width: '380px',
           data: {
             title: 'Eliminar trabajo',
-            message: `¿Seguro que querés eliminar "${project.serviceName || 'Sin servicio'}"? Se pierden también sus pagos y seguimiento.`,
+            message: `"${project.serviceName || 'Sin servicio'}" se borra para siempre, con sus notas${
+              projectPaidAmount(project) > 0
+                ? ` y sus pagos ($${projectPaidAmount(project).toLocaleString('es-CO')}, que dejarán de contar en tus ingresos)`
+                : ' y sus pagos'
+            }. Esta acción no se puede deshacer.`,
             confirmLabel: 'Eliminar',
             danger: true,
             icon: 'delete',

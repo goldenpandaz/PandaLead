@@ -1,0 +1,89 @@
+<div class="dialog-header">
+  <h2 mat-dialog-title>{{ project()?.serviceName || 'Sin servicio' }}</h2>
+  <button mat-icon-button mat-dialog-close aria-label="Cerrar"><mat-icon>close</mat-icon></button>
+</div>
+
+<mat-dialog-content>
+  @if (project(); as job) {
+    <section class="block">
+      <h3>Detalles</h3>
+      <dl class="details">
+        <div>
+          <dt>Estado</dt>
+          <dd><span class="color-dot" [style.background]="workStatusColor[job.status] || '#9e9e9e'"></span>{{ job.status }}</dd>
+        </div>
+        <div>
+          <dt>Inicio</dt>
+          <dd>{{ job.startDate + 'T00:00' | date: 'dd/MM/yyyy' }}</dd>
+        </div>
+        <div>
+          <dt>Entrega</dt>
+          <dd>{{ job.dueDate ? (job.dueDate + 'T00:00' | date: 'dd/MM/yyyy') : '—' }}</dd>
+        </div>
+        <div>
+          <dt>Precio</dt>
+          <dd>{{ job.servicePrice ?? 0 | money }}</dd>
+        </div>
+        <div>
+          <dt>Descuento</dt>
+          <dd>
+            @if (discount() > 0) {
+              {{ discount() | money }}@if (job.discountType === 'percentage') { ({{ job.discountValue }}%) }
+            } @else {
+              —
+            }
+          </dd>
+        </div>
+        <div>
+          <dt>Total</dt>
+          <dd class="total">{{ total() | money }}</dd>
+        </div>
+      </dl>
+      @if (job.observations) {
+        <div class="observations">
+          <span class="label">Observaciones</span>
+          <p>{{ job.observations }}</p>
+        </div>
+      }
+    </section>
+
+    <section class="block">
+      <h3>Notas ({{ sortedNotes().length }})</h3>
+      @for (note of sortedNotes(); track note.id) {
+        <div class="entry">
+          <span class="entry-date">{{ note.createdAt | date: 'dd/MM/yy HH:mm' }}</span>
+          <p class="entry-text">{{ note.text }}</p>
+        </div>
+      } @empty {
+        <p class="empty-hint">Sin notas.</p>
+      }
+    </section>
+
+    <section class="block">
+      <h3>Pagos ({{ sortedPayments().length }})</h3>
+      <div class="pay-summary">
+        <div><span class="label">Total</span><strong>{{ total() | money }}</strong></div>
+        <div><span class="label">Pagado</span><strong>{{ paid() | money }}</strong></div>
+        <div><span class="label">Saldo</span><strong>{{ balance() | money }}</strong></div>
+        <span class="pay-tag" [class.pay-tag-paid]="paymentStatus() === 'paid'">{{ paymentStatusLabel[paymentStatus()] }}</span>
+      </div>
+      @for (payment of sortedPayments(); track payment.id) {
+        <div class="entry entry-row">
+          <strong>{{ payment.amount | money }}</strong>
+          <span class="entry-date">{{ payment.date + 'T00:00' | date: 'dd/MM/yy' }}</span>
+          @if (payment.note) {
+            <span class="entry-date">{{ payment.note }}</span>
+          }
+        </div>
+      } @empty {
+        <p class="empty-hint">Sin pagos registrados.</p>
+      }
+    </section>
+  } @else {
+    <p class="empty-hint">Cargando…</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cerrar</button>
+</mat-dialog-actions>

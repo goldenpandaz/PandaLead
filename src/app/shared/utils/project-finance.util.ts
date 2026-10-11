@@ -8,6 +8,13 @@ export const PAYMENT_STATUS_LABEL: Record<ProjectPaymentStatus, string> = {
   paid: 'Pagado',
 };
 
+/** Color del punto de cada estado de trabajo. */
+export const WORK_STATUS_COLOR: Record<string, string> = {
+  Pendiente: '#ffb74d',
+  'En proceso': '#4fc3f7',
+  Entregado: '#66bb6a',
+};
+
 type FinanceFields = Pick<Project, 'servicePrice' | 'discountType' | 'discountValue' | 'payments'>;
 
 export function projectDiscountAmount(p: FinanceFields): number {
@@ -36,6 +43,24 @@ export function projectPaymentStatus(p: FinanceFields): ProjectPaymentStatus {
   if (paid <= 0) return 'none';
   if (total <= 0 || paid >= total) return 'paid';
   return 'partial';
+}
+
+/** Descarta trabajos huérfanos (de clientes ya borrados) para no contarlos en
+ * ingresos. Si todavía no hay clientes cargados no filtra nada, así una lista
+ * vacía por carga inicial no hace desaparecer los ingresos. */
+export function projectsOfExistingProspects(projects: Project[], prospects: readonly { id: string }[]): Project[] {
+  if (prospects.length === 0) return projects;
+  const ids = new Set(prospects.map((p) => p.id));
+  return projects.filter((p) => ids.has(p.prospectId));
+}
+
+/** Frase de advertencia para el modal de borrar cliente: qué trabajos y cobros se pierden. '' si no tiene. */
+export function describeJobsLoss(projects: Project[]): string {
+  if (projects.length === 0) return '';
+  const paid = projects.reduce((sum, p) => sum + projectPaidAmount(p), 0);
+  const jobs = `${projects.length} trabajo${projects.length !== 1 ? 's' : ''}`;
+  const money = paid > 0 ? ` y los pagos registrados ($${paid.toLocaleString('es-CO')}, que dejarán de contar en tus ingresos)` : '';
+  return ` También se ${projects.length !== 1 ? 'borran' : 'borra'} ${jobs}${money}.`;
 }
 
 /** El trabajo "principal" de un cliente: el más reciente con saldo pendiente;

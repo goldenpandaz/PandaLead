@@ -1,7 +1,9 @@
 import { Injectable, effect, inject } from '@angular/core';
+import { combineLatest } from 'rxjs';
 
 import { ProjectRepository } from '../../data/repositories/project.repository';
-import { projectPaidAmount } from '../../shared/utils/project-finance.util';
+import { ProspectRepository } from '../../data/repositories/prospect.repository';
+import { projectPaidAmount, projectsOfExistingProspects } from '../../shared/utils/project-finance.util';
 import { AuthService } from '../auth/auth.service';
 import { SyncEngine } from './sync-engine.service';
 
@@ -20,6 +22,7 @@ import { SyncEngine } from './sync-engine.service';
 export class PublicIncomeSyncService {
   private readonly auth = inject(AuthService);
   private readonly projectRepo = inject(ProjectRepository);
+  private readonly prospectRepo = inject(ProspectRepository);
   private readonly sync = inject(SyncEngine);
 
   constructor() {
@@ -27,8 +30,8 @@ export class PublicIncomeSyncService {
       const user = this.auth.currentUser();
       if (!user) return;
 
-      const sub = this.projectRepo.watchAll().subscribe((projects) => {
-        const total = projects.reduce((sum, p) => sum + projectPaidAmount(p), 0);
+      const sub = combineLatest([this.projectRepo.watchAll(), this.prospectRepo.watchAll()]).subscribe(([projects, prospects]) => {
+        const total = projectsOfExistingProspects(projects, prospects).reduce((sum, p) => sum + projectPaidAmount(p), 0);
         void this.sync.write('publicStats', 'income', `tenants/${user.uid}/public`, 'update', {
           incomeCobrado: total,
           incomeCobradoUpdatedAt: Date.now(),

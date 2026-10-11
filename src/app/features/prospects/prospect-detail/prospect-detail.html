@@ -53,10 +53,13 @@
 
               <div class="job-actions">
                 <button mat-button (click)="openPayments(job)"><mat-icon>payments</mat-icon>Pagos</button>
-                <button mat-button (click)="openJobNotes(job)"><mat-icon>forum</mat-icon>Seguimiento ({{ job.notes.length }})</button>
+                <button mat-button (click)="openJobNotes(job)"><mat-icon>sticky_note_2</mat-icon>Notas ({{ job.notes.length }})</button>
                 <span class="spacer"></span>
                 <button mat-icon-button matTooltip="Editar" (click)="openJobDialog(job)">
                   <mat-icon class="action-edit">edit</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Ver detalles" (click)="openJobView(job)">
+                  <mat-icon class="action-view">visibility</mat-icon>
                 </button>
                 <button mat-icon-button matTooltip="Eliminar" (click)="deleteJob(job)">
                   <mat-icon class="action-delete">delete</mat-icon>
@@ -224,9 +227,10 @@
         <div class="tab-panel">
           <mat-list>
             @for (event of history(); track event.id) {
+              @let info = describeEvent(event);
               <mat-list-item>
-                <mat-icon matListItemIcon>history</mat-icon>
-                <span matListItemTitle>{{ event.type }}</span>
+                <mat-icon matListItemIcon>{{ info.icon }}</mat-icon>
+                <span matListItemTitle>{{ info.title }}@if (info.detail) { · {{ info.detail }} }</span>
                 <span matListItemLine>{{ event.createdAt | date: 'dd/MM/yy HH:mm' }}</span>
               </mat-list-item>
             } @empty {

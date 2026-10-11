@@ -1,8 +1,9 @@
-import { Injectable } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { Observable, firstValueFrom, map } from 'rxjs';
 
 import { Prospect, ProspectDetails } from '../../domain/models/prospect.model';
 import { BaseRepository } from './base.repository';
+import { ProjectRepository } from './project.repository';
 
 const COLLECTION = 'prospects';
 const DETAILS_COLLECTION = 'prospectDetails';
@@ -19,6 +20,8 @@ function normalizeCategories(raw: LegacyProspect): Prospect {
 
 @Injectable({ providedIn: 'root' })
 export class ProspectRepository extends BaseRepository {
+  private readonly projectRepo = inject(ProjectRepository);
+
   watchAll(): Observable<Prospect[]> {
     return this.sync
       .watchCollection<LegacyProspect>(COLLECTION, this.tenantPath(COLLECTION))
@@ -63,7 +66,10 @@ export class ProspectRepository extends BaseRepository {
     });
   }
 
+  /** Borra el cliente y sus trabajos (si no, quedan huérfanos y siguen sumando ingresos). */
   async delete(id: string): Promise<void> {
+    const jobs = await firstValueFrom(this.projectRepo.watchByProspect(id));
+    await Promise.all(jobs.map((job) => this.projectRepo.delete(job.id)));
     await this.sync.write(COLLECTION, id, this.tenantPath(COLLECTION, id), 'remove');
     await this.sync.write(DETAILS_COLLECTION, id, this.tenantPath(DETAILS_COLLECTION, id), 'remove');
   }
