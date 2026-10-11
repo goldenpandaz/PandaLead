@@ -99,6 +99,12 @@
           }
         },
 
+        "public": {
+          ".read": true,
+          "incomeCobrado": { ".validate": "newData.isNumber()" },
+          "incomeCobradoUpdatedAt": { ".validate": "newData.isNumber()" }
+        },
+
         "config": {
           "statuses": {
             "$statusId": {
