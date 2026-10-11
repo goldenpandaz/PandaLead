@@ -153,7 +153,7 @@
     @if (isLoadingProspects()) {
       <div class="loading-placeholder">Cargando clientes…</div>
     } @else {
-      <table mat-table [dataSource]="dataSource" matSort class="prospects-table">
+      <table mat-table [dataSource]="dataSource" matSort class="dense-table">
       <ng-container matColumnDef="select">
         <th mat-header-cell *matHeaderCellDef>
           <mat-checkbox

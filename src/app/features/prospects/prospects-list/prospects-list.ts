@@ -22,11 +22,10 @@ import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { PhonePipe } from '../../../core/pipes/phone.pipe';
-import { DIAL_CODES } from '../../../shared/constants/dial-codes';
 
 import { ProspectCapture, ProspectCaptureData } from '../prospect-capture/prospect-capture';
 import { ProspectImportDialog } from '../prospect-import-dialog/prospect-import-dialog';
-import { ProspectEditDialog } from '../prospect-edit-dialog/prospect-edit-dialog';
+import { ProspectEditService } from '../prospect-edit-dialog/prospect-edit.service';
 import { WhatsappTemplatePicker } from '../whatsapp/whatsapp-template-picker/whatsapp-template-picker';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { ConfirmDialog, ConfirmDialogData } from '../../../shared/dialogs/confirm-dialog/confirm-dialog';
@@ -114,6 +113,7 @@ export class ProspectsList {
   private readonly configRepo = inject(ConfigRepository);
   private readonly projectRepo = inject(ProjectRepository);
   private readonly historyRepo = inject(HistoryRepository);
+  private readonly prospectEdit = inject(ProspectEditService);
   private readonly auth = inject(AuthService);
   private readonly dialog = inject(MatDialog);
   private readonly whatsapp = inject(WhatsappService);
@@ -288,28 +288,7 @@ export class ProspectsList {
 
   openEditDialog(prospect: Prospect, event?: Event): void {
     event?.stopPropagation();
-    this.dialog.open(ProspectEditDialog, {
-      width: '90vw',
-      maxWidth: '440px',
-      data: {
-        prospect,
-        categories: this.categories(),
-        statuses: this.statuses(),
-        services: this.services(),
-        serviceId: this.serviceIdOf(prospect),
-        dialCodes: DIAL_CODES,
-      },
-    }).afterClosed().subscribe(async result => {
-      if (!result) return;
-      const { serviceId, ...changes } = result;
-      try {
-        await this.prospectRepo.update(prospect.id, changes);
-        await this.updateService(prospect, serviceId);
-      } catch (err) {
-        this.snackBar.open('Error al guardar cambios', 'Cerrar', { duration: 3000 });
-        console.error(err);
-      }
-    });
+    this.prospectEdit.edit(prospect);
   }
 
   openDetail(prospect: Prospect, event?: Event): void {
@@ -471,39 +450,8 @@ export class ProspectsList {
   /** Mismo criterio que en los formularios: crea el Proyecto si todavía no
    * existe (recién ahí tiene sentido guardar un servicio) y le asigna el
    * servicio elegido, con nombre + precio copiados de ese momento. */
-  async updateService(prospect: Prospect, serviceId: string): Promise<void> {
-    const project = this.projectByProspectId().get(prospect.id);
-    if (serviceId === (project?.serviceId ?? '')) return;
-    if (project?.paid) return; // bloqueado hasta destildar "Pagado"
-
-    let projectId = project?.id;
-    if (!projectId) {
-      projectId = await this.projectRepo.create({
-        prospectId: prospect.id,
-        startDate: new Date().toISOString().slice(0, 10),
-        status: 'Activo',
-      });
-      await this.historyRepo.log(prospect.id, HistoryEventType.ProjectCreated, { projectId });
-    }
-
-    if (!serviceId) {
-      await this.projectRepo.clearService(projectId);
-      return;
-    }
-
-    const service = this.services().find((s) => s.id === serviceId);
-    if (!service) return;
-
-    const updates: Partial<Project> = { serviceId: service.id, serviceName: service.name, servicePrice: service.price };
-    // Si ya está en un estado Final y todavía no se cargó ningún anticipo, se
-    // asume que el precio del servicio ya se cobró completo — evita el paso
-    // extra de ir a la ficha a tipear a mano algo que ya se sabe.
-    if (this.statusOf(prospect)?.isFinal && !project?.deposit && service.price) {
-      updates.deposit = service.price;
-    }
-
-    await this.projectRepo.update(projectId, updates);
-    await this.historyRepo.log(prospect.id, HistoryEventType.ServiceAssigned, { serviceId: service.id, serviceName: service.name });
+  updateService(prospect: Prospect, serviceId: string): Promise<void> {
+    return this.prospectEdit.assignService(prospect, serviceId);
   }
 
   toggleFavorite(prospect: Prospect, event: Event): void {

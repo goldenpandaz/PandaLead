@@ -35,7 +35,7 @@
   </header>
 
   <div class="table-container">
-    <table mat-table [dataSource]="dataSource" matSort class="archived-table">
+    <table mat-table [dataSource]="dataSource" matSort class="dense-table">
       <ng-container matColumnDef="select">
         <th mat-header-cell *matHeaderCellDef>
           <mat-checkbox
@@ -91,11 +91,11 @@
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef>Acciones</th>
         <td mat-cell *matCellDef="let row">
-          <button mat-icon-button matTooltip="Editar" (click)="openDetail(row, $event)">
+          <button mat-icon-button matTooltip="Editar" (click)="openEdit(row, $event)">
             <mat-icon class="action-edit">edit</mat-icon>
           </button>
-          <button mat-icon-button matTooltip="Abrir WhatsApp" [disabled]="!row.phone" (click)="openWhatsapp(row, $event)">
-            <mat-icon class="action-chat">chat</mat-icon>
+          <button mat-icon-button matTooltip="Ver detalles" (click)="openDetail(row, $event)">
+            <mat-icon class="action-view">visibility</mat-icon>
           </button>
           <button mat-icon-button matTooltip="Recuperar" (click)="unarchiveOne(row, $event)">
             <mat-icon class="action-unarchive">unarchive</mat-icon>
@@ -106,11 +106,11 @@
         </td>
       </ng-container>
 
-      <tr mat-header-row *matHeaderRowDef="columns"></tr>
-      <tr mat-row *matRowDef="let row; columns: columns" (click)="openDetail(row)" class="clickable-row"></tr>
+      <tr mat-header-row *matHeaderRowDef="columns()"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns()" (click)="openDetail(row)" (mousedown)="onRowMouseDown(row)" (mouseup)="cancelLongPress()" (mouseleave)="cancelLongPress()" class="clickable-row"></tr>
 
       <tr class="mat-row" *matNoDataRow>
-        <td class="mat-cell no-data" [attr.colspan]="columns.length">
+        <td class="mat-cell no-data" [attr.colspan]="columns().length">
           No hay clientes archivados.
         </td>
       </tr>

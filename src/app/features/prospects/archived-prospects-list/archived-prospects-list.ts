@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -16,10 +16,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
-import { WhatsappTemplatePicker } from '../whatsapp/whatsapp-template-picker/whatsapp-template-picker';
-import { WhatsappService } from '../whatsapp/whatsapp.service';
+import { ProspectEditService } from '../prospect-edit-dialog/prospect-edit.service';
 import { ConfirmDialog, ConfirmDialogData } from '../../../shared/dialogs/confirm-dialog/confirm-dialog';
-import { MessageTemplate } from '../../../domain/models/template.model';
 import { ProspectRepository } from '../../../data/repositories/prospect.repository';
 import { ConfigRepository } from '../../../data/repositories/config.repository';
 import { ProjectRepository } from '../../../data/repositories/project.repository';
@@ -54,14 +52,15 @@ export class ArchivedProspectsList {
   private readonly configRepo = inject(ConfigRepository);
   private readonly projectRepo = inject(ProjectRepository);
   private readonly dialog = inject(MatDialog);
-  private readonly whatsapp = inject(WhatsappService);
+  private readonly prospectEdit = inject(ProspectEditService);
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
 
   private readonly sort = viewChild.required(MatSort);
   private readonly paginator = viewChild.required(MatPaginator);
 
-  readonly columns = SIMPLE_COLUMNS;
+  private longPressTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly longPressDuration = 500; // ms
 
   private readonly prospects = toSignal(this.prospectRepo.watchAll(), { initialValue: [] as Prospect[] });
   readonly statuses = toSignal(this.configRepo.watchStatuses(), { initialValue: [] as StatusConfig[] });
@@ -88,6 +87,13 @@ export class ArchivedProspectsList {
 
   readonly dataSource = new MatTableDataSource<Prospect>([]);
   readonly selection = new SelectionModel<Prospect>(true, []);
+
+  private readonly hasSelections = toSignal(this.selection.changed.pipe(map(() => this.selection.selected.length > 0)), {
+    initialValue: false,
+  });
+
+  /** La columna de checkboxes solo aparece cuando hay algo seleccionado (se arranca con presión larga en una fila). */
+  readonly columns = computed(() => (this.hasSelections() ? [...SIMPLE_COLUMNS] : SIMPLE_COLUMNS.filter((col) => col !== 'select')));
 
   constructor() {
     effect(() => {
@@ -134,21 +140,28 @@ export class ArchivedProspectsList {
     }
   }
 
+  onRowMouseDown(row: Prospect): void {
+    this.longPressTimer = setTimeout(() => {
+      if (!this.selection.isSelected(row)) {
+        this.selection.select(row);
+      }
+    }, this.longPressDuration);
+  }
+
+  cancelLongPress(): void {
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
+    }
+  }
+
   isAllSelected(): boolean {
     return this.selection.selected.length === this.dataSource.data.length && this.dataSource.data.length > 0;
   }
 
-  openWhatsapp(prospect: Prospect, event: Event): void {
+  openEdit(prospect: Prospect, event: Event): void {
     event.stopPropagation();
-    if (!prospect.phone) return;
-
-    this.dialog
-      .open<WhatsappTemplatePicker, void, MessageTemplate | null>(WhatsappTemplatePicker, { width: '420px' })
-      .afterClosed()
-      .subscribe((template) => {
-        if (template === undefined) return;
-        void this.whatsapp.openWithTemplate(prospect, template, this.projectByProspectId().get(prospect.id) ?? null);
-      });
+    this.prospectEdit.edit(prospect);
   }
 
   private confirmDialog(data: ConfirmDialogData): Promise<boolean> {
