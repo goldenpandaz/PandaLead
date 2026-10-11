@@ -7,7 +7,8 @@
 export interface ParsedProspectRow {
   name: string;
   phone?: string;
-  category?: string;
+  /** Una celda con una o varias categorías separadas por `,` o `;`. */
+  categories: string[];
   locality?: string;
   state?: string;
   notes?: string;
@@ -75,6 +76,13 @@ function splitCsvRow(line: string, delimiter: string): string[] {
   }
   cells.push(current.trim());
   return cells;
+}
+
+function splitCategories(cell: string): string[] {
+  return cell
+    .split(/[,;]/)
+    .map((c) => c.trim())
+    .filter(Boolean);
 }
 
 function isSeparatorRow(cells: string[]): boolean {
@@ -151,7 +159,7 @@ export function parseProspectCsv(raw: string): ParseProspectResult {
     rows.push({
       name,
       phone: phoneIdx >= 0 ? (cells[phoneIdx] ?? '').trim() || undefined : undefined,
-      category: categoryIdx >= 0 ? (cells[categoryIdx] ?? '').trim() || undefined : undefined,
+      categories: categoryIdx >= 0 ? splitCategories(cells[categoryIdx] ?? '') : [],
       locality: locality || undefined,
       state: stateIdx >= 0 ? (cells[stateIdx] ?? '').trim() || undefined : undefined,
       notes: notesIdx >= 0 ? (cells[notesIdx] ?? '').trim() || undefined : undefined,

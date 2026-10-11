@@ -5,7 +5,6 @@ import { Router } from '@angular/router';
 import { debounceTime } from 'rxjs';
 
 import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -32,7 +31,6 @@ import { DuplicateDetectionService } from '../../../data/duplicate-detection.ser
 import { DIAL_CODES } from '../../../shared/constants/dial-codes';
 import { normalizeName } from '../../../shared/utils/normalize.util';
 import { joinPhone, splitPhone } from '../../../shared/utils/phone.util';
-import { MoneyPipe } from '../../../shared/pipes/money.pipe';
 import { ImageCaptureService } from '../../ocr/image-capture.service';
 import { OcrService } from '../../ocr/ocr.service';
 import { ParserRegistryService } from '../../ocr/parsers/parser-registry.service';
@@ -56,10 +54,8 @@ export interface ProspectCaptureData {
   imports: [
     ReactiveFormsModule,
     MatButtonModule,
-    MatButtonToggleModule,
     MatCardModule,
     MatDialogModule,
-    MatExpansionModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -67,7 +63,6 @@ export interface ProspectCaptureData {
     MatProgressSpinnerModule,
     MatSelectModule,
     MatTooltipModule,
-    MoneyPipe,
   ],
   templateUrl: './prospect-capture.html',
   styleUrl: './prospect-capture.scss',
@@ -110,21 +105,11 @@ export class ProspectCapture {
     name: ['', Validators.required],
     dialCode: [this.dialCodes[0].code, Validators.required],
     localNumber: ['', Validators.required],
-    email: [''],
-    website: [''],
-    instagram: [''],
-    facebook: [''],
-    tiktok: [''],
-    youtube: [''],
-    linkedin: [''],
-    locality: [''],
-    category: [''],
+    // Validators.required falla con array vacío (Angular lo trata como "sin valor").
+    categories: [[] as string[], Validators.required],
     statusId: [''],
     serviceId: [{ value: '', disabled: true }],
   });
-
-  readonly discountTypeControl = this.fb.nonNullable.control<'fixed' | 'percentage'>('fixed');
-  readonly discountValueControl = this.fb.nonNullable.control(0);
 
   private readonly statusIdValue = toSignal(this.form.controls.statusId.valueChanges, {
     initialValue: this.form.controls.statusId.value,
@@ -133,27 +118,6 @@ export class ProspectCapture {
   /** El estado elegido en este momento, para saber si requiere servicio —
    * usado tanto acá como en el template (mensaje de ayuda del campo). */
   readonly currentStatus = () => this.statuses().find((s) => s.id === this.statusIdValue());
-
-  readonly discountDisplay = computed(() => {
-    const serviceId = this.form.get('serviceId')?.value;
-    if (!serviceId) return null;
-
-    const service = this.services().find((s) => s.id === serviceId);
-    if (!service || !service.price) return null;
-
-    const discountType = this.discountTypeControl.value;
-    const discountValue = this.discountValueControl.value || 0;
-
-    let amount = 0;
-    if (discountType === 'fixed') {
-      amount = discountValue;
-    } else {
-      amount = (service.price * discountValue) / 100;
-    }
-
-    const total = Math.max(0, service.price - amount);
-    return { amount, total };
-  });
 
   constructor() {
     // Recalcula duplicados mientras el usuario edita el preview — no solo al pegar.
@@ -247,20 +211,12 @@ export class ProspectCapture {
 
       const parsed = this.parserRegistry.parse(source, text);
       const { dialCode, localNumber } = splitPhone(parsed.phone);
-      const category = await this.resolveCategory(parsed.category);
+      const resolved = await this.resolveCategory(parsed.category);
       this.form.patchValue({
         name: parsed.name ?? '',
         dialCode,
         localNumber,
-        email: parsed.email ?? '',
-        website: parsed.website ?? '',
-        instagram: parsed.instagram ?? '',
-        facebook: parsed.facebook ?? '',
-        tiktok: parsed.tiktok ?? '',
-        youtube: parsed.youtube ?? '',
-        linkedin: parsed.linkedin ?? '',
-        locality: parsed.locality ?? '',
-        category,
+        categories: resolved ? [resolved] : [],
       });
       this.runDuplicateCheck();
     } catch {
@@ -366,15 +322,7 @@ export class ProspectCapture {
         name: candidate.name!,
         normalizedName: candidate.normalizedName!,
         phone: candidate.phone || undefined,
-        email: candidate.email || undefined,
-        website: candidate.website || undefined,
-        instagram: candidate.instagram || undefined,
-        facebook: candidate.facebook || undefined,
-        tiktok: candidate.tiktok || undefined,
-        youtube: candidate.youtube || undefined,
-        linkedin: candidate.linkedin || undefined,
-        locality: candidate.locality || undefined,
-        category: candidate.category || undefined,
+        categories: candidate.categories ?? [],
         statusId,
         source,
         favorite: false,

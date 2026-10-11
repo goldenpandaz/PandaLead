@@ -12,8 +12,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: color-mix(in srgb, var(--gold-base) 16%, transparent);
-  color: var(--gold-light);
+  background: var(--accent-soft);
+  color: var(--accent);
 
   mat-icon {
     font-size: 28px;
@@ -22,14 +22,14 @@
   }
 
   &.danger {
-    background: color-mix(in srgb, #ff5252 16%, transparent);
-    color: #ff8a80;
+    background: color-mix(in srgb, var(--mat-sys-error) 16%, transparent);
+    color: var(--error-light);
   }
 }
 
 h2[mat-dialog-title] {
-  color: var(--gold-light);
-  font-size: 1.15rem;
+  color: var(--mat-sys-on-surface);
+  font-size: 1.125rem;
 }
 
 mat-dialog-content p {

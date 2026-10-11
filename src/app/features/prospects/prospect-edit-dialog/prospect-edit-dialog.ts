@@ -1,0 +1,66 @@
+import { Component, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialogModule, MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { Prospect } from '../../../domain/models/prospect.model';
+import { CategoryConfig } from '../../../domain/models/category.model';
+import { normalizeName } from '../../../shared/utils/normalize.util';
+import { joinPhone, splitPhone } from '../../../shared/utils/phone.util';
+
+export interface ProspectEditDialogData {
+  prospect: Prospect;
+  categories: CategoryConfig[];
+  statuses: { id: string; label: string }[];
+  services: { id: string; name: string }[];
+  serviceId: string;
+  dialCodes: { code: string; label: string }[];
+}
+
+@Component({
+  selector: 'app-prospect-edit-dialog',
+  standalone: true,
+  imports: [
+    MatDialogModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    FormsModule,
+  ],
+  templateUrl: './prospect-edit-dialog.html',
+  styleUrl: './prospect-edit-dialog.scss',
+})
+export class ProspectEditDialog {
+  private readonly dialogRef = inject(MatDialogRef<ProspectEditDialog>);
+  readonly data = inject<ProspectEditDialogData>(MAT_DIALOG_DATA);
+
+  private readonly initialPhone = splitPhone(this.data.prospect.phone);
+
+  form = {
+    name: this.data.prospect.name,
+    dialCode: this.initialPhone.dialCode,
+    phone: this.initialPhone.localNumber,
+    categories: [...this.data.prospect.categories],
+    statusId: this.data.prospect.statusId || '',
+    serviceId: this.data.serviceId || '',
+  };
+
+  save(): void {
+    this.dialogRef.close({
+      name: this.form.name,
+      normalizedName: normalizeName(this.form.name),
+      phone: joinPhone(this.form.dialCode, this.form.phone),
+      categories: this.form.categories,
+      statusId: this.form.statusId,
+      serviceId: this.form.serviceId,
+    });
+  }
+
+  cancel(): void {
+    this.dialogRef.close();
+  }
+}

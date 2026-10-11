@@ -26,7 +26,7 @@ import { CategoryConfig } from '../../domain/models/category.model';
 import { ImportSummary, TemplateImportDialog } from './template-import-dialog/template-import-dialog';
 import { ServiceImportDialog, ServiceImportSummary } from './service-import-dialog/service-import-dialog';
 
-const EMPTY_STATUS_FORM = { label: '', color: '#2196f3', order: 0, isWon: false, isLost: false, isFinal: false, requiresService: false };
+const EMPTY_STATUS_FORM = { label: '', color: '#4c9aff', order: 0, isWon: false, isLost: false, isFinal: false, requiresService: false };
 const EMPTY_TEMPLATE_FORM = { name: '', category: '', body: '' };
 const EMPTY_SERVICE_FORM = { name: '', description: '', price: null as number | null };
 const EMPTY_CATEGORY_FORM = { name: '' };

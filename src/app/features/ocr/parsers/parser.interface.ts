@@ -10,10 +10,12 @@ import { Prospect } from '../../../domain/models/prospect.model';
  */
 /**
  * El parser tampoco decide `statusId` ni `favorite` — son defaults que aplica
- * el flujo de creación, no algo que se lea de una captura. `category` sí lo
- * puede completar directo (es texto libre, no una referencia a configurar).
+ * el flujo de creación, no algo que se lea de una captura. `category` (una sola,
+ * texto crudo del OCR) sí lo puede completar directo; el flujo de captura lo
+ * convierte a `Prospect.categories`.
  */
-export type ParsedProspectData = Partial<Prospect> & {
+export type ParsedProspectData = Partial<Omit<Prospect, 'categories'>> & {
+  category?: string;
   rawText: string;
 };
 

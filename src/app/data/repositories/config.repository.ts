@@ -146,8 +146,8 @@ export class ConfigRepository extends BaseRepository {
     }
   }
 
-  /** Catálogo de lo que vende el usuario (no confundir con `Prospect.category`,
-   * que es el rubro del negocio del cliente). Sin seed — cada usuario arma el suyo. */
+  /** Catálogo de lo que vende el usuario (no confundir con `Prospect.categories`,
+   * que son los rubros del negocio del cliente). Sin seed — cada usuario arma el suyo. */
   watchServices(): Observable<ServiceConfig[]> {
     return this.sync.watchCollection<ServiceConfig>(SERVICES, this.tenantPath('config', SERVICES));
   }

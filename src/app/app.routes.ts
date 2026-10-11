@@ -33,6 +33,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/settings/settings').then((m) => m.Settings),
   },
+  {
+    path: 'preferences',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/preferences/preferences').then((m) => m.Preferences),
+  },
   { path: '', pathMatch: 'full', redirectTo: 'prospects' },
   { path: '**', redirectTo: 'prospects' },
 ];

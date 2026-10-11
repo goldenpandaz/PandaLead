@@ -27,10 +27,7 @@ export class InstagramParser implements SourceParser {
       rawText: ocrText,
       name,
       normalizedName: normalizeName(name),
-      instagram: handle,
       phone: extractPhone(ocrText),
-      email: extractEmail(ocrText),
-      website: extractWebsite(ocrText),
       source: this.source,
     };
   }

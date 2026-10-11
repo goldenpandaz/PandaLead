@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, effect, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, computed, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,6 +7,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { AuthService } from './core/auth/auth.service';
 import { InstallPromptService } from './core/pwa/install-prompt.service';
+import { PublicIncomeSyncService } from './core/sync/public-income-sync.service';
+import { UiStateService } from './core/ui-state.service';
 
 /**
  * El shell (sidebar + contenido) se arma con flexbox propio, NO con
@@ -31,12 +33,23 @@ export class App implements OnInit, OnDestroy {
   // pierde para siempre si nadie lo está escuchando cuando dispara. `App` es
   // lo primero que Angular crea, así que es el lugar más temprano posible.
   protected readonly installPrompt = inject(InstallPromptService);
+  // Mismo motivo que installPrompt: el effect() de su constructor tiene que
+  // arrancar apenas carga la app, no solo cuando el usuario abre el dashboard.
+  private readonly publicIncomeSync = inject(PublicIncomeSyncService);
+  // UI state (temas de acento): el effect() aplica clases a <html> apenas carga.
+  private readonly uiState = inject(UiStateService);
   private readonly router = inject(Router);
 
   readonly collapsed = signal(false);
   /** Solo tiene efecto en mobile (ver media query en app.scss) — el sidebar
    * ahí es un drawer superpuesto, no un panel que reduce el ancho vivible. */
   readonly mobileNavOpen = signal(false);
+
+  readonly logoSrc = computed(() => {
+    const theme = this.uiState.accentTheme();
+    if (theme === 'gold') return 'brand/wordmark.png';
+    return `brand/wordmark${theme}.png`;
+  });
 
   constructor() {
     // Effect: cuando el usuario se autentica, inicia el idle timeout (30 minutos).

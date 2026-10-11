@@ -1,0 +1,67 @@
+<h2 mat-dialog-title>Editar cliente</h2>
+
+<mat-dialog-content>
+  <form class="edit-form">
+    <div class="form-field-group">
+      <label>Nombre</label>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <input matInput [(ngModel)]="form.name" name="name" />
+      </mat-form-field>
+    </div>
+
+    <div class="form-field-group">
+      <label>Estado</label>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-select [(ngModel)]="form.statusId" name="statusId">
+          @for (status of data.statuses; track status.id) {
+            <mat-option [value]="status.id">{{ status.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-field-group">
+      <label>Teléfono</label>
+      <div class="phone-row">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="phone-prefix">
+          <mat-select [(ngModel)]="form.dialCode" name="dialCode">
+            @for (dial of data.dialCodes; track dial.code) {
+              <mat-option [value]="dial.code">{{ dial.code }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <input matInput [(ngModel)]="form.phone" name="phone" />
+        </mat-form-field>
+      </div>
+    </div>
+
+    <div class="form-field-group">
+      <label>Categorías</label>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-select [(ngModel)]="form.categories" name="categories" multiple required>
+          @for (cat of data.categories; track cat.id) {
+            <mat-option [value]="cat.name">{{ cat.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="form-field-group">
+      <label>Servicio</label>
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-select [(ngModel)]="form.serviceId" name="serviceId">
+          <mat-option value="">Sin seleccionar</mat-option>
+          @for (service of data.services; track service.id) {
+            <mat-option [value]="service.id">{{ service.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancelar</button>
+  <button mat-flat-button color="primary" [disabled]="form.categories.length === 0" (click)="save()">Guardar</button>
+</mat-dialog-actions>

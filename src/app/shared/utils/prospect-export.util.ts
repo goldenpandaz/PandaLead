@@ -11,7 +11,7 @@ import { StatusConfig } from '../../domain/models/status.model';
  * Usa comillas para todos los campos y escapa comillas dobles como "".
  */
 export function prospectsToCsv(prospects: Prospect[], statuses: StatusConfig[]): string {
-  const header = ['Nombre', 'Teléfono', 'Categoría', 'Localidad', 'Email', 'Estado', 'Fuente', 'Creado'];
+  const header = ['Nombre', 'Teléfono', 'Categoría', 'Estado', 'Fuente', 'Creado'];
 
   // Mapear statusId a label
   const statusById = new Map(statuses.map((s) => [s.id, s.label]));
@@ -19,9 +19,7 @@ export function prospectsToCsv(prospects: Prospect[], statuses: StatusConfig[]):
   const rows = prospects.map((p) => [
     p.name,
     p.phone ?? '',
-    p.category ?? '',
-    p.locality ?? '',
-    p.email ?? '',
+    p.categories.join(', '),
     statusById.get(p.statusId) ?? '',
     p.source,
     new Date(p.createdAt).toLocaleDateString('es-AR'),
@@ -40,7 +38,7 @@ export function prospectsToCsv(prospects: Prospect[], statuses: StatusConfig[]):
  * Columnas: Nombre, Teléfono, Categoría, Localidad, Email, Estado, Fuente, Creado
  */
 export function prospectsToMarkdown(prospects: Prospect[], statuses: StatusConfig[]): string {
-  const header = ['Nombre', 'Teléfono', 'Categoría', 'Localidad', 'Email', 'Estado', 'Fuente', 'Creado'];
+  const header = ['Nombre', 'Teléfono', 'Categoría', 'Estado', 'Fuente', 'Creado'];
 
   // Mapear statusId a label
   const statusById = new Map(statuses.map((s) => [s.id, s.label]));
@@ -48,9 +46,7 @@ export function prospectsToMarkdown(prospects: Prospect[], statuses: StatusConfi
   const rows = prospects.map((p) => [
     p.name,
     p.phone ?? '—',
-    p.category ?? '—',
-    p.locality ?? '—',
-    p.email ?? '—',
+    p.categories.join(', ') || '—',
     statusById.get(p.statusId) ?? '—',
     p.source,
     new Date(p.createdAt).toLocaleDateString('es-AR'),

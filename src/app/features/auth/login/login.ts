@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -10,6 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { AuthService } from '../../../core/auth/auth.service';
 import { InstallPromptService } from '../../../core/pwa/install-prompt.service';
+import { UiStateService } from '../../../core/ui-state.service';
 
 /** "Confirmar contraseña" solo tiene sentido comparado contra el campo
  * `password` hermano — se lee vía `control.parent`, no queda atado al form
@@ -59,6 +60,13 @@ export class Login {
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
   protected readonly installPrompt = inject(InstallPromptService);
+  private readonly uiState = inject(UiStateService);
+
+  readonly logoSrc = computed(() => {
+    const theme = this.uiState.accentTheme();
+    if (theme === 'gold') return 'brand/wordmark.png';
+    return `brand/wordmark${theme}.png`;
+  });
 
   readonly loading = signal(false);
   readonly errorMessage = signal<string | null>(null);

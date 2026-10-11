@@ -38,15 +38,13 @@ export function exportProspectsToExcel(prospects: Prospect[], statuses: StatusCo
   const statusById = new Map(statuses.map((s) => [s.id, s]));
 
   // Preparar datos
-  const headers = ['Nombre', 'Teléfono', 'Categoría', 'Localidad', 'Email', 'Estado', 'Fuente', 'Creado'];
+  const headers = ['Nombre', 'Teléfono', 'Categoría', 'Estado', 'Fuente', 'Creado'];
   const data = prospects.map((p) => {
     const status = statusById.get(p.statusId);
     return [
       p.name,
       p.phone ?? '',
-      p.category ?? '',
-      p.locality ?? '',
-      p.email ?? '',
+      p.categories.join(', '),
       status?.label ?? '',
       p.source,
       new Date(p.createdAt).toLocaleDateString('es-AR'),

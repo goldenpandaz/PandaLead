@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, signal, viewChild } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { firstValueFrom } from 'rxjs';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { firstValueFrom, startWith, switchMap } from 'rxjs';
 import { SelectionModel } from '@angular/cdk/collections';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -8,7 +8,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
+import { MatSelect, MatSelectModule } from '@angular/material/select';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -21,9 +21,12 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
+import { PhonePipe } from '../../../core/pipes/phone.pipe';
+import { DIAL_CODES } from '../../../shared/constants/dial-codes';
 
 import { ProspectCapture, ProspectCaptureData } from '../prospect-capture/prospect-capture';
 import { ProspectImportDialog } from '../prospect-import-dialog/prospect-import-dialog';
+import { ProspectEditDialog } from '../prospect-edit-dialog/prospect-edit-dialog';
 import { WhatsappTemplatePicker } from '../whatsapp/whatsapp-template-picker/whatsapp-template-picker';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { ConfirmDialog, ConfirmDialogData } from '../../../shared/dialogs/confirm-dialog/confirm-dialog';
@@ -32,6 +35,7 @@ import { ProspectRepository } from '../../../data/repositories/prospect.reposito
 import { ConfigRepository } from '../../../data/repositories/config.repository';
 import { ProjectRepository } from '../../../data/repositories/project.repository';
 import { HistoryRepository } from '../../../data/repositories/history.repository';
+import { AuthService } from '../../../core/auth/auth.service';
 import { HistoryEventType } from '../../../domain/enums/history-event-type.enum';
 import { Prospect } from '../../../domain/models/prospect.model';
 import { Project } from '../../../domain/models/project.model';
@@ -55,7 +59,6 @@ const DETAILED_COLUMN_ORDER = [
   'favorite',
   'name',
   'category',
-  'locality',
   'phone',
   'statusId',
   'service',
@@ -71,7 +74,6 @@ const CORE_DETAILED_COLUMNS = new Set(['select', 'favorite', 'name', 'phone', 's
 
 const OPTIONAL_COLUMNS = [
   { key: 'category', label: 'Categoría' },
-  { key: 'locality', label: 'Localidad' },
   { key: 'source', label: 'Fuente' },
   { key: 'createdAt', label: 'Creado' },
   { key: 'lastContactAt', label: 'Último contacto' },
@@ -79,6 +81,7 @@ const OPTIONAL_COLUMNS = [
 ] as const;
 
 const COLUMNS_STORAGE_KEY = 'pandalead.prospects.visibleColumns';
+const FILTERS_STORAGE_KEY = 'pandalead.prospects.filters';
 
 @Component({
   selector: 'app-prospects-list',
@@ -101,6 +104,7 @@ const COLUMNS_STORAGE_KEY = 'pandalead.prospects.visibleColumns';
     MatSnackBarModule,
     FormsModule,
     DatePipe,
+    PhonePipe,
   ],
   templateUrl: './prospects-list.html',
   styleUrl: './prospects-list.scss',
@@ -110,6 +114,7 @@ export class ProspectsList {
   private readonly configRepo = inject(ConfigRepository);
   private readonly projectRepo = inject(ProjectRepository);
   private readonly historyRepo = inject(HistoryRepository);
+  private readonly auth = inject(AuthService);
   private readonly dialog = inject(MatDialog);
   private readonly whatsapp = inject(WhatsappService);
   private readonly router = inject(Router);
@@ -118,15 +123,25 @@ export class ProspectsList {
   private readonly sort = viewChild.required(MatSort);
   private readonly paginator = viewChild.required(MatPaginator);
 
+  private longPressTimer: any;
+  private longPressDuration = 500; // ms
+
   readonly viewMode = signal<'simple' | 'detailed'>('simple');
   readonly optionalColumns = OPTIONAL_COLUMNS;
 
   readonly visibleColumns = signal<Set<string>>(this.loadVisibleColumns());
 
+  readonly hasSelections = computed(() => this.selection.selected.length > 0);
+
   readonly columns = computed(() => {
-    if (this.viewMode() === 'simple') return SIMPLE_COLUMNS;
-    const visible = this.visibleColumns();
-    return DETAILED_COLUMN_ORDER.filter((col) => CORE_DETAILED_COLUMNS.has(col) || visible.has(col));
+    const base = this.viewMode() === 'simple'
+      ? [...SIMPLE_COLUMNS]
+      : DETAILED_COLUMN_ORDER.filter((col) => CORE_DETAILED_COLUMNS.has(col) || this.visibleColumns().has(col));
+
+    // Ocultar columna "select" solo si no hay selecciones
+    return this.hasSelections()
+      ? base
+      : base.filter(col => col !== 'select');
   });
 
   private loadVisibleColumns(): Set<string> {
@@ -139,6 +154,26 @@ export class ProspectsList {
     return new Set(OPTIONAL_COLUMNS.map((c) => c.key));
   }
 
+  private loadFilters(): { search: string; statusFilter: string | null; categoryFilter: string | null; favoritesOnly: boolean } {
+    try {
+      const raw = localStorage.getItem(FILTERS_STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch {
+      // localStorage corrupto o no disponible
+    }
+    return { search: '', statusFilter: null, categoryFilter: null, favoritesOnly: false };
+  }
+
+  private saveFilters(): void {
+    const filters = {
+      search: this.search(),
+      statusFilter: this.statusFilter(),
+      categoryFilter: this.categoryFilter(),
+      favoritesOnly: this.favoritesOnly(),
+    };
+    localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters));
+  }
+
   toggleColumn(key: string): void {
     const current = new Set(this.visibleColumns());
     if (current.has(key)) current.delete(key);
@@ -148,7 +183,19 @@ export class ProspectsList {
   }
 
   // --- datos en vivo ---
-  private readonly prospects = toSignal(this.prospectRepo.watchAll(), { initialValue: [] as Prospect[] });
+  // Recrea el observable de prospects cada vez que el usuario cambia (switchMap)
+  // Esto previene que se emita caché stale cuando el usuario inicia sesión
+  private readonly prospects = toSignal(
+    toObservable(this.auth.currentUser).pipe(
+      switchMap(() =>
+        this.prospectRepo.watchAll().pipe(
+          startWith(null), // null = loading, [] = loaded (posiblemente vacío)
+        )
+      ),
+    ),
+    { initialValue: null as Prospect[] | null },
+  );
+  readonly isLoadingProspects = computed(() => this.prospects() === null);
   readonly statuses = toSignal(this.configRepo.watchStatuses(), { initialValue: [] as StatusConfig[] });
   readonly categories = toSignal(this.configRepo.watchCategories(), { initialValue: [] as CategoryConfig[] });
   readonly services = toSignal(this.configRepo.watchServices(), { initialValue: [] as ServiceConfig[] });
@@ -158,55 +205,51 @@ export class ProspectsList {
   private readonly projectByProspectId = computed(() => new Map(this.projects().map((p) => [p.prospectId, p])));
 
   // --- filtros ---
-  readonly search = signal('');
-  readonly statusFilter = signal<string | null>(null);
-  readonly categoryFilter = signal<string | null>(null);
-  readonly favoritesOnly = signal(false);
+  private readonly savedFilters = this.loadFilters();
+  readonly search = signal(this.savedFilters.search);
+  readonly statusFilter = signal<string | null>(this.savedFilters.statusFilter);
+  readonly categoryFilter = signal<string | null>(this.savedFilters.categoryFilter);
+  readonly favoritesOnly = signal(this.savedFilters.favoritesOnly);
 
   // --- filtros avanzados (panel aparte, no saturan la barra principal) ---
   readonly hasPhoneFilter = signal(false);
-  readonly hasWebsiteFilter = signal(false);
-  readonly hasEmailFilter = signal(false);
   readonly dateFrom = signal('');
   readonly dateTo = signal('');
 
   readonly advancedFiltersActive = computed(
-    () => this.hasPhoneFilter() || this.hasWebsiteFilter() || this.hasEmailFilter() || !!this.dateFrom() || !!this.dateTo(),
+    () => this.hasPhoneFilter() || !!this.dateFrom() || !!this.dateTo(),
   );
 
   resetAdvancedFilters(event?: Event): void {
     event?.stopPropagation();
     this.hasPhoneFilter.set(false);
-    this.hasWebsiteFilter.set(false);
-    this.hasEmailFilter.set(false);
     this.dateFrom.set('');
     this.dateTo.set('');
   }
 
   readonly filtered = computed(() => {
+    const prospectsData = this.prospects();
+    if (prospectsData === null) return []; // Aún cargando datos de Firebase
+
     const term = this.search().trim().toLowerCase();
     const status = this.statusFilter();
     const category = this.categoryFilter();
     const onlyFavorites = this.favoritesOnly();
     const needsPhone = this.hasPhoneFilter();
-    const needsWebsite = this.hasWebsiteFilter();
-    const needsEmail = this.hasEmailFilter();
     const fromMs = this.dateFrom() ? new Date(this.dateFrom()).getTime() : null;
     // +1 día - 1ms: el filtro "hasta" incluye todo ese día, no solo la medianoche.
     const toMs = this.dateTo() ? new Date(this.dateTo()).getTime() + 86_400_000 - 1 : null;
 
-    return this.prospects().filter((p) => {
+    return prospectsData.filter((p) => {
       if (p.archived) return false;
       if (status && p.statusId !== status) return false;
-      if (category && p.category !== category) return false;
+      if (category && !p.categories.includes(category)) return false;
       if (onlyFavorites && !p.favorite) return false;
       if (needsPhone && !p.phone) return false;
-      if (needsWebsite && !p.website) return false;
-      if (needsEmail && !p.email) return false;
       if (fromMs != null && p.createdAt < fromMs) return false;
       if (toMs != null && p.createdAt > toMs) return false;
       if (term) {
-        const haystack = `${p.name} ${p.phone ?? ''} ${p.email ?? ''} ${p.locality ?? ''} ${p.category ?? ''}`.toLowerCase();
+        const haystack = `${p.name} ${p.phone ?? ''} ${p.categories.join(' ')}`.toLowerCase();
         if (!haystack.includes(term)) return false;
       }
       return true;
@@ -220,6 +263,11 @@ export class ProspectsList {
     void this.configRepo.seedDefaultStatusesIfEmpty();
     void this.configRepo.seedDefaultTemplatesIfEmpty();
 
+    this.dataSource.sortingDataAccessor = (p, column) =>
+      column === 'category'
+        ? p.categories.join(', ').toLowerCase()
+        : ((p as unknown as Record<string, string | number | undefined>)[column] ?? '');
+
     effect(() => {
       this.dataSource.data = this.filtered();
     });
@@ -227,6 +275,40 @@ export class ProspectsList {
     effect(() => {
       this.dataSource.sort = this.sort();
       this.dataSource.paginator = this.paginator();
+    });
+
+    effect(() => {
+      this.search();
+      this.statusFilter();
+      this.categoryFilter();
+      this.favoritesOnly();
+      this.saveFilters();
+    });
+  }
+
+  openEditDialog(prospect: Prospect, event?: Event): void {
+    event?.stopPropagation();
+    this.dialog.open(ProspectEditDialog, {
+      width: '90vw',
+      maxWidth: '440px',
+      data: {
+        prospect,
+        categories: this.categories(),
+        statuses: this.statuses(),
+        services: this.services(),
+        serviceId: this.serviceIdOf(prospect),
+        dialCodes: DIAL_CODES,
+      },
+    }).afterClosed().subscribe(async result => {
+      if (!result) return;
+      const { serviceId, ...changes } = result;
+      try {
+        await this.prospectRepo.update(prospect.id, changes);
+        await this.updateService(prospect, serviceId);
+      } catch (err) {
+        this.snackBar.open('Error al guardar cambios', 'Cerrar', { duration: 3000 });
+        console.error(err);
+      }
     });
   }
 
@@ -238,7 +320,7 @@ export class ProspectsList {
   openCapture(): void {
     this.dialog.open(ProspectCapture, {
       width: '90vw',
-      maxWidth: '640px',
+      maxWidth: '440px',
       autoFocus: false,
     });
   }
@@ -249,7 +331,7 @@ export class ProspectsList {
   openNewClient(): void {
     this.dialog.open<ProspectCapture, ProspectCaptureData>(ProspectCapture, {
       width: '90vw',
-      maxWidth: '640px',
+      maxWidth: '440px',
       autoFocus: false,
       data: { skipCapture: true },
     });
@@ -311,9 +393,16 @@ export class ProspectsList {
 
   /** Edición en línea — cambiar categoría o estado no debería obligarte a
    * entrar a la ficha completa. */
-  updateCategory(prospect: Prospect, category: string): void {
-    if (category === (prospect.category ?? '')) return;
-    void this.prospectRepo.update(prospect.id, { category: category || undefined });
+  updateCategories(prospect: Prospect, categories: string[], select: MatSelect): void {
+    if (categories.length === 0) {
+      // Mínimo una categoría: revertimos el select visualmente a lo guardado.
+      select.value = prospect.categories;
+      return;
+    }
+    const unchanged =
+      categories.length === prospect.categories.length && categories.every((c) => prospect.categories.includes(c));
+    if (unchanged) return;
+    void this.prospectRepo.update(prospect.id, { categories });
   }
 
   private confirmDialog(data: ConfirmDialogData): Promise<boolean> {
@@ -427,6 +516,28 @@ export class ProspectsList {
       this.selection.clear();
     } else {
       this.selection.select(...this.dataSource.data);
+    }
+  }
+
+  onRowMouseDown(row: Prospect): void {
+    this.longPressTimer = setTimeout(() => {
+      if (!this.selection.isSelected(row)) {
+        this.selection.select(row);
+      }
+    }, this.longPressDuration);
+  }
+
+  onRowMouseUp(): void {
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
+    }
+  }
+
+  onRowMouseLeave(): void {
+    if (this.longPressTimer) {
+      clearTimeout(this.longPressTimer);
+      this.longPressTimer = null;
     }
   }
 

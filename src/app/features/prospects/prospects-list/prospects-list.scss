@@ -10,59 +10,60 @@
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  padding: 0.75rem;
-  gap: 0.5rem;
+  padding: 0.5rem;
+  gap: 0.35rem;
 }
 
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.35rem;
 
   mat-form-field {
-    width: 160px;
+    width: 140px;
   }
 
   .search-field {
-    width: 240px;
-    margin-right: 0.25rem;
+    width: 200px;
+    margin-right: 0.15rem;
   }
 
   mat-button-toggle-group {
-    margin-right: 0.5rem;
+    margin-right: 0.35rem;
   }
 
   mat-chip-listbox {
-    margin-right: 0.5rem;
+    margin-right: 0.35rem;
   }
 
   button {
     font-size: 0.875rem;
-    padding: 0.4rem 0.8rem;
-    height: auto;
+    padding: 0 1.1rem;
+    height: 46px;
+    min-width: fit-content;
   }
 }
 
 .filters-menu {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  padding: 0.75rem 1rem 1rem;
-  min-width: 260px;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem 0.8rem;
+  min-width: 240px;
 }
 
 .filters-menu-title {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   opacity: 0.6;
 }
 
 .filters-menu-row {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.4rem;
 
   mat-form-field {
     flex: 1;
@@ -71,12 +72,19 @@
 }
 
 .selection-count {
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   opacity: 0.7;
 }
 
-.new-client-btn {
+.button-group {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
   margin-left: auto;
+}
+
+.new-client-btn {
+  margin-left: 0;
 }
 
 .table-container {
@@ -86,12 +94,69 @@
   border-radius: 12px;
 }
 
+.loading-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 0.9rem;
+  color: var(--mat-sys-on-surface-variant);
+  opacity: 0.7;
+}
+
 .prospects-table {
   width: 100%;
+  font-size: 0.8rem;
+
+  ::ng-deep {
+    .mat-mdc-header-cell {
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.35rem 0.5rem !important;
+      height: 32px;
+    }
+
+    .mat-mdc-cell {
+      padding: 0.25rem 0.5rem !important;
+      height: 28px;
+    }
+
+    .mat-sort-header-content {
+      font-size: 0.8rem;
+    }
+
+    .mat-mdc-checkbox {
+      transform: scale(0.85);
+      transform-origin: left center;
+    }
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
 }
 
 .favorite-active {
-  color: var(--gold-light);
+  color: var(--accent);
+}
+
+// Colores fijos (no del tema) para distinguir cada acción de un vistazo.
+.action-edit {
+  color: #ffb74d;
+}
+.action-view {
+  color: #4fc3f7;
+}
+.action-chat {
+  color: #25d366;
+}
+.action-delete {
+  color: #ff5252;
+}
+button:disabled .action-chat {
+  opacity: 0.35;
 }
 
 .clickable-row {
@@ -102,22 +167,24 @@
   }
 }
 
-.status-chip {
-  display: inline-block;
-  padding: 0.15rem 0.6rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  color: white;
+.status-label {
+  display: inline-flex;
+  align-items: center;
 }
 
 .discount-badge {
   display: inline-block;
-  padding: 0.15rem 0.6rem;
-  border-radius: 4px;
-  background: var(--gold-base);
+  padding: 0.1rem 0.5rem;
+  border-radius: 3px;
+  background: var(--accent-soft);
   color: var(--mat-sys-inverse-surface);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 600;
+}
+
+// Centrar iconos de acciones
+::ng-deep .mat-column-actions {
+  text-align: center;
 }
 
 .color-dot {
@@ -171,7 +238,7 @@
   &.needs-service {
     ::ng-deep .mat-mdc-select-trigger {
       border-radius: 4px;
-      box-shadow: 0 0 0 1px var(--gold-base);
+      box-shadow: 0 0 0 1px var(--accent-soft);
     }
   }
 }

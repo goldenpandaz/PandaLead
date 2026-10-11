@@ -16,20 +16,11 @@
 
   h1 {
     margin: 0;
-    font-size: 1.75rem;
-    // Playfair Display tiene rasgos decorativos que bajan más que una fuente
-    // normal — sin línea generosa, el cajón del texto le corta el borde de abajo.
+    font-size: 1.25rem;
     line-height: 1.4;
     padding-bottom: 0.15em;
-    // El h1 es block-level y se estira a todo el ancho del flex container — sin
-    // esto el degradado se pinta sobre esa caja entera y el texto recortado
-    // solo muestra la primera franja (casi sin variación de tono, se ve "plano").
     width: fit-content;
-    background-image: var(--gold-shine) !important;
-    background-clip: text !important;
-    -webkit-background-clip: text !important;
-    color: transparent !important;
-    -webkit-text-fill-color: transparent !important;
+    color: var(--mat-sys-on-surface);
   }
 }
 
@@ -49,7 +40,10 @@
   text-align: center;
 
   mat-icon {
-    color: var(--gold-base);
+    color: var(--accent);
+    font-size: 2rem;
+    width: 2rem;
+    height: 2rem;
   }
 
   .stat-value {
@@ -64,11 +58,11 @@
   }
 
   &.success .stat-value {
-    color: #6fcf7a;
+    color: var(--success-light);
   }
 
   &.danger .stat-value {
-    color: #ff7a72;
+    color: var(--mat-sys-error);
   }
 }
 

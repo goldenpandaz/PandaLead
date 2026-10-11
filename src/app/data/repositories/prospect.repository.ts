@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 
 import { Prospect, ProspectDetails } from '../../domain/models/prospect.model';
 import { BaseRepository } from './base.repository';
@@ -7,14 +7,28 @@ import { BaseRepository } from './base.repository';
 const COLLECTION = 'prospects';
 const DETAILS_COLLECTION = 'prospectDetails';
 
+/** Doc tal cual está guardado: los viejos traen `category` (string) y no `categories`. */
+type LegacyProspect = Omit<Prospect, 'categories'> & { categories?: string[]; category?: string };
+
+/** Único punto de compatibilidad con docs anteriores a las categorías múltiples. */
+function normalizeCategories(raw: LegacyProspect): Prospect {
+  const { category, categories, ...rest } = raw;
+  if (Array.isArray(categories)) return { ...rest, categories };
+  return { ...rest, categories: category ? [category] : [] };
+}
+
 @Injectable({ providedIn: 'root' })
 export class ProspectRepository extends BaseRepository {
   watchAll(): Observable<Prospect[]> {
-    return this.sync.watchCollection<Prospect>(COLLECTION, this.tenantPath(COLLECTION));
+    return this.sync
+      .watchCollection<LegacyProspect>(COLLECTION, this.tenantPath(COLLECTION))
+      .pipe(map((list) => list.map(normalizeCategories)));
   }
 
   watchOne(id: string): Observable<Prospect | null> {
-    return this.sync.watchDoc<Prospect>(COLLECTION, id, this.tenantPath(COLLECTION, id));
+    return this.sync
+      .watchDoc<LegacyProspect>(COLLECTION, id, this.tenantPath(COLLECTION, id))
+      .pipe(map((p) => (p ? normalizeCategories(p) : null)));
   }
 
   watchDetails(id: string): Observable<ProspectDetails | null> {

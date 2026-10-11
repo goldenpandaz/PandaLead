@@ -11,7 +11,7 @@
 
       <div class="sidenav-header">
         @if (!collapsed()) {
-          <img src="brand/wordmark.png" alt="PandaLead" class="sidenav-wordmark" />
+          <img [src]="logoSrc()" alt="PandaLead" class="sidenav-wordmark" />
           <button mat-icon-button type="button" class="collapse-toggle" (click)="toggleCollapsed()" matTooltip="Contraer">
             <mat-icon>menu_open</mat-icon>
           </button>
@@ -56,6 +56,12 @@
           <mat-icon matListItemIcon>settings</mat-icon>
           @if (!collapsed()) {
             <span matListItemTitle>Configuración</span>
+          }
+        </a>
+        <a mat-list-item routerLink="/preferences" routerLinkActive="active-link" (click)="closeMobileNav()" [matTooltip]="collapsed() ? 'Preferencias' : ''">
+          <mat-icon matListItemIcon>tune</mat-icon>
+          @if (!collapsed()) {
+            <span matListItemTitle>Preferencias</span>
           }
         </a>
       </mat-nav-list>

@@ -11,7 +11,7 @@
   <div class="login-shell">
     <!-- Panel de marca: solo desktop, el mobile ve el logo arriba del form -->
     <div class="brand-panel">
-      <img src="brand/wordmark.png" alt="PandaLead" class="brand-logo" />
+      <img [src]="logoSrc()" alt="PandaLead" class="brand-logo" />
       <p class="tagline">Encontrá clientes, hacé seguimiento y cerrá la venta — todo en un solo lugar.</p>
 
       @if (installPrompt.canInstall()) {
@@ -27,7 +27,7 @@
     </div>
 
     <div class="form-panel">
-      <img src="brand/wordmark.png" alt="PandaLead" class="brand-logo mobile-only" />
+      <img [src]="logoSrc()" alt="PandaLead" class="brand-logo mobile-only" />
 
       <div class="mobile-only">
         @if (installPrompt.canInstall()) {

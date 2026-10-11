@@ -13,8 +13,8 @@
   margin: 0;
 
   code {
-    background: color-mix(in srgb, var(--gold-base) 12%, transparent);
-    color: var(--gold-light);
+    background: var(--accent-soft);
+    color: var(--accent);
     padding: 0.1em 0.35em;
     border-radius: 4px;
     font-size: 0.85em;
@@ -29,7 +29,7 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  color: #ff8a80;
+  color: var(--error-light);
   font-size: 0.85rem;
   margin: 0;
 
@@ -53,13 +53,13 @@
   font-weight: 600;
 
   &.fresh {
-    background: color-mix(in srgb, #4caf50 18%, transparent);
-    color: #81c784;
+    background: color-mix(in srgb, var(--success) 18%, transparent);
+    color: var(--success-light);
   }
 
   &.conflict {
-    background: color-mix(in srgb, #ff9800 18%, transparent);
-    color: #ffb74d;
+    background: color-mix(in srgb, var(--warning) 18%, transparent);
+    color: var(--warning-light);
   }
 
   &.incomplete {
@@ -71,7 +71,7 @@
 h3 {
   margin: 0.25rem 0 0;
   font-size: 0.95rem;
-  color: var(--gold-light);
+  color: var(--accent);
 }
 
 .fresh-list {
@@ -105,7 +105,7 @@ h3 {
   gap: 0.4rem;
 
   strong {
-    color: var(--gold-light);
+    color: var(--accent);
   }
 }
 
@@ -118,7 +118,7 @@ h3 {
 
   input[type='radio'] {
     margin-top: 0.2em;
-    accent-color: var(--gold-base);
+    accent-color: var(--accent-soft);
   }
 }
 
@@ -136,7 +136,7 @@ h3 {
   }
 
   button.active {
-    color: var(--gold-light);
+    color: var(--accent);
     font-weight: 600;
   }
 }

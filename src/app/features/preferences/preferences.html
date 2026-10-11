@@ -1,0 +1,82 @@
+<div class="preferences-page">
+  <div class="preferences-header page-header">
+    <h1>Preferencias</h1>
+    <p>Ajustá la app a tu gusto.</p>
+  </div>
+
+  <!-- Apariencia -->
+  <section class="preferences-section">
+    <h2 class="section-title">Apariencia</h2>
+    <div class="preferences-card">
+      <div class="preference-item">
+        <div class="preference-content">
+          <div class="preference-label">Color de acento</div>
+          <div class="preference-description">Elige tu color favorito</div>
+        </div>
+        <div class="color-selector">
+          <button
+            *ngFor="let t of themes"
+            (click)="uiState.accentTheme.set(t.id)"
+            class="color-button"
+            [style.background-color]="t.color"
+            [class.selected]="uiState.accentTheme() === t.id"
+            [title]="t.nombre"
+            type="button"
+          ></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Notas de versión -->
+  <section class="preferences-section">
+    <h2 class="section-title">Notas de versión</h2>
+    <div class="changelog-grid">
+      <button
+        *ngFor="let entry of changelog"
+        (click)="notaAbierta.set(entry)"
+        class="changelog-card"
+        [class.current-version]="entry.version === version"
+        type="button"
+      >
+        <div class="changelog-version">v{{ entry.version }}</div>
+        <div class="changelog-date">{{ entry.fecha }}</div>
+        <div *ngIf="entry.version === version" class="changelog-badge">Actual</div>
+      </button>
+    </div>
+  </section>
+</div>
+
+<!-- Modal de notas -->
+<div
+  *ngIf="notaAbierta() as entry"
+  class="modal-overlay"
+  (click)="notaAbierta.set(null)"
+>
+  <div
+    class="modal-content"
+    (click)="$event.stopPropagation()"
+  >
+    <button
+      (click)="notaAbierta.set(null)"
+      class="modal-close"
+      title="Cerrar"
+      type="button"
+    >
+      <span class="material-icons">close</span>
+    </button>
+    <div class="modal-header">
+      <h2 class="mat-headline-small">v{{ entry.version }}</h2>
+      <p class="modal-date">
+        {{ entry.fecha }}
+        <span *ngIf="entry.version === version" class="current-badge">Actual</span>
+      </p>
+    </div>
+    <ul class="modal-changes">
+      <li *ngFor="let c of entry.cambios" class="change-item">
+        <span class="change-bullet">•</span>
+        <span class="change-text">{{ c }}</span>
+      </li>
+    </ul>
+  </div>
+</div>

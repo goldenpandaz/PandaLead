@@ -44,10 +44,9 @@
           </div>
 
           <mat-form-field appearance="outline">
-            <mat-label>Categoría</mat-label>
-            <mat-select formControlName="category">
-              <mat-option value="">—</mat-option>
-              @if (suggestedCategory(); as suggested) {
+            <mat-label>Categorías</mat-label>
+            <mat-select formControlName="categories" multiple required>
+              @for (suggested of suggestedCategories(); track suggested) {
                 <mat-option [value]="suggested">{{ suggested }} (no está en tu catálogo)</mat-option>
               }
               @for (cat of categories(); track cat.id) {

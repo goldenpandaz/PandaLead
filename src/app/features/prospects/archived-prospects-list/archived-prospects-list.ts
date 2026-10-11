@@ -14,7 +14,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { FormsModule } from '@angular/forms';
-import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 
 import { WhatsappTemplatePicker } from '../whatsapp/whatsapp-template-picker/whatsapp-template-picker';
@@ -46,7 +45,6 @@ const SIMPLE_COLUMNS = ['select', 'favorite', 'name', 'phone', 'statusId', 'serv
     MatDialogModule,
     MatSnackBarModule,
     FormsModule,
-    DatePipe,
   ],
   templateUrl: './archived-prospects-list.html',
   styleUrl: './archived-prospects-list.scss',

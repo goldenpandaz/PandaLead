@@ -1,0 +1,39 @@
+mat-dialog-content {
+  display: flex;
+  padding: 0;
+  min-width: 600px;
+  max-height: 70vh;
+}
+
+mat-tab-group {
+  flex: 1;
+  overflow: hidden;
+}
+
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.add-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+
+  .grow {
+    flex: 1;
+  }
+}
+
+.empty-hint {
+  opacity: 0.6;
+  font-size: 0.875rem;
+  padding: 1rem;
+}
+
+mat-dialog-actions {
+  padding: 1rem;
+}

@@ -111,42 +111,49 @@
       </button>
     }
 
-    @if (dataSource.data.length > 0) {
-      <button mat-stroked-button [matMenuTriggerFor]="exportMenu" matTooltip="Exportar clientes">
-        Exportar
+    <div class="button-group">
+      @if (dataSource.data.length > 0) {
+        <button mat-stroked-button [matMenuTriggerFor]="exportMenu" matTooltip="Exportar clientes">
+          Exportar
+        </button>
+
+        <mat-menu #exportMenu="matMenu">
+          <button mat-menu-item (click)="exportProspects('csv')">
+            <mat-icon>table_chart</mat-icon>
+            <span>CSV</span>
+          </button>
+          <button mat-menu-item (click)="exportProspects('md')">
+            <mat-icon>description</mat-icon>
+            <span>Markdown</span>
+          </button>
+          <button mat-menu-item (click)="exportProspects('xlsx')">
+            <mat-icon>file_download</mat-icon>
+            <span>Excel</span>
+          </button>
+        </mat-menu>
+      }
+
+      <button mat-stroked-button class="import-btn" (click)="openImport()">
+        Importar clientes
       </button>
 
-      <mat-menu #exportMenu="matMenu">
-        <button mat-menu-item (click)="exportProspects('csv')">
-          <mat-icon>table_chart</mat-icon>
-          <span>CSV</span>
-        </button>
-        <button mat-menu-item (click)="exportProspects('md')">
-          <mat-icon>description</mat-icon>
-          <span>Markdown</span>
-        </button>
-        <button mat-menu-item (click)="exportProspects('xlsx')">
-          <mat-icon>file_download</mat-icon>
-          <span>Excel</span>
-        </button>
-      </mat-menu>
-    }
+      <button mat-flat-button color="primary" class="new-client-btn" (click)="openNewClient()">
+        Nuevo cliente
+      </button>
+    </div>
 
-    <button mat-stroked-button class="new-client-btn" (click)="openNewClient()">
-      Nuevo cliente
-    </button>
-
-    <button mat-stroked-button class="import-btn" (click)="openImport()">
-      Importar clientes
-    </button>
-
+    <!-- Comentado: Capturar cliente
     <button mat-flat-button color="primary" class="new-prospect-btn" (click)="openCapture()">
       Capturar cliente
     </button>
+    -->
   </header>
 
   <div class="table-container">
-    <table mat-table [dataSource]="dataSource" matSort class="prospects-table">
+    @if (isLoadingProspects()) {
+      <div class="loading-placeholder">Cargando clientes…</div>
+    } @else {
+      <table mat-table [dataSource]="dataSource" matSort class="prospects-table">
       <ng-container matColumnDef="select">
         <th mat-header-cell *matHeaderCellDef>
           <mat-checkbox
@@ -184,15 +191,20 @@
         </th>
         <td mat-cell *matCellDef="let row">
           <mat-select
+            #categorySelect
             class="inline-status-select"
-            [value]="row.category || ''"
+            multiple
+            [value]="row.categories"
             (click)="$event.stopPropagation()"
-            (selectionChange)="updateCategory(row, $event.value)"
+            (selectionChange)="updateCategories(row, $event.value, categorySelect)"
           >
-            <mat-select-trigger>{{ row.category || '—' }}</mat-select-trigger>
-            <mat-option value="">—</mat-option>
-            @if (row.category && !categories().some(c => c.name === row.category)) {
-              <mat-option [value]="row.category">{{ row.category }} (no está en tu catálogo)</mat-option>
+            <mat-select-trigger>
+              {{ row.categories[0] ?? '—' }}@if (row.categories.length > 1) { +{{ row.categories.length - 1 }} }
+            </mat-select-trigger>
+            @for (name of row.categories; track name) {
+              @if (!categories().some(c => c.name === name)) {
+                <mat-option [value]="name">{{ name }} (no está en tu catálogo)</mat-option>
+              }
             }
             @for (cat of categories(); track cat.id) {
               <mat-option [value]="cat.name">{{ cat.name }}</mat-option>
@@ -208,7 +220,7 @@
 
       <ng-container matColumnDef="phone">
         <th mat-header-cell *matHeaderCellDef>Teléfono</th>
-        <td mat-cell *matCellDef="let row">{{ row.phone || '—' }}</td>
+        <td mat-cell *matCellDef="let row">{{ row.phone | phone }}</td>
       </ng-container>
 
       <ng-container matColumnDef="statusId">
@@ -222,7 +234,7 @@
           >
             <mat-select-trigger>
               @if (statusOf(row); as status) {
-                <span class="status-chip" [style.background]="status.color">{{ status.label }}</span>
+                <span class="status-label"><span class="color-dot" [style.background]="status.color"></span>{{ status.label }}</span>
               } @else {
                 —
               }
@@ -291,20 +303,23 @@
       <ng-container matColumnDef="actions">
         <th mat-header-cell *matHeaderCellDef>Acciones</th>
         <td mat-cell *matCellDef="let row">
-          <button mat-icon-button matTooltip="Editar" (click)="openDetail(row, $event)">
-            <mat-icon>edit</mat-icon>
+          <button mat-icon-button matTooltip="Editar" (click)="openEditDialog(row, $event)">
+            <mat-icon class="action-edit">edit</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Ver detalles" (click)="openDetail(row, $event)">
+            <mat-icon class="action-view">visibility</mat-icon>
           </button>
           <button mat-icon-button matTooltip="Abrir WhatsApp" [disabled]="!row.phone" (click)="openWhatsapp(row, $event)">
-            <mat-icon>chat</mat-icon>
+            <mat-icon class="action-chat">chat</mat-icon>
           </button>
           <button mat-icon-button matTooltip="Eliminar" (click)="remove(row, $event)">
-            <mat-icon>delete</mat-icon>
+            <mat-icon class="action-delete">delete</mat-icon>
           </button>
         </td>
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="columns()"></tr>
-      <tr mat-row *matRowDef="let row; columns: columns()" (click)="openDetail(row)" class="clickable-row"></tr>
+      <tr mat-row *matRowDef="let row; columns: columns()" (click)="openDetail(row)" (mousedown)="onRowMouseDown(row)" (mouseup)="onRowMouseUp()" (mouseleave)="onRowMouseLeave()" class="clickable-row"></tr>
 
       <tr class="mat-row" *matNoDataRow>
         <td class="mat-cell no-data" [attr.colspan]="columns().length">
@@ -314,6 +329,7 @@
     </table>
 
     <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" [pageSize]="25" showFirstLastButtons />
+    }
   </div>
 
   <mat-button-toggle-group class="view-toggle-floating" [value]="viewMode()" (change)="viewMode.set($event.value)">

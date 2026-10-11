@@ -22,9 +22,6 @@ export class GenericParser implements SourceParser {
       name,
       normalizedName: normalizeName(name),
       phone: extractPhone(ocrText),
-      email: extractEmail(ocrText),
-      website: extractWebsite(ocrText),
-      instagram: extractAtHandle(ocrText),
       source: this.source,
     };
   }

@@ -230,8 +230,8 @@ export class ProspectImportDialog {
           // Actualizar el prospect existente
           if (conflict.existingProspectId) {
             await this.prospectRepo.update(conflict.existingProspectId, {
-              category: conflict.importRow.category || undefined,
-              locality: conflict.importRow.locality || undefined,
+              // Si la fila no trae categorías no pisamos las existentes (quedarían vacías).
+              ...(conflict.importRow.categories.length > 0 ? { categories: conflict.importRow.categories } : {}),
               statusId: this.mapStatus(conflict.importRow.state, defaultStatus),
             });
             if (conflict.importRow.notes) {
@@ -258,8 +258,7 @@ export class ProspectImportDialog {
       name: row.name,
       normalizedName: normalizeName(row.name),
       phone: row.phone || undefined,
-      category: row.category || undefined,
-      locality: row.locality || undefined,
+      categories: row.categories,
       statusId: this.mapStatus(row.state, defaultStatus),
       source: CaptureSource.Import,
       favorite: false,

@@ -107,30 +107,24 @@ export class ProspectDetail {
     name: ['', Validators.required],
     dialCode: [this.dialCodes[0].code, Validators.required],
     localNumber: ['', Validators.required],
-    email: [''],
-    website: [''],
-    instagram: [''],
-    facebook: [''],
-    tiktok: [''],
-    youtube: [''],
-    linkedin: [''],
-    locality: [''],
-    category: [''],
+    // Validators.required falla con array vacío: mínimo una categoría.
+    categories: [[] as string[], Validators.required],
     statusId: [''],
     serviceId: [{ value: '', disabled: true }],
     favorite: [false],
   });
 
-  // La categoría puede venir de antes de que existiera el catálogo (texto libre
-  // viejo) o no estar dada de alta todavía — se muestra "sugerida" en vez de
-  // perderse en silencio si no matchea ningún nombre del catálogo.
-  private readonly categoryValue = toSignal(this.form.controls.category.valueChanges, {
-    initialValue: this.form.controls.category.value,
+  // Las categorías pueden venir de antes de que existiera el catálogo (texto libre
+  // viejo) o no estar dadas de alta todavía — se muestran "sugeridas" en vez de
+  // perderse en silencio si no matchean ningún nombre del catálogo.
+  private readonly categoriesValue = toSignal(this.form.controls.categories.valueChanges, {
+    initialValue: this.form.controls.categories.value,
   });
-  readonly suggestedCategory = computed(() => {
-    const value = this.categoryValue();
-    if (!value) return null;
-    return this.categories().some((c) => c.name === value) ? null : value;
+  readonly suggestedCategories = computed(() => {
+    const catalog = this.categories();
+    // El patchValue inicial va con emitEvent:false, así que también miramos lo guardado.
+    const names = new Set([...(this.prospect()?.categories ?? []), ...this.categoriesValue()]);
+    return [...names].filter((name) => !catalog.some((c) => c.name === name));
   });
 
   private readonly statusIdValue = toSignal(this.form.controls.statusId.valueChanges, {
@@ -189,15 +183,7 @@ export class ProspectDetail {
             name: p.name,
             dialCode,
             localNumber,
-            email: p.email ?? '',
-            website: p.website ?? '',
-            instagram: p.instagram ?? '',
-            facebook: p.facebook ?? '',
-            tiktok: p.tiktok ?? '',
-            youtube: p.youtube ?? '',
-            linkedin: p.linkedin ?? '',
-            locality: p.locality ?? '',
-            category: p.category ?? '',
+            categories: p.categories,
             statusId: p.statusId ?? '',
             serviceId: project?.serviceId ?? '',
             favorite: p.favorite,

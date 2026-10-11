@@ -25,11 +25,8 @@ export class LinkedInParser implements SourceParser {
       rawText: ocrText,
       name,
       normalizedName: normalizeName(name),
-      linkedin: name,
       category,
       phone: extractPhone(ocrText),
-      email: extractEmail(ocrText),
-      website: extractWebsite(ocrText),
       source: this.source,
     };
   }

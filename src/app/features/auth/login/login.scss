@@ -11,7 +11,7 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
   min-height: 100vh;
   padding: 1.5rem;
   overflow: hidden;
-  background: radial-gradient(ellipse 1400px 900px at 50% -10%, #1f1f1f 0%, var(--mat-sys-surface) 60%);
+  background: radial-gradient(ellipse 1400px 900px at 50% -10%, var(--login-bg-start) 0%, var(--mat-sys-surface) 60%);
 }
 
 // Blobs dorados flotando de fondo, muy sutiles — dan profundidad sin competir
@@ -29,7 +29,7 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
   height: 320px;
   top: -120px;
   right: -100px;
-  background: radial-gradient(circle, rgba(233, 195, 73, 0.16), transparent 70%);
+  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.16), transparent 70%);
   animation-delay: 0s;
 }
 
@@ -38,7 +38,7 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
   height: 260px;
   bottom: -100px;
   left: -80px;
-  background: radial-gradient(circle, rgba(175, 141, 17, 0.14), transparent 70%);
+  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.14), transparent 70%);
   animation-delay: 3s;
 }
 
@@ -69,7 +69,7 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: rgba(233, 195, 73, 0.35);
+  background: rgba(var(--accent-rgb), 0.35);
   pointer-events: none;
   animation: particle-float 6s ease-in-out infinite;
 }
@@ -115,7 +115,7 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
   padding: 3rem 2.5rem;
   text-align: center;
   position: relative;
-  background: radial-gradient(ellipse at 50% 30%, #1a1a1a 0%, #0b0b0b 75%);
+  background: radial-gradient(ellipse at 50% 30%, var(--login-panel-start) 0%, var(--login-panel-end) 75%);
 
   .brand-logo {
     width: 320px;
@@ -136,8 +136,8 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
 // dentro de `.form-panel .mobile-only` (mobile), mismo look en los dos lados.
 .install-btn {
   margin-top: 0.5rem;
-  color: var(--gold-light);
-  border-color: var(--gold-base);
+  color: var(--accent);
+  border-color: var(--accent-soft);
 }
 
 .install-hint {
@@ -148,7 +148,7 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
   max-width: 240px;
 
   strong {
-    color: var(--gold-mid);
+    color: var(--accent);
   }
 }
 
@@ -191,11 +191,7 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
   padding: 0.05em 0.1em 0.15em;
   align-self: center;
   text-align: center;
-  background-image: var(--gold-shine) !important;
-  background-clip: text !important;
-  -webkit-background-clip: text !important;
-  color: transparent !important;
-  -webkit-text-fill-color: transparent !important;
+  color: #ffffff;
 }
 
 .form-subtitle {
@@ -218,7 +214,7 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
 
 .google-btn {
   height: 44px;
-  background: #303030;
+  background: var(--mat-sys-surface-container-high);
   color: #ffffff;
   border-color: rgba(255, 255, 255, 0.14);
 
@@ -227,12 +223,12 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
   }
 
   &:hover:not(:disabled) {
-    background: #3b3b3b;
+    background: var(--mat-sys-surface-container-highest);
   }
 }
 
 .login-error {
-  color: #ff8a80;
+  color: var(--error-light);
   font-size: 0.875rem;
   margin: 0;
 }
@@ -240,7 +236,7 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
 .mode-toggle {
   font-size: 0.8rem;
   align-self: center;
-  color: var(--gold-mid);
+  color: var(--accent);
 }
 
 .login-divider {
@@ -298,7 +294,7 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
 
     &.valid {
       opacity: 1;
-      color: var(--gold-mid);
+      color: var(--accent);
     }
   }
 

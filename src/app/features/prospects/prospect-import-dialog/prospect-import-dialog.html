@@ -41,7 +41,7 @@
         @for (row of fresh(); track row.line) {
           <mat-list-item class="fresh-item">
             <strong matListItemTitle>{{ row.name }}</strong>
-            <span matListItemLine>{{ row.phone || '–' }} • {{ row.category || '–' }} • {{ row.locality || '–' }} • {{ row.state || '–' }}</span>
+            <span matListItemLine>{{ row.phone || '–' }} • {{ row.categories.join(', ') || '–' }} • {{ row.locality || '–' }} • {{ row.state || '–' }}</span>
             @if (row.notes) {
               <span matListItemLine class="notes">{{ (row.notes | slice : 0 : 80) }}</span>
             }

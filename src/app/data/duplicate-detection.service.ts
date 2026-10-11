@@ -37,26 +37,9 @@ export class DuplicateDetectionService {
     };
 
     const candidatePhone = candidate.phone ? normalizePhone(candidate.phone) : undefined;
-    const candidateEmail = candidate.email?.toLowerCase();
-    const candidateInstagram = candidate.instagram?.toLowerCase();
-    const candidateFacebook = candidate.facebook?.toLowerCase();
-    const candidateWebsite = candidate.website ? normalizeDomain(candidate.website) : undefined;
 
     for (const prospect of existing) {
       if (candidatePhone && prospect.phone && normalizePhone(prospect.phone) === candidatePhone) markExact(prospect, 'phone');
-      if (candidateEmail && prospect.email?.toLowerCase() === candidateEmail) markExact(prospect, 'email');
-      if (candidateInstagram && prospect.instagram?.toLowerCase() === candidateInstagram) markExact(prospect, 'instagram');
-      if (candidateFacebook && prospect.facebook?.toLowerCase() === candidateFacebook) markExact(prospect, 'facebook');
-      if (candidateWebsite && prospect.website && normalizeDomain(prospect.website) === candidateWebsite) {
-        markExact(prospect, 'website');
-      }
-      if (
-        candidate.locality &&
-        prospect.locality &&
-        candidate.locality.trim().toLowerCase() === prospect.locality.trim().toLowerCase()
-      ) {
-        markExact(prospect, 'locality');
-      }
     }
 
     // Fuzzy por nombre — solo si no hubo ya un match exacto (el exacto ya es 100).

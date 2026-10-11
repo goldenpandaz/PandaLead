@@ -4,10 +4,7 @@ import { CaptureSource } from '../../../domain/enums/capture-source.enum';
 import { ParsedProspectData, SourceParser } from './parser.interface';
 import {
   extractCategoryAndLocality,
-  extractEmail,
   extractPhone,
-  extractRatingAndReviews,
-  extractWebsite,
   firstMeaningfulLine,
   normalizeName,
 } from './extraction.utils';
@@ -25,20 +22,14 @@ export class GoogleMapsParser implements SourceParser {
 
   parse(ocrText: string): ParsedProspectData {
     const name = firstMeaningfulLine(ocrText) ?? '';
-    const { rating, reviewCount } = extractRatingAndReviews(ocrText);
-    const { category, locality } = extractCategoryAndLocality(ocrText);
+    const { category } = extractCategoryAndLocality(ocrText);
 
     return {
       rawText: ocrText,
       name,
       normalizedName: normalizeName(name),
       phone: extractPhone(ocrText),
-      email: extractEmail(ocrText),
-      website: extractWebsite(ocrText),
-      locality,
       category,
-      rating,
-      reviewCount,
       source: this.source,
     };
   }

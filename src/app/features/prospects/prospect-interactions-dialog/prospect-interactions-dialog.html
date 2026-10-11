@@ -1,0 +1,74 @@
+<h2 mat-dialog-title>{{ data.prospect.name }} - Notas y Seguimientos</h2>
+
+<mat-dialog-content>
+  <mat-tab-group>
+    <mat-tab label="Notas ({{ notes.length }})">
+      <div class="tab-content">
+        <div class="add-row">
+          <mat-form-field appearance="outline" class="grow">
+            <mat-label>Nueva nota</mat-label>
+            <textarea matInput rows="2" [(ngModel)]="newNoteText"></textarea>
+          </mat-form-field>
+          <button mat-flat-button color="primary" (click)="addNote()">Agregar</button>
+        </div>
+
+        <mat-list>
+          @for (note of notes; track note.id) {
+            <mat-list-item>
+              <span matListItemTitle>{{ note.text }}</span>
+              <span matListItemLine>{{ note.createdAt | date: 'dd/MM/yy HH:mm' }}</span>
+              <button mat-icon-button matListItemMeta (click)="deleteNote(note.id)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </mat-list-item>
+          } @empty {
+            <p class="empty-hint">Todavía no hay notas.</p>
+          }
+        </mat-list>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Seguimientos ({{ followups.length }})">
+      <div class="tab-content">
+        <div class="add-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Fecha</mat-label>
+            <input matInput type="date" [(ngModel)]="newFollowupDate" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Hora</mat-label>
+            <input matInput type="time" [(ngModel)]="newFollowupTime" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="grow">
+            <mat-label>Descripción</mat-label>
+            <input matInput [(ngModel)]="newFollowupDescription" />
+          </mat-form-field>
+          <button mat-flat-button color="primary" (click)="addFollowup()">Agregar</button>
+        </div>
+
+        <mat-list>
+          @for (followup of followups; track followup.id) {
+            <mat-list-item>
+              <mat-checkbox
+                matListItemAvatar
+                [checked]="followup.status === 'done'"
+                (change)="toggleFollowup(followup.id, $event.checked)"
+              />
+              <span matListItemTitle>{{ followup.description }}</span>
+              <span matListItemLine>{{ followup.date }} {{ followup.time }}</span>
+              <button mat-icon-button matListItemMeta (click)="deleteFollowup(followup.id)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </mat-list-item>
+          } @empty {
+            <p class="empty-hint">Sin seguimientos programados.</p>
+          }
+        </mat-list>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Cerrar</button>
+</mat-dialog-actions>
