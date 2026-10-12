@@ -29,7 +29,6 @@
   font-size: 0.85rem;
   line-height: 1.5;
   opacity: 0.75;
-  max-width: 640px;
   margin: 0;
 
   strong {
@@ -94,6 +93,39 @@
   max-width: 640px;
 }
 
+/* Lista a la izquierda, formulario a la derecha; en pantallas angostas se apilan. */
+.tab-panel.wide {
+  max-width: none;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 440px);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.form-side {
+  position: sticky;
+  top: 1rem;
+}
+
+.form-title {
+  width: 100%;
+  margin: 0;
+  font-size: 1rem;
+}
+
+@media (max-width: 900px) {
+  .split {
+    grid-template-columns: 1fr;
+  }
+
+  .form-side {
+    position: static;
+  }
+}
+
 .empty-hint {
   opacity: 0.6;
   font-size: 0.875rem;
@@ -107,11 +139,115 @@
   border-radius: 50%;
 }
 
+.config-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.config-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35rem 0.5rem 0.35rem 0.85rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  min-height: 44px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.config-name {
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+
+.config-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.chip {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+/* Texto secundario de la fila (mensaje de plantilla, descripción de servicio): se corta con "…". */
+.config-detail {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8rem;
+  opacity: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.config-order {
+  font-size: 0.8rem;
+  opacity: 0.5;
+  min-width: 1.1rem;
+  text-align: right;
+}
+
+.drag-handle {
+  cursor: grab;
+  opacity: 0.45;
+  margin-left: -0.35rem;
+  flex-shrink: 0;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.config-row.cdk-drag-preview {
+  background: var(--mat-sys-surface-container-high, #2a2a2e);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.config-row.cdk-drag-placeholder {
+  opacity: 0.3;
+}
+
+.config-row.cdk-drag-animating,
+.config-list.cdk-drop-list-dragging .config-row:not(.cdk-drag-placeholder) {
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.config-actions {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.action-edit {
+  color: #ffffff;
+}
+
+.action-delete {
+  color: #ff5252;
+}
+
 .add-form {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.75rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
 }
 
 .color-field {

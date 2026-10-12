@@ -52,16 +52,16 @@
       <div class="nav-divider"></div>
 
       <mat-nav-list class="sidenav-list">
-        <a mat-list-item routerLink="/settings" routerLinkActive="active-link" (click)="closeMobileNav()" [matTooltip]="collapsed() ? 'Configuración' : ''">
+        <a mat-list-item routerLink="/settings" routerLinkActive="active-link" (click)="closeMobileNav()" [matTooltip]="collapsed() ? 'Catálogo' : ''">
+          <mat-icon matListItemIcon>category</mat-icon>
+          @if (!collapsed()) {
+            <span matListItemTitle>Catálogo</span>
+          }
+        </a>
+        <a mat-list-item routerLink="/preferences" routerLinkActive="active-link" (click)="closeMobileNav()" [matTooltip]="collapsed() ? 'Configuración' : ''">
           <mat-icon matListItemIcon>settings</mat-icon>
           @if (!collapsed()) {
             <span matListItemTitle>Configuración</span>
-          }
-        </a>
-        <a mat-list-item routerLink="/preferences" routerLinkActive="active-link" (click)="closeMobileNav()" [matTooltip]="collapsed() ? 'Preferencias' : ''">
-          <mat-icon matListItemIcon>tune</mat-icon>
-          @if (!collapsed()) {
-            <span matListItemTitle>Preferencias</span>
           }
         </a>
       </mat-nav-list>

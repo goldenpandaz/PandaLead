@@ -222,6 +222,12 @@ html {
   width: 100%;
   font-size: 0.8rem;
 
+  // "Sin servicio": atenuado y en cursiva para distinguirlo de un servicio real.
+  .no-service {
+    font-style: italic;
+    opacity: 0.5;
+  }
+
   .mat-mdc-header-cell {
     font-size: 0.8rem;
     font-weight: 600;

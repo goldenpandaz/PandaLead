@@ -1,18 +1,21 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatListModule } from '@angular/material/list';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ConfigRepository } from '../../data/repositories/config.repository';
+import { ConfirmDialog, ConfirmDialogData } from '../../shared/dialogs/confirm-dialog/confirm-dialog';
 import { MoneyInputDirective } from '../../shared/directives/money-input.directive';
 import { MoneyPipe } from '../../shared/pipes/money.pipe';
 import { extractVariables, findUnknownVariables } from '../../shared/utils/template-fields.util';
@@ -26,7 +29,7 @@ import { CategoryConfig } from '../../domain/models/category.model';
 import { ImportSummary, TemplateImportDialog } from './template-import-dialog/template-import-dialog';
 import { ServiceImportDialog, ServiceImportSummary } from './service-import-dialog/service-import-dialog';
 
-const EMPTY_STATUS_FORM = { label: '', color: '#4c9aff', order: 0, isWon: false, isLost: false, isFinal: false, requiresService: false };
+const EMPTY_STATUS_FORM = { label: '', color: '#4c9aff', order: 0, requiresService: false };
 const EMPTY_TEMPLATE_FORM = { name: '', category: '', body: '' };
 const EMPTY_SERVICE_FORM = { name: '', description: '', price: null as number | null };
 const EMPTY_CATEGORY_FORM = { name: '' };
@@ -43,6 +46,7 @@ const EMPTY_CATEGORY_FORM = { name: '' };
 @Component({
   selector: 'app-settings',
   imports: [
+    DragDropModule,
     FormsModule,
     MatButtonModule,
     MatCheckboxModule,
@@ -50,10 +54,10 @@ const EMPTY_CATEGORY_FORM = { name: '' };
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatListModule,
     MatMenuModule,
     MatSnackBarModule,
     MatTabsModule,
+    MatTooltipModule,
     MoneyInputDirective,
     MoneyPipe,
   ],
@@ -96,10 +100,7 @@ export class Settings {
       label: status.label,
       color: status.color,
       order: status.order,
-      isWon: status.isWon,
-      isLost: status.isLost,
-      isFinal: status.isFinal,
-      requiresService: status.requiresService ?? false,
+      requiresService: status.requiresService,
     });
   }
 
@@ -115,14 +116,21 @@ export class Settings {
     await this.configRepo.saveStatus({
       ...value,
       id: editingId ?? undefined,
-      order: editingId ? value.order : this.statuses().length + 1,
+      order: editingId ? value.order : Math.max(0, ...this.statuses().map((s) => s.order)) + 1,
     });
     this.statusForm.set({ ...EMPTY_STATUS_FORM });
     this.editingStatusId.set(null);
   }
 
+  async dropStatus(event: CdkDragDrop<StatusConfig[]>): Promise<void> {
+    if (event.previousIndex === event.currentIndex) return;
+    const reordered = [...this.statuses()];
+    moveItemInArray(reordered, event.previousIndex, event.currentIndex);
+    await this.configRepo.reorderStatuses(reordered);
+  }
+
   async deleteStatus(id: string): Promise<void> {
-    if (!confirm('¿Eliminar este estado? Los clientes que lo tengan asignado quedan con un estado inexistente.')) return;
+    if (!(await this.confirmDelete('Eliminar estado', 'Los clientes que lo tengan asignado quedarán con un estado inexistente. Esta acción no se puede deshacer.'))) return;
     if (this.editingStatusId() === id) this.cancelEditStatus();
     await this.configRepo.deleteStatus(id);
   }
@@ -149,7 +157,7 @@ export class Settings {
   }
 
   async deleteTemplate(id: string): Promise<void> {
-    if (!confirm('¿Eliminar esta plantilla?')) return;
+    if (!(await this.confirmDelete('Eliminar plantilla', 'La plantilla se borra para siempre. Esta acción no se puede deshacer.'))) return;
     if (this.editingTemplateId() === id) this.cancelEditTemplate();
     await this.configRepo.deleteTemplate(id);
   }
@@ -252,7 +260,7 @@ export class Settings {
   }
 
   async deleteService(id: string): Promise<void> {
-    if (!confirm('¿Eliminar este servicio? Los proyectos que ya lo tengan asignado no se modifican (el precio quedó copiado ahí).')) return;
+    if (!(await this.confirmDelete('Eliminar servicio', 'Los trabajos que ya lo tengan asignado no se modifican: el precio quedó copiado ahí. Esta acción no se puede deshacer.'))) return;
     if (this.editingServiceId() === id) this.cancelEditService();
     await this.configRepo.deleteService(id);
   }
@@ -278,8 +286,20 @@ export class Settings {
   }
 
   async deleteCategory(id: string): Promise<void> {
-    if (!confirm('¿Eliminar esta categoría?')) return;
+    if (!(await this.confirmDelete('Eliminar categoría', 'La categoría se borra de tu lista. Los clientes que ya la tienen conservan su valor. Esta acción no se puede deshacer.'))) return;
     if (this.editingCategoryId() === id) this.cancelEditCategory();
     await this.configRepo.deleteCategory(id);
+  }
+
+  private async confirmDelete(title: string, message: string): Promise<boolean> {
+    const ok = await firstValueFrom(
+      this.dialog
+        .open<ConfirmDialog, ConfirmDialogData, boolean>(ConfirmDialog, {
+          width: '380px',
+          data: { title, message, confirmLabel: 'Eliminar', danger: true, icon: 'delete' },
+        })
+        .afterClosed(),
+    );
+    return !!ok;
   }
 }

@@ -111,9 +111,6 @@
               "label": { ".validate": "newData.isString() && newData.val().length > 0" },
               "order": { ".validate": "newData.isNumber()" },
               "color": { ".validate": "newData.isString()" },
-              "isWon": { ".validate": "newData.isBoolean()" },
-              "isLost": { ".validate": "newData.isBoolean()" },
-              "isFinal": { ".validate": "newData.isBoolean()" },
               "requiresService": { ".validate": "newData.isBoolean()" }
             }
           },

@@ -23,34 +23,10 @@
       <span class="stat-label">Contactados</span>
     </mat-card>
 
-    <mat-card class="stat-tile success">
-      <mat-icon>handshake</mat-icon>
-      <span class="stat-value">{{ clients() }}</span>
-      <span class="stat-label">Clientes</span>
-    </mat-card>
-
-    <mat-card class="stat-tile danger">
-      <mat-icon>close</mat-icon>
-      <span class="stat-value">{{ lost() }}</span>
-      <span class="stat-label">Perdidos</span>
-    </mat-card>
-
-    <mat-card class="stat-tile">
-      <mat-icon>task_alt</mat-icon>
-      <span class="stat-value">{{ finalized() }}</span>
-      <span class="stat-label">Finalizados</span>
-    </mat-card>
-
     <mat-card class="stat-tile">
       <mat-icon>event_upcoming</mat-icon>
       <span class="stat-value">{{ pendingFollowupsCount() }}</span>
       <span class="stat-label">Seguimientos pendientes</span>
-    </mat-card>
-
-    <mat-card class="stat-tile">
-      <mat-icon>percent</mat-icon>
-      <span class="stat-value">{{ conversionRate() }}%</span>
-      <span class="stat-label">Conversión</span>
     </mat-card>
 
     <mat-card class="stat-tile success">

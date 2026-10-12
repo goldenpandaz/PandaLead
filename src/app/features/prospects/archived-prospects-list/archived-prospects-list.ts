@@ -24,7 +24,7 @@ import { ProjectRepository } from '../../../data/repositories/project.repository
 import { Prospect } from '../../../domain/models/prospect.model';
 import { Project } from '../../../domain/models/project.model';
 import { StatusConfig } from '../../../domain/models/status.model';
-import { PAYMENT_STATUS_LABEL, describeJobsLoss, projectPaymentStatus } from '../../../shared/utils/project-finance.util';
+import { NO_SERVICE_LABEL, PAYMENT_STATUS_LABEL, describeJobsLoss, projectPaymentStatus } from '../../../shared/utils/project-finance.util';
 
 const SIMPLE_COLUMNS = ['select', 'favorite', 'name', 'phone', 'statusId', 'service', 'actions'] as const;
 
@@ -129,9 +129,14 @@ export class ArchivedProspectsList {
   /** Servicio del primer trabajo + ` +N` si hay más. */
   serviceLabelOf(prospect: Prospect): string {
     const projects = this.projectsOf(prospect);
-    if (projects.length === 0) return '—';
-    const first = projects[0].serviceName || 'Sin servicio';
+    if (projects.length === 0) return NO_SERVICE_LABEL;
+    const first = projects[0].serviceName || NO_SERVICE_LABEL;
     return projects.length > 1 ? `${first} +${projects.length - 1}` : first;
+  }
+
+  /** Falso cuando no hay ningún servicio que mostrar (se pinta atenuado y en cursiva). */
+  hasServiceLabel(prospect: Prospect): boolean {
+    return !!this.projectsOf(prospect)[0]?.serviceName;
   }
 
   /** Tooltip: un renglón por trabajo con su estado de pago. */

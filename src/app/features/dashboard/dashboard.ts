@@ -64,29 +64,9 @@ export class Dashboard {
 
   readonly contacted = computed(() => this.prospects().filter((p) => !!p.lastContactAt).length);
 
-  readonly clients = computed(() => {
-    const wonIds = new Set(this.statuses().filter((s) => s.isWon).map((s) => s.id));
-    return this.prospects().filter((p) => wonIds.has(p.statusId)).length;
-  });
-
-  readonly lost = computed(() => {
-    const lostIds = new Set(this.statuses().filter((s) => s.isLost).map((s) => s.id));
-    return this.prospects().filter((p) => lostIds.has(p.statusId)).length;
-  });
-
-  readonly finalized = computed(() => {
-    const finalIds = new Set(this.statuses().filter((s) => s.isFinal).map((s) => s.id));
-    return this.prospects().filter((p) => finalIds.has(p.statusId)).length;
-  });
-
   readonly newThisWeek = computed(() => {
     const threshold = Date.now() - this.SEVEN_DAYS_MS;
     return this.prospects().filter((p) => p.createdAt >= threshold).length;
-  });
-
-  readonly conversionRate = computed(() => {
-    const total = this.totalProspects();
-    return total === 0 ? 0 : Math.round((this.clients() / total) * 100);
   });
 
   readonly pendingFollowupsCount = computed(() => this.pendingFollowups().length);

@@ -7,10 +7,22 @@ export interface ChangelogEntry {
 /** Notas de versión, de la más nueva a la más vieja. Solo cambios notorios para el usuario. */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.1.3',
+    fecha: '12/10/2026',
+    cambios: [
+      'Varios trabajos por cliente, cada uno con sus pagos, notas, fecha de entrega y vista de detalle.',
+      'Resumen con próximos seguimientos, trabajos por entregar y cobros pendientes.',
+      'Notas generales y seguimientos editables, con selector de fecha y hora y confirmación al eliminar.',
+      'Historial en español y ordenado del más reciente al más antiguo.',
+      'Catálogo (antes Configuración): listas más compactas, formulario al costado y estados que se reordenan arrastrando.',
+      'Estados simplificados: solo "Requiere servicio". "Preferencias" pasa a llamarse Configuración.',
+    ],
+  },
+  {
     version: '2.1.2',
     fecha: '11/10/2026',
     cambios: [
-      'Temas de color: elegí entre dorado, azul y rosa desde Preferencias.',
+      'Temas de color: elegí entre dorado, azul y rosa desde Configuración.',
       'Categorías múltiples: cada cliente puede tener una o más categorías.',
       'Formularios más simples: un campo sobre otro, con teléfono y prefijo en una sola línea.',
       'Estados con punto de color, íconos de acciones con color y botones más grandes.',

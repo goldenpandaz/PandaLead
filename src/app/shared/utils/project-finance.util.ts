@@ -2,6 +2,9 @@ import { Project } from '../../domain/models/project.model';
 
 export type ProjectPaymentStatus = 'none' | 'partial' | 'paid';
 
+/** Texto cuando un cliente no tiene ningún servicio asignado. */
+export const NO_SERVICE_LABEL = 'Sin servicio';
+
 export const PAYMENT_STATUS_LABEL: Record<ProjectPaymentStatus, string> = {
   none: 'Sin pago',
   partial: 'Abonado',

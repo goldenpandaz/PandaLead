@@ -70,15 +70,21 @@ const DEFAULT_TEMPLATES: readonly Omit<MessageTemplate, 'id'>[] = [
  * editables/borrables desde `settings`, esta lista no se vuelve a tocar.
  */
 const DEFAULT_STATUSES: readonly Omit<StatusConfig, 'id'>[] = [
-  { label: 'Posible cliente', order: 1, color: '#9e9e9e', isWon: false, isLost: false, isFinal: false, requiresService: false },
-  { label: 'Cotización enviada', order: 2, color: '#9c27b0', isWon: false, isLost: false, isFinal: false, requiresService: true },
-  { label: 'Esperando respuesta', order: 3, color: '#2196f3', isWon: false, isLost: false, isFinal: false, requiresService: false },
-  { label: 'En proceso', order: 4, color: '#ff9800', isWon: false, isLost: false, isFinal: false, requiresService: true },
-  { label: 'Cliente', order: 5, color: '#4caf50', isWon: true, isLost: false, isFinal: false, requiresService: true },
-  { label: 'Pendiente pago', order: 6, color: '#ff5722', isWon: true, isLost: false, isFinal: false, requiresService: true },
-  { label: 'Finalizado', order: 7, color: '#4caf50', isWon: true, isLost: false, isFinal: true, requiresService: true },
-  { label: 'Perdido', order: 8, color: '#f44336', isWon: false, isLost: true, isFinal: true, requiresService: false },
+  { label: 'Posible cliente', order: 1, color: '#9e9e9e', requiresService: false },
+  { label: 'Cotización enviada', order: 2, color: '#9c27b0', requiresService: true },
+  { label: 'Esperando respuesta', order: 3, color: '#2196f3', requiresService: false },
+  { label: 'En proceso', order: 4, color: '#ff9800', requiresService: true },
+  { label: 'Cliente', order: 5, color: '#4caf50', requiresService: true },
+  { label: 'Pendiente pago', order: 6, color: '#ff5722', requiresService: true },
+  { label: 'Finalizado', order: 7, color: '#4caf50', requiresService: true },
+  { label: 'Perdido', order: 8, color: '#f44336', requiresService: false },
 ];
+
+/** Único punto de normalización de estados guardados: descarta los flags viejos
+ * (isWon/isLost/isFinal) que ya no existen, para que no se vuelvan a escribir. */
+function normalizeStatus(raw: StatusConfig): StatusConfig {
+  return { id: raw.id, label: raw.label, order: raw.order, color: raw.color, requiresService: raw.requiresService ?? false };
+}
 
 /**
  * Estados, plantillas, servicios y categorías — listas chicas y configurables
@@ -96,13 +102,23 @@ export class ConfigRepository extends BaseRepository {
     // (default al crear, o al convertir a cliente) sean consistentes en todos lados.
     return this.sync
       .watchCollection<StatusConfig>(STATUSES, this.tenantPath('config', STATUSES))
-      .pipe(map((statuses) => [...statuses].sort((a, b) => a.order - b.order)));
+      .pipe(map((statuses) => statuses.map(normalizeStatus).sort((a, b) => a.order - b.order)));
   }
 
   async saveStatus(status: Omit<StatusConfig, 'id'> & { id?: string }): Promise<string> {
     const id = status.id ?? this.generateId();
     await this.sync.write(STATUSES, id, this.tenantPath('config', STATUSES, id), 'set', { ...status, id });
     return id;
+  }
+
+  /** Reescribe `order` (1..n) según la posición recibida; solo toca los que cambiaron. */
+  async reorderStatuses(ordered: readonly StatusConfig[]): Promise<void> {
+    await Promise.all(
+      ordered
+        .map((status, index) => ({ status, order: index + 1 }))
+        .filter(({ status, order }) => status.order !== order)
+        .map(({ status, order }) => this.saveStatus({ ...status, order })),
+    );
   }
 
   async deleteStatus(id: string): Promise<void> {
