@@ -12,6 +12,7 @@
     <!-- Panel de marca: solo desktop, el mobile ve el logo arriba del form -->
     <div class="brand-panel">
       <img [src]="logoSrc()" alt="PandaLead" class="brand-logo" />
+      <span class="app-version">v{{ version }}</span>
       <p class="tagline">Encontrá clientes, hacé seguimiento y cerrá la venta — todo en un solo lugar.</p>
 
       @if (installPrompt.canInstall()) {
@@ -28,6 +29,7 @@
 
     <div class="form-panel">
       <img [src]="logoSrc()" alt="PandaLead" class="brand-logo mobile-only" />
+      <span class="app-version mobile-only">v{{ version }}</span>
 
       <div class="mobile-only">
         @if (installPrompt.canInstall()) {

@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 import { AuthService } from '../../../core/auth/auth.service';
+import { APP_VERSION } from '../../../core/version';
 import { InstallPromptService } from '../../../core/pwa/install-prompt.service';
 import { UiStateService } from '../../../core/ui-state.service';
 
@@ -61,6 +62,8 @@ export class Login {
   private readonly fb = inject(FormBuilder);
   protected readonly installPrompt = inject(InstallPromptService);
   private readonly uiState = inject(UiStateService);
+
+  readonly version = APP_VERSION;
 
   readonly logoSrc = computed(() => {
     const theme = this.uiState.accentTheme();

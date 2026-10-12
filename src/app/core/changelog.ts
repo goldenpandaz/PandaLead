@@ -7,6 +7,11 @@ export interface ChangelogEntry {
 /** Notas de versión, de la más nueva a la más vieja. Solo cambios notorios para el usuario. */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.1.4',
+    fecha: '12/10/2026',
+    cambios: ['Catálogo adaptado al celular: listas, formularios y barras de importar y exportar sin desbordes.'],
+  },
+  {
     version: '2.1.3',
     fecha: '12/10/2026',
     cambios: [

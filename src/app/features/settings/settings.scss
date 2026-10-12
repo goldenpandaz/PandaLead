@@ -116,6 +116,10 @@
   font-size: 1rem;
 }
 
+.split > * {
+  min-width: 0;
+}
+
 @media (max-width: 900px) {
   .split {
     grid-template-columns: 1fr;
@@ -123,6 +127,61 @@
 
   .form-side {
     position: static;
+  }
+}
+
+// Celular: todo en una columna, sin desbordes horizontales.
+@media (max-width: 600px) {
+  .settings-page {
+    padding: 0.75rem;
+    overflow-x: hidden;
+  }
+
+  .tab-panel {
+    padding: 0.75rem 0;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .tab-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+
+    .toolbar-actions {
+      flex-wrap: wrap;
+    }
+  }
+
+  // El detalle (mensaje de la plantilla, descripción) pasa a su propia línea debajo del nombre.
+  .config-row {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+
+  .config-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .config-detail {
+    order: 3;
+    flex-basis: 100%;
+    padding-bottom: 0.35rem;
+  }
+
+  .add-form {
+    padding: 0.75rem;
+
+    mat-form-field,
+    .grow {
+      width: 100%;
+    }
+  }
+
+  .add-form .color-field {
+    width: 80px;
   }
 }
 

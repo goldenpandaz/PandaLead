@@ -132,6 +132,24 @@ $system-font: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helve
   }
 }
 
+// Versión debajo del logo — también se usa en desktop y mobile. El margen negativo
+// la pega al logo compensando el `gap` del panel / el margin-bottom del logo mobile.
+.app-version {
+  font-family: $system-font;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+.brand-panel .app-version {
+  margin-top: -1rem;
+}
+
+.form-panel .app-version.mobile-only {
+  margin-top: -1.1rem;
+}
+
 // Fuera de `.brand-panel` a propósito — se usa tanto ahí (desktop) como
 // dentro de `.form-panel .mobile-only` (mobile), mismo look en los dos lados.
 .install-btn {
