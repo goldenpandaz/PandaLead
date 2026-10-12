@@ -143,7 +143,7 @@
         }
       </mat-tab>
 
-      <mat-tab label="Notas ({{ notes().length }})">
+      <mat-tab label="Notas generales ({{ notes().length }})">
         <div class="tab-panel">
           <div class="add-row">
             <mat-form-field appearance="outline" class="grow">
@@ -155,13 +155,29 @@
 
           <mat-list>
             @for (note of notes(); track note.id) {
-              <mat-list-item>
-                <span matListItemTitle>{{ note.text }}</span>
-                <span matListItemLine>{{ note.createdAt | date: 'dd/MM/yy HH:mm' }}</span>
-                <button mat-icon-button matListItemMeta (click)="deleteNote(note.id)">
-                  <mat-icon>delete</mat-icon>
-                </button>
-              </mat-list-item>
+              @if (editingNoteId() === note.id) {
+                <div class="add-row note-edit-row">
+                  <mat-form-field appearance="outline" class="grow">
+                    <mat-label>Editar nota</mat-label>
+                    <textarea matInput rows="2" [ngModel]="editingNoteText()" (ngModelChange)="editingNoteText.set($event)"></textarea>
+                  </mat-form-field>
+                  <button mat-flat-button color="primary" (click)="saveEditNote()">Guardar</button>
+                  <button mat-button (click)="cancelEditNote()">Cancelar</button>
+                </div>
+              } @else {
+                <mat-list-item>
+                  <span matListItemTitle>{{ note.text }}</span>
+                  <span matListItemLine>{{ note.createdAt | date: 'dd/MM/yy HH:mm' }}</span>
+                  <span matListItemMeta class="note-actions">
+                    <button mat-icon-button matTooltip="Editar" (click)="startEditNote(note.id, note.text)">
+                      <mat-icon class="action-edit">edit</mat-icon>
+                    </button>
+                    <button mat-icon-button matTooltip="Eliminar" (click)="deleteNote(note.id)">
+                      <mat-icon class="action-delete">delete</mat-icon>
+                    </button>
+                  </span>
+                </mat-list-item>
+              }
             } @empty {
               <p class="empty-hint">Todavía no hay notas.</p>
             }
@@ -174,11 +190,15 @@
           <div class="add-row followup-row">
             <mat-form-field appearance="outline">
               <mat-label>Fecha</mat-label>
-              <input matInput type="date" [ngModel]="newFollowup().date" (ngModelChange)="newFollowup.set({ ...newFollowup(), date: $event })" />
+              <input matInput [matDatepicker]="newDatePicker" placeholder="dd/mm/aaaa" (click)="newDatePicker.open()" [ngModel]="newFollowup().date" (ngModelChange)="newFollowup.set({ ...newFollowup(), date: $event })" />
+              <mat-datepicker-toggle matIconSuffix [for]="newDatePicker" />
+              <mat-datepicker #newDatePicker />
             </mat-form-field>
             <mat-form-field appearance="outline">
               <mat-label>Hora</mat-label>
-              <input matInput type="time" [ngModel]="newFollowup().time" (ngModelChange)="newFollowup.set({ ...newFollowup(), time: $event })" />
+              <input matInput [matTimepicker]="newTimePicker" placeholder="hh:mm" [ngModel]="newFollowup().time" (ngModelChange)="newFollowup.set({ ...newFollowup(), time: $event })" />
+              <mat-timepicker-toggle matIconSuffix [for]="newTimePicker" />
+              <mat-timepicker #newTimePicker />
             </mat-form-field>
             <mat-form-field appearance="outline" class="grow">
               <mat-label>Descripción</mat-label>
@@ -189,37 +209,50 @@
 
           <mat-list>
             @for (followup of followups(); track followup.id) {
-              <mat-list-item>
-                <mat-checkbox
-                  matListItemAvatar
-                  [checked]="followup.status === 'done'"
-                  (change)="toggleFollowup(followup.id, $event.checked)"
-                />
-                <span matListItemTitle>{{ followup.description }}</span>
-                <span matListItemLine>{{ followup.date }} {{ followup.time }}</span>
-              </mat-list-item>
+              @if (editingFollowupId() === followup.id) {
+                <div class="add-row followup-row">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Fecha</mat-label>
+                    <input matInput [matDatepicker]="editDatePicker" placeholder="dd/mm/aaaa" (click)="editDatePicker.open()" [ngModel]="editingFollowup().date" (ngModelChange)="editingFollowup.set({ ...editingFollowup(), date: $event })" />
+                    <mat-datepicker-toggle matIconSuffix [for]="editDatePicker" />
+                    <mat-datepicker #editDatePicker />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Hora</mat-label>
+                    <input matInput [matTimepicker]="editTimePicker" placeholder="hh:mm" [ngModel]="editingFollowup().time" (ngModelChange)="editingFollowup.set({ ...editingFollowup(), time: $event })" />
+                    <mat-timepicker-toggle matIconSuffix [for]="editTimePicker" />
+                    <mat-timepicker #editTimePicker />
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="grow">
+                    <mat-label>Descripción</mat-label>
+                    <input matInput [ngModel]="editingFollowup().description" (ngModelChange)="editingFollowup.set({ ...editingFollowup(), description: $event })" />
+                  </mat-form-field>
+                  <button mat-flat-button color="primary" (click)="saveEditFollowup()">Guardar</button>
+                  <button mat-button (click)="cancelEditFollowup()">Cancelar</button>
+                </div>
+              } @else {
+                <mat-list-item>
+                  <mat-checkbox
+                    matListItemAvatar
+                    [checked]="followup.status === 'done'"
+                    (change)="toggleFollowup(followup.id, $event.checked)"
+                  />
+                  <span matListItemTitle>{{ followup.description }}</span>
+                  <span matListItemLine>{{ followup.date + 'T00:00' | date: 'dd/MM/yyyy' }} {{ followup.time }}</span>
+                  <span matListItemMeta class="note-actions">
+                    <button mat-icon-button matTooltip="Editar" (click)="startEditFollowup(followup)">
+                      <mat-icon class="action-edit">edit</mat-icon>
+                    </button>
+                    <button mat-icon-button matTooltip="Eliminar" (click)="deleteFollowup(followup.id)">
+                      <mat-icon class="action-delete">delete</mat-icon>
+                    </button>
+                  </span>
+                </mat-list-item>
+              }
             } @empty {
               <p class="empty-hint">Sin seguimientos programados.</p>
             }
           </mat-list>
-        </div>
-      </mat-tab>
-
-      <mat-tab label="Capturas ({{ captures().length }})">
-        <div class="tab-panel">
-          @for (capture of captures(); track capture.id) {
-            <mat-card class="capture-card">
-              <mat-card-header>
-                <mat-card-title>{{ capture.source }}</mat-card-title>
-                <mat-card-subtitle>{{ capture.createdAt | date: 'dd/MM/yy HH:mm' }}</mat-card-subtitle>
-              </mat-card-header>
-              <mat-card-content>
-                <pre>{{ capture.ocrText }}</pre>
-              </mat-card-content>
-            </mat-card>
-          } @empty {
-            <p class="empty-hint">Sin capturas todavía.</p>
-          }
         </div>
       </mat-tab>
 

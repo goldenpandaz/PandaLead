@@ -18,21 +18,8 @@ import { HistoryEventType } from '../../../../domain/enums/history-event-type.en
 import { Project, WORK_STATUSES } from '../../../../domain/models/project.model';
 import { ServiceConfig } from '../../../../domain/models/service.model';
 import { MoneyPipe } from '../../../../shared/pipes/money.pipe';
+import { formatIsoDate, parseIsoDate } from '../../../../shared/utils/date-input.util';
 import { projectDiscountAmount, projectTotal } from '../../../../shared/utils/project-finance.util';
-
-/** yyyy-mm-dd → Date local (evita el corrimiento de día que da `new Date('yyyy-mm-dd')` en UTC). */
-function parseIsoDate(value: string | undefined): Date | null {
-  if (!value) return null;
-  const [y, m, d] = value.split('-').map(Number);
-  return new Date(y, m - 1, d);
-}
-
-function formatIsoDate(value: Date | null): string | undefined {
-  if (!value || Number.isNaN(value.getTime())) return undefined;
-  const mm = String(value.getMonth() + 1).padStart(2, '0');
-  const dd = String(value.getDate()).padStart(2, '0');
-  return `${value.getFullYear()}-${mm}-${dd}`;
-}
 
 export interface JobDialogData {
   prospectId: string;

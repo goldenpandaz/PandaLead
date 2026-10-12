@@ -31,6 +31,10 @@ export class FollowupRepository extends BaseRepository {
     await this.sync.write(`${COLLECTION}:${prospectId}`, id, this.tenantPath(COLLECTION, prospectId, id), 'update', { status });
   }
 
+  async update(prospectId: string, id: string, data: Pick<Followup, 'date' | 'time' | 'description'>): Promise<void> {
+    await this.sync.write(`${COLLECTION}:${prospectId}`, id, this.tenantPath(COLLECTION, prospectId, id), 'update', data);
+  }
+
   async delete(prospectId: string, id: string): Promise<void> {
     await this.sync.write(`${COLLECTION}:${prospectId}`, id, this.tenantPath(COLLECTION, prospectId, id), 'remove');
   }

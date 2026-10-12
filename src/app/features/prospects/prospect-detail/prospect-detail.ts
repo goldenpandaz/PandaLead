@@ -7,6 +7,8 @@ import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,10 +16,10 @@ import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatTimepickerModule } from '@angular/material/timepicker';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { DatePipe } from '@angular/common';
 
-import { CaptureRepository } from '../../../data/repositories/capture.repository';
 import { ConfigRepository } from '../../../data/repositories/config.repository';
 import { FollowupRepository } from '../../../data/repositories/followup.repository';
 import { HistoryRepository } from '../../../data/repositories/history.repository';
@@ -26,6 +28,7 @@ import { ProjectRepository } from '../../../data/repositories/project.repository
 import { ProspectRepository } from '../../../data/repositories/prospect.repository';
 import { HistoryEventType } from '../../../domain/enums/history-event-type.enum';
 import { DIAL_CODES } from '../../../shared/constants/dial-codes';
+import { formatIsoDate, formatTime, parseIsoDate, parseTime } from '../../../shared/utils/date-input.util';
 import { normalizeName } from '../../../shared/utils/normalize.util';
 import { joinPhone, splitPhone } from '../../../shared/utils/phone.util';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
@@ -43,6 +46,13 @@ import { PaymentsDialog, PaymentsDialogData } from './payments-dialog/payments-d
 import { Followup } from '../../../domain/models/followup.model';
 import { MoneyPipe } from '../../../shared/pipes/money.pipe';
 
+/** Borrador de seguimiento con `Date` para los pickers; se convierte a strings al guardar. */
+interface FollowupDraft {
+  date: Date | null;
+  time: Date | null;
+  description: string;
+}
+
 @Component({
   selector: 'app-prospect-detail',
   imports: [
@@ -58,10 +68,13 @@ import { MoneyPipe } from '../../../shared/pipes/money.pipe';
     MatListModule,
     MatSelectModule,
     MatTabsModule,
+    MatDatepickerModule,
+    MatTimepickerModule,
     MatTooltipModule,
     DatePipe,
     MoneyPipe,
   ],
+  providers: [provideNativeDateAdapter(), { provide: MAT_DATE_LOCALE, useValue: 'es-CO' }],
   templateUrl: './prospect-detail.html',
   styleUrl: './prospect-detail.scss',
 })
@@ -73,7 +86,6 @@ export class ProspectDetail {
   private readonly noteRepo = inject(NoteRepository);
   private readonly followupRepo = inject(FollowupRepository);
   private readonly historyRepo = inject(HistoryRepository);
-  private readonly captureRepo = inject(CaptureRepository);
   private readonly configRepo = inject(ConfigRepository);
   private readonly projectRepo = inject(ProjectRepository);
   private readonly whatsapp = inject(WhatsappService);
@@ -87,8 +99,9 @@ export class ProspectDetail {
   readonly details = toSignal(this.id$.pipe(switchMap((id) => this.prospectRepo.watchDetails(id))), { initialValue: null });
   readonly notes = toSignal(this.id$.pipe(switchMap((id) => this.noteRepo.watchForProspect(id))), { initialValue: [] });
   readonly followups = toSignal(this.id$.pipe(switchMap((id) => this.followupRepo.watchForProspect(id))), { initialValue: [] });
-  readonly history = toSignal(this.id$.pipe(switchMap((id) => this.historyRepo.watchForProspect(id))), { initialValue: [] });
-  readonly captures = toSignal(this.id$.pipe(switchMap((id) => this.captureRepo.watchForProspect(id))), { initialValue: [] });
+  private readonly historyEvents = toSignal(this.id$.pipe(switchMap((id) => this.historyRepo.watchForProspect(id))), { initialValue: [] });
+  /** Más reciente primero. */
+  readonly history = computed(() => [...this.historyEvents()].sort((a, b) => b.createdAt - a.createdAt));
   readonly projects = toSignal(this.id$.pipe(switchMap((id) => this.projectRepo.watchByProspect(id))), { initialValue: [] });
 
   readonly statuses = toSignal(this.configRepo.watchStatuses(), { initialValue: [] });
@@ -98,7 +111,11 @@ export class ProspectDetail {
   readonly saving = signal(false);
   readonly errorMessage = signal<string | null>(null);
   readonly newNoteText = signal('');
-  readonly newFollowup = signal({ date: '', time: '', description: '' });
+  readonly editingNoteId = signal<string | null>(null);
+  readonly editingNoteText = signal('');
+  readonly newFollowup = signal<FollowupDraft>({ date: null, time: null, description: '' });
+  readonly editingFollowupId = signal<string | null>(null);
+  readonly editingFollowup = signal<FollowupDraft>({ date: null, time: null, description: '' });
 
   readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
@@ -220,16 +237,87 @@ export class ProspectDetail {
     this.newNoteText.set('');
   }
 
+  startEditNote(noteId: string, text: string): void {
+    this.editingNoteId.set(noteId);
+    this.editingNoteText.set(text);
+  }
+
+  cancelEditNote(): void {
+    this.editingNoteId.set(null);
+    this.editingNoteText.set('');
+  }
+
+  async saveEditNote(): Promise<void> {
+    const noteId = this.editingNoteId();
+    const text = this.editingNoteText().trim();
+    if (!noteId || !text) return;
+    await this.noteRepo.update(this.id(), noteId, text);
+    this.cancelEditNote();
+  }
+
   async deleteNote(noteId: string): Promise<void> {
+    const ok = await firstValueFrom(
+      this.dialog
+        .open<ConfirmDialog, ConfirmDialogData, boolean>(ConfirmDialog, {
+          width: '380px',
+          data: {
+            title: 'Eliminar nota',
+            message: 'La nota se borra para siempre. Esta acción no se puede deshacer.',
+            confirmLabel: 'Eliminar',
+            danger: true,
+            icon: 'delete',
+          },
+        })
+        .afterClosed(),
+    );
+    if (!ok) return;
     await this.noteRepo.delete(this.id(), noteId);
   }
 
   async addFollowup(): Promise<void> {
-    const { date, description } = this.newFollowup();
-    if (!date || !description) return;
-    await this.followupRepo.add(this.id(), this.newFollowup());
+    const { date, time, description } = this.newFollowup();
+    const isoDate = formatIsoDate(date);
+    if (!isoDate || !description.trim()) return;
+    await this.followupRepo.add(this.id(), { date: isoDate, time: formatTime(time) ?? '', description: description.trim() });
     await this.historyRepo.log(this.id(), HistoryEventType.FollowupScheduled, {});
-    this.newFollowup.set({ date: '', time: '', description: '' });
+    this.newFollowup.set({ date: null, time: null, description: '' });
+  }
+
+  startEditFollowup(followup: Followup): void {
+    this.editingFollowupId.set(followup.id);
+    this.editingFollowup.set({ date: parseIsoDate(followup.date), time: parseTime(followup.time), description: followup.description });
+  }
+
+  cancelEditFollowup(): void {
+    this.editingFollowupId.set(null);
+  }
+
+  async saveEditFollowup(): Promise<void> {
+    const followupId = this.editingFollowupId();
+    const { date, time, description } = this.editingFollowup();
+    const isoDate = formatIsoDate(date);
+    if (!followupId || !isoDate || !description.trim()) return;
+    await this.followupRepo.update(this.id(), followupId, { date: isoDate, time: formatTime(time) ?? '', description: description.trim() });
+    this.cancelEditFollowup();
+  }
+
+  async deleteFollowup(followupId: string): Promise<void> {
+    const ok = await firstValueFrom(
+      this.dialog
+        .open<ConfirmDialog, ConfirmDialogData, boolean>(ConfirmDialog, {
+          width: '380px',
+          data: {
+            title: 'Eliminar seguimiento',
+            message: 'El seguimiento se borra para siempre. Esta acción no se puede deshacer.',
+            confirmLabel: 'Eliminar',
+            danger: true,
+            icon: 'delete',
+          },
+        })
+        .afterClosed(),
+    );
+    if (!ok) return;
+    await this.followupRepo.delete(this.id(), followupId);
   }
 
   async toggleFollowup(followupId: string, done: boolean): Promise<void> {
