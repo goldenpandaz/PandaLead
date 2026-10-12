@@ -20,6 +20,7 @@ import { CaptureSource } from '../../../domain/enums/capture-source.enum';
 import { HistoryEventType } from '../../../domain/enums/history-event-type.enum';
 import { DuplicateCandidate } from '../../../domain/models/duplicate-candidate.model';
 import { Prospect } from '../../../domain/models/prospect.model';
+import { formatIsoDate } from '../../../shared/utils/date-input.util';
 import { CaptureRepository } from '../../../data/repositories/capture.repository';
 import { ConfigRepository } from '../../../data/repositories/config.repository';
 import { HistoryRepository } from '../../../data/repositories/history.repository';
@@ -356,7 +357,7 @@ export class ProspectCapture {
    * si todavía no existe, y si vino un servicio elegido, lo copia ahí (nombre +
    * precio de ese momento, no una referencia viva al catálogo). */
   private async ensureProjectAndService(prospectId: string, serviceId: string): Promise<void> {
-    const startDate = new Date().toISOString().slice(0, 10);
+    const startDate = formatIsoDate(new Date())!;
     const service = serviceId ? this.services().find((s) => s.id === serviceId) : undefined;
 
     const projectId = await this.projectRepo.create({

@@ -36,6 +36,29 @@ export function projectPaidAmount(p: Pick<Project, 'payments'>): number {
   return (p.payments ?? []).reduce((sum, pay) => sum + (pay.amount || 0), 0);
 }
 
+/** Mes (yyyy-mm) al que pertenece una fecha yyyy-mm-dd. */
+export function monthKeyOf(isoDate: string): string {
+  return isoDate.slice(0, 7);
+}
+
+/** Mes actual como yyyy-mm, en hora local. */
+export function currentMonthKey(now: Date = new Date()): string {
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+/** Lo cobrado en cada mes (yyyy-mm → monto): cada pago suma al mes de su fecha. */
+export function incomeByMonth(projects: readonly Pick<Project, 'payments'>[]): Record<string, number> {
+  const result: Record<string, number> = {};
+  for (const project of projects) {
+    for (const payment of project.payments ?? []) {
+      if (!payment.date || !payment.amount) continue;
+      const key = monthKeyOf(payment.date);
+      result[key] = (result[key] ?? 0) + payment.amount;
+    }
+  }
+  return result;
+}
+
 export function projectBalance(p: FinanceFields): number {
   return Math.max(0, projectTotal(p) - projectPaidAmount(p));
 }

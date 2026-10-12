@@ -7,7 +7,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { AuthService } from './core/auth/auth.service';
 import { InstallPromptService } from './core/pwa/install-prompt.service';
-import { PublicIncomeSyncService } from './core/sync/public-income-sync.service';
+import { UserProfileService } from './core/profile/user-profile.service';
+import { KontrolCashSyncService } from './core/sync/kontrol-cash-sync.service';
 import { UiStateService } from './core/ui-state.service';
 import { APP_VERSION } from './core/version';
 
@@ -36,10 +37,12 @@ export class App implements OnInit, OnDestroy {
   protected readonly installPrompt = inject(InstallPromptService);
   // Mismo motivo que installPrompt: el effect() de su constructor tiene que
   // arrancar apenas carga la app, no solo cuando el usuario abre el dashboard.
-  private readonly publicIncomeSync = inject(PublicIncomeSyncService);
+  private readonly kontrolCashSync = inject(KontrolCashSyncService);
   // UI state (temas de acento): el effect() aplica clases a <html> apenas carga.
   private readonly uiState = inject(UiStateService);
   private readonly router = inject(Router);
+
+  protected readonly profile = inject(UserProfileService);
 
   protected readonly version = APP_VERSION;
 

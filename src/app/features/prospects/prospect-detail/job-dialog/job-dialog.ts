@@ -117,7 +117,7 @@ export class JobDialog {
       } else {
         const id = await this.projectRepo.create({
           prospectId: this.data.prospectId,
-          startDate: new Date().toISOString().slice(0, 10),
+          startDate: formatIsoDate(new Date())!,
           status: this.status(),
           payments: [],
           notes: [],

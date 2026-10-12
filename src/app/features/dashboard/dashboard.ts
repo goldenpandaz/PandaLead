@@ -13,7 +13,7 @@ import { Prospect } from '../../domain/models/prospect.model';
 import { StatusConfig } from '../../domain/models/status.model';
 import { MoneyPipe } from '../../shared/pipes/money.pipe';
 import { formatIsoDate } from '../../shared/utils/date-input.util';
-import { projectBalance, projectPaidAmount, projectsOfExistingProspects } from '../../shared/utils/project-finance.util';
+import { currentMonthKey, incomeByMonth, projectBalance, projectPaidAmount, projectsOfExistingProspects } from '../../shared/utils/project-finance.util';
 
 interface StatBar {
   label: string;
@@ -73,7 +73,18 @@ export class Dashboard {
 
   private readonly activeProjects = computed(() => projectsOfExistingProspects(this.projects(), this.prospects()));
   readonly income = computed(() => this.activeProjects().reduce((sum, p) => sum + projectPaidAmount(p), 0));
-  readonly pendingIncome = computed(() => this.activeProjects().reduce((sum, p) => sum + projectBalance(p), 0));
+  /** Clientes con al menos un trabajo (de clientes que existen). */
+  readonly clients = computed(() => new Set(this.activeProjects().map((p) => p.prospectId)).size);
+  readonly conversionRate = computed(() => {
+    const total = this.totalProspects();
+    return total === 0 ? 0 : Math.round((this.clients() / total) * 100);
+  });
+  readonly activeJobs = computed(() => this.activeProjects().filter((p) => p.status !== 'Entregado').length);
+  readonly deliveredJobs = computed(() => this.activeProjects().filter((p) => p.status === 'Entregado').length);
+
+  /** Lo cobrado en el mes en curso: cada pago cuenta en el mes de su fecha. */
+  readonly monthIncome = computed(() => incomeByMonth(this.activeProjects())[currentMonthKey()] ?? 0);
+  readonly pendingIncome =computed(() => this.activeProjects().reduce((sum, p) => sum + projectBalance(p), 0));
 
   private readonly prospectNames = computed(() => new Map(this.prospects().map((p) => [p.id, p.name])));
   private readonly todayIso = computed(() => formatIsoDate(new Date()) ?? '');

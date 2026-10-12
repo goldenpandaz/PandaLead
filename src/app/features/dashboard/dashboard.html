@@ -35,6 +35,12 @@
       <span class="stat-label">Ingresos (cobrado)</span>
     </mat-card>
 
+    <mat-card class="stat-tile success">
+      <mat-icon>calendar_month</mat-icon>
+      <span class="stat-value">{{ monthIncome() | money }}</span>
+      <span class="stat-label">Ingresos del mes</span>
+    </mat-card>
+
     <mat-card class="stat-tile">
       <mat-icon>schedule</mat-icon>
       <span class="stat-value">{{ pendingIncome() | money }}</span>
@@ -127,6 +133,25 @@
           }
         </mat-card-content>
       </mat-card>
+    </div>
+  </div>
+
+  <div class="mini-stats">
+    <div class="mini-stat">
+      <span class="mini-value success">{{ clients() }}</span>
+      <span class="mini-label">Clientes (con trabajo)</span>
+    </div>
+    <div class="mini-stat">
+      <span class="mini-value">{{ conversionRate() }}%</span>
+      <span class="mini-label">Conversión</span>
+    </div>
+    <div class="mini-stat">
+      <span class="mini-value">{{ activeJobs() }}</span>
+      <span class="mini-label">Trabajos activos</span>
+    </div>
+    <div class="mini-stat">
+      <span class="mini-value">{{ deliveredJobs() }}</span>
+      <span class="mini-label">Trabajos entregados</span>
     </div>
   </div>
 </div>

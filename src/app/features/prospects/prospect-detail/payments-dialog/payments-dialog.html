@@ -40,7 +40,9 @@
       <div class="form-field-group">
         <label>Fecha</label>
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <input matInput type="date" [ngModel]="date()" (ngModelChange)="date.set($event)" name="date" />
+          <input matInput [matDatepicker]="datePicker" placeholder="dd/mm/aaaa" (click)="datePicker.open()" [ngModel]="date()" (ngModelChange)="date.set($event)" name="date" />
+          <mat-datepicker-toggle matIconSuffix [for]="datePicker" />
+          <mat-datepicker #datePicker />
         </mat-form-field>
       </div>
       <div class="form-field-group">

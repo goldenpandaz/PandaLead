@@ -3,6 +3,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MAT_DATE_LOCALE, provideNativeDateAdapter } from '@angular/material/core';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,14 +17,13 @@ import { ProjectPayment } from '../../../../domain/models/project.model';
 import { ConfirmDialog, ConfirmDialogData } from '../../../../shared/dialogs/confirm-dialog/confirm-dialog';
 import { MoneyInputDirective } from '../../../../shared/directives/money-input.directive';
 import { MoneyPipe } from '../../../../shared/pipes/money.pipe';
+import { formatIsoDate, parseIsoDate } from '../../../../shared/utils/date-input.util';
 import { projectBalance, projectPaidAmount, projectTotal } from '../../../../shared/utils/project-finance.util';
 
 export interface PaymentsDialogData {
   prospectId: string;
   projectId: string;
 }
-
-const today = () => new Date().toISOString().slice(0, 10);
 
 @Component({
   selector: 'app-payments-dialog',
@@ -31,6 +32,7 @@ const today = () => new Date().toISOString().slice(0, 10);
     FormsModule,
     DatePipe,
     MatButtonModule,
+    MatDatepickerModule,
     MatDialogModule,
     MatFormFieldModule,
     MatIconModule,
@@ -39,6 +41,7 @@ const today = () => new Date().toISOString().slice(0, 10);
     MoneyInputDirective,
     MoneyPipe,
   ],
+  providers: [provideNativeDateAdapter(), { provide: MAT_DATE_LOCALE, useValue: 'es-CO' }],
   templateUrl: './payments-dialog.html',
   styleUrl: './payments-dialog.scss',
 })
@@ -60,31 +63,32 @@ export class PaymentsDialog {
 
   readonly editingId = signal<string | null>(null);
   readonly amount = signal<number | null>(null);
-  readonly date = signal(today());
+  readonly date = signal<Date | null>(new Date());
   readonly note = signal('');
   readonly saving = signal(false);
 
   /** Sin tope: a veces se redondea o pagan un poco de más. */
-  readonly canSave = computed(() => (this.amount() ?? 0) > 0 && !!this.date() && !this.saving());
+  readonly canSave = computed(() => (this.amount() ?? 0) > 0 && !!formatIsoDate(this.date()) && !this.saving());
   readonly showForm = computed(() => this.editingId() !== null || this.balance() > 0);
 
   startEdit(payment: ProjectPayment): void {
     this.editingId.set(payment.id);
     this.amount.set(payment.amount);
-    this.date.set(payment.date);
+    this.date.set(parseIsoDate(payment.date));
     this.note.set(payment.note ?? '');
   }
 
   cancelEdit(): void {
     this.editingId.set(null);
     this.amount.set(null);
-    this.date.set(today());
+    this.date.set(new Date());
     this.note.set('');
   }
 
   async save(): Promise<void> {
     const project = this.project();
-    if (!project || !this.canSave()) return;
+    const date = formatIsoDate(this.date());
+    if (!project || !date || !this.canSave()) return;
 
     this.saving.set(true);
     try {
@@ -92,7 +96,7 @@ export class PaymentsDialog {
       const entry: ProjectPayment = {
         id: this.editingId() ?? crypto.randomUUID(),
         amount: this.amount()!,
-        date: this.date(),
+        date,
         ...(note ? { note } : {}),
       };
       const payments = this.editingId()

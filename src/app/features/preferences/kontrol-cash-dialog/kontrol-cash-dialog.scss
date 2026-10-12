@@ -1,0 +1,51 @@
+.intro {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+.token-box {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem 0.5rem 0.5rem 1rem;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+}
+
+.token {
+  flex: 1;
+  min-width: 0;
+  font-family: monospace;
+  font-size: 1.5rem;
+  letter-spacing: 0.25em;
+  color: var(--accent);
+  user-select: all;
+  overflow-wrap: anywhere;
+}
+
+.hint {
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.error-text {
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  color: var(--mat-sys-error);
+}
+
+.spacer {
+  flex: 1;
+}
+
+.disconnect {
+  color: #ff5252;
+}
+
+mat-dialog-actions {
+  display: flex;
+  align-items: center;
+}

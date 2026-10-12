@@ -1,0 +1,37 @@
+<div class="dialog-header">
+  <h2 mat-dialog-title>Conexión con Kontrol Cash</h2>
+  <button mat-icon-button mat-dialog-close aria-label="Cerrar"><mat-icon>close</mat-icon></button>
+</div>
+
+<mat-dialog-content>
+  <p class="intro">
+    Pegá este token en Kontrol Cash. Con él, Kontrol Cash trae solo tus <strong>ingresos del mes</strong> y los
+    mantiene al día. No comparte tus clientes ni ningún otro dato.
+  </p>
+
+  <div class="token-box">
+    <code class="token" aria-label="Token de conexión">{{ draft() }}</code>
+    <button mat-icon-button type="button" matTooltip="Generar otro token" (click)="regenerate()">
+      <mat-icon>refresh</mat-icon>
+    </button>
+    <button mat-icon-button type="button" matTooltip="Copiar token" (click)="copy()">
+      <mat-icon>content_copy</mat-icon>
+    </button>
+  </div>
+
+  @if (canSave()) {
+    <p class="hint">Este token todavía no está activo: al guardar, el anterior deja de funcionar.</p>
+  }
+
+  @if (errorMessage(); as error) {
+    <p class="error-text">{{ error }}</p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  @if (saved()) {
+    <button mat-button type="button" class="disconnect" [disabled]="saving()" (click)="disconnect()">Desconectar</button>
+  }
+  <span class="spacer"></span>
+  <button mat-flat-button color="primary" type="button" [disabled]="!canSave()" (click)="save()">Guardar</button>
+</mat-dialog-actions>

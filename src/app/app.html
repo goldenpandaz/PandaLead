@@ -76,6 +76,18 @@
       }
 
       <div class="account-card">
+        <a class="user-chip" routerLink="/preferences" (click)="closeMobileNav()" [matTooltip]="collapsed() ? profile.displayName() : ''">
+          <span class="user-avatar">
+            @if (profile.photo(); as photo) {
+              <img [src]="photo" alt="" />
+            } @else {
+              {{ profile.initials() }}
+            }
+          </span>
+          @if (!collapsed()) {
+            <span class="user-name">{{ profile.displayName() }}</span>
+          }
+        </a>
         <mat-nav-list class="sidenav-list">
           <button mat-list-item type="button" class="logout-btn" (click)="logout()" [matTooltip]="collapsed() ? 'Salir' : ''">
             <mat-icon matListItemIcon>logout</mat-icon>

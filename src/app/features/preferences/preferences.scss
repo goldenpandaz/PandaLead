@@ -82,6 +82,125 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
+.avatar {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 1.35rem;
+  font-weight: 600;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.profile-actions,
+.name-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.name-input {
+  width: 220px;
+  max-width: 100%;
+  padding: 0.65rem 0.85rem;
+  border-radius: 12px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: transparent;
+  color: var(--mat-sys-on-surface);
+  font: inherit;
+
+  &:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+}
+
+.signup-hint {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--mat-sys-on-surface-variant);
+
+  a {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+}
+
+.integration-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--mat-sys-on-surface-variant);
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #9e9e9e;
+  }
+
+  &.connected {
+    color: var(--success-light);
+
+    .status-dot {
+      background: var(--success-light);
+    }
+  }
+
+  // Apagada desde el otro lado: naranja, igual que "Pausada desde Panda Lead" en Kontrol Cash.
+  &.warning {
+    color: var(--warning-light);
+
+    .status-dot {
+      background: var(--warning-light);
+    }
+  }
+}
+
+.field-error {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--mat-sys-error);
+}
+
+@media (max-width: 600px) {
+  .preference-item {
+    flex-wrap: wrap;
+  }
+
+  .profile-actions,
+  .name-edit {
+    width: 100%;
+  }
+
+  .name-input {
+    flex: 1;
+    width: auto;
+  }
+}
+
 .color-selector {
   display: flex;
   gap: 0.75rem;

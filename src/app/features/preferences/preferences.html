@@ -4,6 +4,60 @@
     <p>Ajustá la app a tu gusto.</p>
   </div>
 
+  <!-- Perfil -->
+  <section class="preferences-section">
+    <h2 class="section-title">Perfil</h2>
+    <div class="preferences-card">
+      <div class="preference-item profile-item">
+        <div class="avatar" [class.has-photo]="profile.photo()">
+          @if (profile.photo(); as photo) {
+            <img [src]="photo" alt="Tu foto" />
+          } @else {
+            <span>{{ profile.initials() }}</span>
+          }
+        </div>
+        <div class="preference-content">
+          <div class="preference-label">Foto</div>
+          <div class="preference-description">Se muestra en el menú lateral.</div>
+          @if (photoError(); as error) {
+            <div class="field-error">{{ error }}</div>
+          }
+        </div>
+        <div class="profile-actions">
+          <input #photoInput type="file" accept="image/*" hidden (change)="onPhotoSelected($event)" />
+          <button mat-stroked-button type="button" [disabled]="savingProfile()" (click)="photoInput.click()">
+            <mat-icon>upload</mat-icon>
+            Subir imagen
+          </button>
+          @if (profile.photo()) {
+            <button mat-button type="button" (click)="removePhoto()">Quitar</button>
+          }
+        </div>
+      </div>
+
+      <div class="preference-item">
+        <div class="preference-content">
+          <div class="preference-label">Nombre</div>
+          <div class="preference-description">Cómo querés que te muestre la app.</div>
+        </div>
+        <div class="name-edit">
+          <input
+            type="text"
+            class="name-input"
+            [value]="nameValue()"
+            [attr.maxlength]="nameMaxLength"
+            (input)="onNameInput($event)"
+            (keydown.enter)="saveName()"
+            placeholder="Tu nombre"
+          />
+          <button mat-flat-button color="primary" type="button" [disabled]="!nameChanged() || savingProfile()" (click)="saveName()">
+            Guardar
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Apariencia -->
   <section class="preferences-section">
     <h2 class="section-title">Apariencia</h2>
@@ -23,6 +77,68 @@
             [title]="t.nombre"
             type="button"
           ></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Integraciones -->
+  <section class="preferences-section">
+    <h2 class="section-title">Integraciones</h2>
+    <div class="preferences-card">
+      <div class="preference-item">
+        <div class="preference-content">
+          <div class="preference-label">Kontrol Cash</div>
+          <div
+            class="connection-status"
+            [class.connected]="kontrolCash.enabled() && kontrolCash.connected()"
+            [class.warning]="kontrolCash.enabled() && kontrolCash.remoteOff()"
+          >
+            <span class="status-dot"></span>
+            @if (!kontrolCash.enabled()) {
+              Conexión apagada
+            } @else if (kontrolCash.remoteOff()) {
+              Apagada desde Kontrol Cash
+            } @else {
+              {{ kontrolCash.connected() ? 'Conexión establecida' : 'Desconectado' }}
+            }
+          </div>
+          <div class="preference-description">
+            @if (!kontrolCash.enabled()) {
+              Kontrol Cash no recibe actualizaciones. Encendela para retomar con el mismo token.
+            } @else if (kontrolCash.remoteOff()) {
+              Kontrol Cash tiene la sincronización apagada. Encendela allá para retomar.
+            } @else if (kontrolCash.connected()) {
+              Kontrol Cash trae tus ingresos del mes.
+              @if (kontrolCash.lastSyncAt(); as lastSync) {
+                Última sincronización: {{ lastSync | date: 'dd/MM/yy HH:mm' }}.
+              }
+            } @else if (kontrolCash.token()) {
+              Pegá el token en Kontrol Cash para conectar.
+            } @else {
+              Todavía no configuraste la conexión.
+            }
+          </div>
+          @if (!kontrolCash.connected()) {
+            <div class="signup-hint">
+              ¿No tenés Kontrol Cash?
+              <a [href]="kontrolCashUrl" target="_blank" rel="noopener noreferrer">Creá tu cuenta</a>
+              para conectarte.
+            </div>
+          }
+        </div>
+        <div class="integration-controls">
+          @if (kontrolCash.token()) {
+            <mat-slide-toggle
+              [checked]="kontrolCash.enabled()"
+              (change)="kontrolCash.setEnabled($event.checked)"
+              aria-label="Encender o apagar la conexión con Kontrol Cash"
+            />
+          }
+          <button mat-stroked-button type="button" [disabled]="!kontrolCash.enabled()" (click)="openKontrolCash()">
+            <mat-icon>link</mat-icon>
+            Configurar conexión
+          </button>
         </div>
       </div>
     </div>

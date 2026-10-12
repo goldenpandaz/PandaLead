@@ -99,10 +99,18 @@
           }
         },
 
-        "public": {
-          ".read": true,
-          "incomeCobrado": { ".validate": "newData.isNumber()" },
-          "incomeCobradoUpdatedAt": { ".validate": "newData.isNumber()" }
+        "profile": {
+          "$docId": {
+            "displayName": { ".validate": "newData.isString() && newData.val().length <= 60" },
+            "photo": { ".validate": "newData.isString() && newData.val().length <= 150000" }
+          }
+        },
+
+        "integrations": {
+          "$integrationId": {
+            "token": { ".validate": "newData.isString() && newData.val().length >= 6 && newData.val().length <= 64" },
+            "enabled": { ".validate": "newData.isBoolean()" }
+          }
         },
 
         "config": {
@@ -138,6 +146,24 @@
             }
           }
         }
+      }
+    },
+
+    "kontrolLinks": {
+      "$token": {
+        ".read": true,
+        ".write": "auth != null && ((newData.exists() && newData.child('ownerUid').val() === auth.uid && (!data.exists() || data.child('ownerUid').val() === auth.uid)) || (!newData.exists() && data.child('ownerUid').val() === auth.uid))",
+        ".validate": "$token.matches(/^[A-Za-z0-9]{6,64}$/) && newData.hasChildren(['ownerUid'])",
+        "ownerUid": { ".validate": "newData.isString()" },
+        "incomeByMonth": {
+          "$month": { ".validate": "$month.matches(/^[0-9]{4}-[0-9]{2}$/) && newData.isNumber()" }
+        },
+        "incomeUpdatedAt": { ".validate": "newData.isNumber()" },
+        "paused": { ".validate": "newData.isBoolean()" },
+        "displayName": { ".validate": "newData.isString() && newData.val().length <= 60" },
+        "kontrolConnectedAt": { ".write": "data.parent().exists()", ".validate": "newData.isNumber()" },
+        "kontrolLastSyncAt": { ".write": "data.parent().exists()", ".validate": "newData.isNumber()" },
+        "kontrolEnabled": { ".write": "data.parent().exists()", ".validate": "newData.isBoolean()" }
       }
     }
   }
