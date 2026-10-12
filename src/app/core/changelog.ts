@@ -7,6 +7,16 @@ export interface ChangelogEntry {
 /** Notas de versión, de la más nueva a la más vieja. Solo cambios notorios para el usuario. */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.1.5',
+    fecha: '12/10/2026',
+    cambios: [
+      'Conexión con Kontrol Cash: tus ingresos de cada mes se envían solos, con un token seguro y un interruptor para encender o apagar la conexión.',
+      'Perfil: poné tu nombre y tu foto desde Configuración; se ven en el menú lateral.',
+      'Resumen con "Ingresos del mes" e indicadores de clientes y trabajos.',
+      'Calendario para elegir la fecha de cada pago.',
+    ],
+  },
+  {
     version: '2.1.4',
     fecha: '12/10/2026',
     cambios: ['Catálogo adaptado al celular: listas, formularios y barras de importar y exportar sin desbordes.'],
