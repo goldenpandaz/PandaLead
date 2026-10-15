@@ -45,7 +45,7 @@ export class ProspectEditService {
             if (newStatus?.requiresService) {
               const projects = await firstValueFrom(this.projectRepo.watchByProspect(prospect.id));
               if (projects.length === 0) {
-                this.snackBar.open('Agregá un trabajo primero (Ver → Trabajos).', 'Cerrar', { duration: 4000 });
+                this.snackBar.open('Agrega un trabajo primero (Ver → Trabajos).', 'Cerrar', { duration: 4000 });
                 result.statusId = prospect.statusId;
               }
             }

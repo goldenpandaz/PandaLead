@@ -136,7 +136,7 @@ export function parseProspectCsv(raw: string): ParseProspectResult {
 
   const nameIdx = findHeaderIndex(NAME_HEADERS);
   if (nameIdx === -1) {
-    return { rows: [], error: 'No encontré la columna "Nombre negocio" — revisá los encabezados de la tabla.' };
+    return { rows: [], error: 'No encontré la columna "Nombre negocio" — revisa los encabezados de la tabla.' };
   }
 
   const phoneIdx = findHeaderIndex(PHONE_HEADERS);

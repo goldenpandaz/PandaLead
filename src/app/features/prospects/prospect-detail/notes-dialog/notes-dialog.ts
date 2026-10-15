@@ -74,7 +74,7 @@ export class NotesDialog {
       this.dialog
         .open<ConfirmDialog, ConfirmDialogData, boolean>(ConfirmDialog, {
           width: '380px',
-          data: { title: 'Eliminar nota', message: '¿Seguro que querés eliminar esta nota?', confirmLabel: 'Eliminar', danger: true, icon: 'delete' },
+          data: { title: 'Eliminar nota', message: '¿Seguro que quieres eliminar esta nota?', confirmLabel: 'Eliminar', danger: true, icon: 'delete' },
         })
         .afterClosed(),
     );

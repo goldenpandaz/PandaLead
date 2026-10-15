@@ -29,7 +29,7 @@ const DEFAULT_TEMPLATES: readonly Omit<MessageTemplate, 'id'>[] = [
   {
     name: 'Oferta',
     category: 'Oferta',
-    body: 'Hola {{nombre}}! Tengo una propuesta para vos, ¿tenés unos minutos para charlarlo?',
+    body: 'Hola {{nombre}}! Tengo una propuesta para ti, ¿tienes unos minutos para charlarlo?',
     variables: ['nombre'],
   },
   {
@@ -41,13 +41,13 @@ const DEFAULT_TEMPLATES: readonly Omit<MessageTemplate, 'id'>[] = [
   {
     name: 'Descuento',
     category: 'Descuento',
-    body: 'Hola {{nombre}}! Tengo un descuento especial para vos, ¿te interesa que te cuente?',
+    body: 'Hola {{nombre}}! Tengo un descuento especial para ti, ¿te interesa que te cuente?',
     variables: ['nombre'],
   },
   {
     name: 'Entrega',
     category: 'Entrega',
-    body: 'Hola {{nombre}}, te confirmo que ya está listo/en camino. Cualquier cosa me avisás.',
+    body: 'Hola {{nombre}}, te confirmo que ya está listo/en camino. Cualquier cosa me avisas.',
     variables: ['nombre'],
   },
   {
@@ -59,7 +59,7 @@ const DEFAULT_TEMPLATES: readonly Omit<MessageTemplate, 'id'>[] = [
   {
     name: 'Referido',
     category: 'Referido',
-    body: 'Hola {{nombre}}! Si conocés a alguien que le pueda servir esto, te agradezco si me lo recomendás.',
+    body: 'Hola {{nombre}}! Si conoces a alguien a quien le pueda servir esto, te agradezco si me lo recomiendas.',
     variables: ['nombre'],
   },
 ];

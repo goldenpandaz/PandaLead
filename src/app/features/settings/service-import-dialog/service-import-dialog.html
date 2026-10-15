@@ -3,7 +3,7 @@
 <mat-dialog-content>
   @if (step() === 'input') {
     <div class="input-step">
-      <p class="step-hint">Pegá o subí una tabla/CSV con tus servicios (Nombre, Precio, Descripción).</p>
+      <p class="step-hint">Pega o sube una tabla/CSV con tus servicios (Nombre, Precio, Descripción).</p>
 
       <mat-form-field appearance="outline" class="full-width">
         <mat-label>Tabla o CSV</mat-label>
@@ -75,7 +75,7 @@
       @if (conflicts().length > 0) {
         <div class="section">
           <h3>Conflictos</h3>
-          <p class="section-hint">Estos servicios ya existen con ese nombre. Elegí si saltarlos o sobrescribir.</p>
+          <p class="section-hint">Estos servicios ya existen con ese nombre. Elige si saltarlos o sobrescribir.</p>
           @for (conflict of conflicts(); let i = $index; track conflict.name) {
             <div class="conflict-group">
               <div class="conflict-header">

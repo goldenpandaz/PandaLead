@@ -133,7 +133,7 @@ export function parseServiceCsv(raw: string): ParseServiceResult {
 
   const nameIdx = findHeaderIndex(NAME_HEADERS);
   if (nameIdx === -1) {
-    return { rows: [], error: 'No encontré la columna "Nombre" — revisá los encabezados de la tabla.' };
+    return { rows: [], error: 'No encontré la columna "Nombre" — revisa los encabezados de la tabla.' };
   }
 
   const priceIdx = findHeaderIndex(PRICE_HEADERS);

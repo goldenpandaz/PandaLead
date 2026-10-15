@@ -175,23 +175,23 @@ export class Login {
       case 'auth/invalid-credential':
       case 'auth/user-not-found':
       case 'auth/wrong-password':
-        return 'Ese email/contraseña no existe. Si es la primera vez, creá el usuario desde Firebase Console → Authentication → Users.';
+        return 'Ese email/contraseña no existe. Si es la primera vez, crea el usuario desde Firebase Console → Authentication → Users.';
       case 'auth/operation-not-allowed':
         return 'El proveedor de email/contraseña no está habilitado en Firebase Console → Authentication → Sign-in method.';
       case 'auth/invalid-email':
         return 'Ese email no es válido.';
       case 'auth/email-already-in-use':
-        return 'Ya existe una cuenta con ese email — probá "Iniciar sesión" en vez de "Crear cuenta".';
+        return 'Ya existe una cuenta con ese email — prueba "Iniciar sesión" en vez de "Crear cuenta".';
       case 'auth/weak-password':
-        return 'La contraseña es muy débil — probá con una más larga.';
+        return 'La contraseña es muy débil — prueba con una más larga.';
       case 'auth/too-many-requests':
-        return 'Demasiados intentos fallidos — esperá un momento y probá de nuevo.';
+        return 'Demasiados intentos fallidos — espera un momento y prueba de nuevo.';
       case 'auth/popup-closed-by-user':
         return 'Cerraste la ventana de Google antes de terminar.';
       case 'auth/network-request-failed':
         return 'Sin conexión a internet — el login necesita estar online.';
       default:
-        return code ? `No se pudo iniciar sesión (${code}).` : 'No se pudo iniciar sesión. Intentá de nuevo.';
+        return code ? `No se pudo iniciar sesión (${code}).` : 'No se pudo iniciar sesión. Intenta de nuevo.';
     }
   }
 }

@@ -51,7 +51,7 @@ export class KontrolCashDialog {
     try {
       await this.sync.connect(token);
     } catch {
-      this.errorMessage.set('No se pudo activar la conexión. Cerrá y volvé a abrir para reintentar.');
+      this.errorMessage.set('No se pudo activar la conexión. Cierra y vuelve a abrir para reintentar.');
     } finally {
       this.initializing.set(false);
     }
@@ -62,7 +62,7 @@ export class KontrolCashDialog {
       await navigator.clipboard.writeText(this.draft());
       this.snackBar.open('Token copiado', undefined, { duration: 2000 });
     } catch {
-      this.snackBar.open('No se pudo copiar. Seleccioná el token y copialo a mano.', undefined, { duration: 3000 });
+      this.snackBar.open('No se pudo copiar. Selecciona el token y cópialo a mano.', undefined, { duration: 3000 });
     }
   }
 
@@ -82,7 +82,7 @@ export class KontrolCashDialog {
       await action();
       this.dialogRef.close(true);
     } catch {
-      this.errorMessage.set('No se pudo guardar. Revisá la conexión e intentá de nuevo.');
+      this.errorMessage.set('No se pudo guardar. Revisa la conexión e intenta de nuevo.');
     } finally {
       this.saving.set(false);
     }

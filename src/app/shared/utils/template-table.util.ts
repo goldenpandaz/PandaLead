@@ -105,7 +105,7 @@ export function parseTemplateTable(raw: string): ParseTableResult {
   const shortcutIdx = header.findIndex((h) => SHORTCUT_HEADERS.has(h));
 
   if (nameIdx === -1 || bodyIdx === -1) {
-    return { rows: [], error: 'No encontré las columnas "Momento" y "Mensaje" — revisá los encabezados de la tabla.' };
+    return { rows: [], error: 'No encontré las columnas "Momento" y "Mensaje" — revisa los encabezados de la tabla.' };
   }
 
   const rows: ParsedTemplateRow[] = [];

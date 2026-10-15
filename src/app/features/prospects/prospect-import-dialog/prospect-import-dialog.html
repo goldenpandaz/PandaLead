@@ -3,13 +3,13 @@
 <mat-dialog-content class="import-content">
   @if (step() === 'input') {
     <p class="hint">
-      Pegá la tabla (<code>Nombre | Teléfono | Categoría | etc</code>, en markdown o CSV) o subí un archivo <code>.csv</code>/<code>.md</code>.
+      Pega la tabla (<code>Nombre | Teléfono | Categoría | etc</code>, en markdown o CSV) o sube un archivo <code>.csv</code>/<code>.md</code>.
       Se buscan automáticamente: <code>Nombre negocio</code>, <code>Teléfono</code>, <code>Categoría</code>, <code>Localidad</code>,
       <code>Estado</code>, <code>Notas</code>.
     </p>
 
     <mat-form-field appearance="outline" class="grow">
-      <mat-label>Pegá la tabla acá</mat-label>
+      <mat-label>Pega la tabla aquí</mat-label>
       <textarea matInput rows="12" [ngModel]="rawText()" (ngModelChange)="rawText.set($event)"></textarea>
     </mat-form-field>
 

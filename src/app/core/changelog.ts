@@ -11,7 +11,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     fecha: '12/10/2026',
     cambios: [
       'Conexión con Kontrol Cash: tus ingresos de cada mes se envían solos, con un token seguro y un interruptor para encender o apagar la conexión.',
-      'Perfil: poné tu nombre y tu foto desde Configuración; se ven en el menú lateral.',
+      'Perfil: pon tu nombre y tu foto desde Configuración; se ven en el menú lateral.',
       'Resumen con "Ingresos del mes" e indicadores de clientes y trabajos.',
       'Calendario para elegir la fecha de cada pago.',
     ],
@@ -37,7 +37,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: '2.1.2',
     fecha: '11/10/2026',
     cambios: [
-      'Temas de color: elegí entre dorado, azul y rosa desde Configuración.',
+      'Temas de color: elige entre dorado, azul y rosa desde Configuración.',
       'Categorías múltiples: cada cliente puede tener una o más categorías.',
       'Formularios más simples: un campo sobre otro, con teléfono y prefijo en una sola línea.',
       'Estados con punto de color, íconos de acciones con color y botones más grandes.',
@@ -49,10 +49,10 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: '2.1.0',
     fecha: '21/09/2026',
     cambios: [
-      'Sistema de descuentos: aplicá descuentos a los servicios por proyecto.',
-      'Archivo de clientes: guardá clientes como archivados sin perderlos.',
+      'Sistema de descuentos: aplica descuentos a los servicios por proyecto.',
+      'Archivo de clientes: guarda clientes como archivados sin perderlos.',
       'Diseño minimalista: interfaz más limpia y enfocada.',
-      'Versión visible: mirá la versión actual en el sidebar.',
+      'Versión visible: mira la versión actual en el sidebar.',
     ],
   },
   {

@@ -409,7 +409,7 @@ export class ProspectsList {
     const newStatus = this.statusById().get(statusId);
     if (newStatus?.requiresService && this.projectsOf(prospect).length === 0) {
       if (select) select.value = prospect.statusId;
-      this.snackBar.open('Agregá un trabajo primero (Ver → Trabajos).', 'Cerrar', { duration: 4000 });
+      this.snackBar.open('Agrega un trabajo primero (Ver → Trabajos).', 'Cerrar', { duration: 4000 });
       return;
     }
 
@@ -530,7 +530,7 @@ export class ProspectsList {
 
     const confirmed = await this.confirmDialog({
       title: `¿Archivar ${count} cliente${count !== 1 ? 's' : ''}?`,
-      message: `Se archiva${count !== 1 ? 'n' : ''} ${count} cliente${count !== 1 ? 's' : ''} — los recuperás después desde "Archivados".`,
+      message: `Se archiva${count !== 1 ? 'n' : ''} ${count} cliente${count !== 1 ? 's' : ''} — los recuperas después desde "Archivados".`,
       confirmLabel: 'Archivar',
       icon: 'archive',
     });

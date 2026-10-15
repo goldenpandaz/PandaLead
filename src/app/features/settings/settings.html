@@ -4,10 +4,10 @@
     <p>Estados, categorías, servicios y plantillas.</p>
   </div>
   <p class="page-hint">
-    Acá se configuran <strong>Estados</strong>, <strong>Categorías</strong>, <strong>Servicios</strong> y
+    Aquí se configuran <strong>Estados</strong>, <strong>Categorías</strong>, <strong>Servicios</strong> y
     <strong>Plantillas de WhatsApp</strong>. La Localidad de cada cliente sigue siendo texto libre — se
     escribe directo en su ficha. Ojo que Categoría no es lo mismo que Servicio: la Categoría es el rubro del negocio
-    del cliente (Restaurante, Abogado…); el Servicio es lo que vos le vendés (Página web, Tarjeta de invitación…) y
+    del cliente (Restaurante, Abogado…); el Servicio es lo que le vendes (Página web, Tarjeta de invitación…) y
     se elige al armar su proyecto.
   </p>
 
@@ -15,8 +15,8 @@
     <mat-tab label="Estados">
       <div class="tab-panel wide">
         <p class="tab-hint">
-          Las etapas de tu embudo comercial, desde el primer contacto hasta que el cliente compra. Arrastralas para
-          cambiar el orden. Marcá <strong>Requiere servicio</strong> en los estados "en serio" (cotización enviada,
+          Las etapas de tu embudo comercial, desde el primer contacto hasta que el cliente compra. Arrástralas para
+          cambiar el orden. Marca<strong>Requiere servicio</strong> en los estados "en serio" (cotización enviada,
           en proceso, cliente…): para pasar un cliente ahí tiene que tener ya un trabajo cargado.
         </p>
 
@@ -24,7 +24,7 @@
         <ul class="config-list" cdkDropList (cdkDropListDropped)="dropStatus($event)">
           @for (status of statuses(); track status.id; let position = $index) {
             <li class="config-row" cdkDrag>
-              <mat-icon class="drag-handle" cdkDragHandle matTooltip="Arrastrá para reordenar">drag_indicator</mat-icon>
+              <mat-icon class="drag-handle" cdkDragHandle matTooltip="Arrastra para reordenar">drag_indicator</mat-icon>
               <span class="config-order">{{ position + 1 }}</span>
               <span class="color-dot" [style.background]="status.color"></span>
               <span class="config-name">{{ status.label }}</span>
@@ -166,7 +166,7 @@
             <input matInput [ngModel]="templateForm().category" (ngModelChange)="templateForm.set({ ...templateForm(), category: $event })" />
           </mat-form-field>
           <mat-form-field appearance="outline" class="grow">
-            <mat-label>Mensaje (usá {{ '{{nombre}}' }} para el nombre del cliente)</mat-label>
+            <mat-label>Mensaje (usa {{ '{{nombre}}' }} para el nombre del cliente)</mat-label>
             <textarea matInput rows="2" [ngModel]="templateForm().body" (ngModelChange)="templateForm.set({ ...templateForm(), body: $event })"></textarea>
           </mat-form-field>
           @if (templateUnknownVariables().length) {
@@ -190,8 +190,8 @@
       <div class="tab-panel wide">
         <div class="tab-toolbar">
           <p class="tab-hint">
-            Lo que vos vendés — página web, tarjeta de invitación, etc. Al convertir un cliente elegís acá el servicio,
-            y su precio actual queda copiado en el proyecto (si después cambiás el precio, no te reescribe ventas
+            Lo que vendes — página web, tarjeta de invitación, etc. Al convertir un cliente eliges aquí el servicio,
+            y su precio actual queda copiado en el proyecto (si después cambias el precio, no te reescribe ventas
             viejas).
           </p>
           <div class="toolbar-actions">

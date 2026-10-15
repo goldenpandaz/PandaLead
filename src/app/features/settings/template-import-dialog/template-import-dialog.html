@@ -3,7 +3,7 @@
 <mat-dialog-content class="import-content">
   @if (step() === 'input') {
     <p class="hint">
-      Pegá la tabla (<code>Atajo | Momento | Mensaje</code>, en markdown o CSV) o subí un archivo <code>.md</code>/<code>.csv</code>.
+      Pega la tabla (<code>Atajo | Momento | Mensaje</code>, en markdown o CSV) o sube un archivo <code>.md</code>/<code>.csv</code>.
       "Momento" se usa como nombre de la plantilla, "Mensaje" como contenido.
     </p>
 
@@ -13,7 +13,7 @@
     </mat-form-field>
 
     <mat-form-field appearance="outline" class="grow">
-      <mat-label>Pegá la tabla acá</mat-label>
+      <mat-label>Pega la tabla aquí</mat-label>
       <textarea matInput rows="12" [ngModel]="rawText()" (ngModelChange)="rawText.set($event)"></textarea>
     </mat-form-field>
 
@@ -49,7 +49,7 @@
             <p class="var-warning">
               <mat-icon>warning</mat-icon>
               Usa {{ '{{' }}{{ unknownVariablesFor(row.body).join('}}, {{') }}{{ '}}' }}, que no
-              {{ unknownVariablesFor(row.body).length > 1 ? 'son campos reconocidos' : 'es un campo reconocido' }} — revisala.
+              {{ unknownVariablesFor(row.body).length > 1 ? 'son campos reconocidos' : 'es un campo reconocido' }} — revísala.
             </p>
           }
         }
@@ -61,7 +61,7 @@
       @for (group of p.conflicts; track group.name; let gi = $index) {
         <div class="conflict-group">
           <strong>{{ group.name }}</strong>
-          <p class="hint">Elegí qué versión se guarda con este nombre.</p>
+          <p class="hint">Elige qué versión se guarda con este nombre.</p>
 
           @if (group.existing; as existing) {
             <label class="candidate">

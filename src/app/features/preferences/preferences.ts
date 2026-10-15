@@ -81,7 +81,7 @@ export class Preferences {
     try {
       await this.profile.savePhoto(await resizeImageToDataUrl(file));
     } catch {
-      this.photoError.set('No se pudo usar esa imagen. Probá con una foto JPG o PNG.');
+      this.photoError.set('No se pudo usar esa imagen. Prueba con una foto JPG o PNG.');
     } finally {
       this.savingProfile.set(false);
     }

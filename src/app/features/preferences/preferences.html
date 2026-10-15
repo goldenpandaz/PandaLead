@@ -1,7 +1,7 @@
 <div class="preferences-page">
   <div class="preferences-header page-header">
     <h1>Configuración</h1>
-    <p>Ajustá la app a tu gusto.</p>
+    <p>Ajusta la app a tu gusto.</p>
   </div>
 
   <!-- Perfil -->
@@ -38,7 +38,7 @@
       <div class="preference-item">
         <div class="preference-content">
           <div class="preference-label">Nombre</div>
-          <div class="preference-description">Cómo querés que te muestre la app.</div>
+          <div class="preference-description">Cómo quieres que te muestre la app.</div>
         </div>
         <div class="name-edit">
           <input
@@ -105,24 +105,24 @@
           </div>
           <div class="preference-description">
             @if (!kontrolCash.enabled()) {
-              Kontrol Cash no recibe actualizaciones. Encendela para retomar con el mismo token.
+              Kontrol Cash no recibe actualizaciones. Enciéndela para retomar con el mismo token.
             } @else if (kontrolCash.remoteOff()) {
-              Kontrol Cash tiene la sincronización apagada. Encendela allá para retomar.
+              Kontrol Cash tiene la sincronización apagada. Enciéndela allá para retomar.
             } @else if (kontrolCash.connected()) {
               Kontrol Cash trae tus ingresos del mes.
               @if (kontrolCash.lastSyncAt(); as lastSync) {
                 Última sincronización: {{ lastSync | date: 'dd/MM/yy HH:mm' }}.
               }
             } @else if (kontrolCash.token()) {
-              Pegá el token en Kontrol Cash para conectar.
+              Pega el token en Kontrol Cash para conectar.
             } @else {
               Todavía no configuraste la conexión.
             }
           </div>
           @if (!kontrolCash.connected()) {
             <div class="signup-hint">
-              ¿No tenés Kontrol Cash?
-              <a [href]="kontrolCashUrl" target="_blank" rel="noopener noreferrer">Creá tu cuenta</a>
+              ¿No tienes Kontrol Cash?
+              <a [href]="kontrolCashUrl" target="_blank" rel="noopener noreferrer">Crea tu cuenta</a>
               para conectarte.
             </div>
           }

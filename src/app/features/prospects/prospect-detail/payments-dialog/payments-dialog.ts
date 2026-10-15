@@ -116,7 +116,7 @@ export class PaymentsDialog {
       this.dialog
         .open<ConfirmDialog, ConfirmDialogData, boolean>(ConfirmDialog, {
           width: '380px',
-          data: { title: 'Eliminar abono', message: '¿Seguro que querés eliminar este abono?', confirmLabel: 'Eliminar', danger: true, icon: 'delete' },
+          data: { title: 'Eliminar abono', message: '¿Seguro que quieres eliminar este abono?', confirmLabel: 'Eliminar', danger: true, icon: 'delete' },
         })
         .afterClosed(),
     );

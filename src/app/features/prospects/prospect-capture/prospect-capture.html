@@ -5,10 +5,10 @@
     @case ('capture') {
       <div class="drop-zone" (drop)="onDrop($event)" (dragover)="onDragOver($event)">
         <mat-icon>content_paste</mat-icon>
-        <p>Pegá una imagen con <kbd>Ctrl+V</kbd>, arrastrala acá, o elegí un archivo.</p>
+        <p>Pega una imagen con <kbd>Ctrl+V</kbd>, arrástrala aquí, o elige un archivo.</p>
         <button mat-stroked-button type="button" (click)="fileInput.click()">Elegir archivo</button>
         <input #fileInput type="file" accept="image/*" hidden (change)="onFileSelected($event)" />
-        <button mat-button type="button" (click)="skipToManual()">O cargalo a mano, sin captura</button>
+        <button mat-button type="button" (click)="skipToManual()">O cárgalo a mano, sin captura</button>
       </div>
     }
 

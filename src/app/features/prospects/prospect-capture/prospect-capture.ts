@@ -219,7 +219,7 @@ export class ProspectCapture {
       });
       this.runDuplicateCheck();
     } catch {
-      this.errorMessage.set('No se pudo leer el texto de la imagen — completá los datos a mano.');
+      this.errorMessage.set('No se pudo leer el texto de la imagen — completa los datos a mano.');
     } finally {
       this.step.set('preview');
     }
@@ -285,7 +285,7 @@ export class ProspectCapture {
 
       this.dialogRef.close(prospectId);
     } catch {
-      this.errorMessage.set('No se pudo actualizar. Revisá la conexión e intentá de nuevo.');
+      this.errorMessage.set('No se pudo actualizar. Revisa la conexión e intenta de nuevo.');
     } finally {
       this.saving.set(false);
     }
@@ -347,7 +347,7 @@ export class ProspectCapture {
 
       this.dialogRef.close(id);
     } catch {
-      this.errorMessage.set('No se pudo guardar. Revisá la conexión e intentá de nuevo.');
+      this.errorMessage.set('No se pudo guardar. Revisa la conexión e intenta de nuevo.');
     } finally {
       this.saving.set(false);
     }
