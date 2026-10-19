@@ -4,6 +4,31 @@
     <p>Ajusta la app a tu gusto.</p>
   </div>
 
+  <!-- Instalar app -->
+  <section class="preferences-section">
+    <h2 class="section-title">Aplicación</h2>
+    <div class="preferences-card">
+      <div class="preference-item">
+        <div class="preference-content">
+          <div class="preference-label">Instalar en tu dispositivo</div>
+          <div class="preference-description">
+            @if (installPrompt.isInstalled()) {
+              PandaLead ya está instalada en este dispositivo.
+            } @else {
+              Ábrela como una app desde tu pantalla de inicio. Funciona en Android, iPhone y computador.
+            }
+          </div>
+        </div>
+        @if (!installPrompt.isInstalled()) {
+          <button mat-stroked-button type="button" (click)="installPrompt.install()">
+            <mat-icon>install_mobile</mat-icon>
+            Instalar app
+          </button>
+        }
+      </div>
+    </div>
+  </section>
+
   <!-- Perfil -->
   <section class="preferences-section">
     <h2 class="section-title">Perfil</h2>

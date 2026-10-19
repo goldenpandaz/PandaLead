@@ -1,4 +1,7 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
+
+import { InstallHelpDialog, InstallPlatform } from './install-help-dialog';
 
 /** Evento no estandarizado en TS — Chrome/Edge/Android lo disparan, Safari
  * (iOS/macOS) y Firefox nunca. */
@@ -19,13 +22,19 @@ interface BeforeInstallPromptEvent extends Event {
  */
 @Injectable({ providedIn: 'root' })
 export class InstallPromptService {
+  private readonly dialog = inject(MatDialog);
   private deferredPrompt: BeforeInstallPromptEvent | null = null;
 
   /** true si el navegador soporta instalar (Chrome/Edge/Android) y todavía no se instaló. */
   readonly canInstall = signal(false);
   /** true si ya corre como app instalada (standalone) — no tiene sentido ofrecer instalar de nuevo. */
   readonly isInstalled = signal(this.checkStandalone());
-  readonly isIos = /iphone|ipad|ipod/i.test(navigator.userAgent) && !(window as unknown as { MSStream?: unknown }).MSStream;
+  readonly isIos =
+    (/iphone|ipad|ipod/i.test(navigator.userAgent) ||
+      // iPadOS 13+ se identifica como Mac, pero con pantalla táctil.
+      (/macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1)) &&
+    !(window as unknown as { MSStream?: unknown }).MSStream;
+  readonly platform: InstallPlatform = this.detectPlatform();
 
   constructor() {
     if (this.isInstalled()) return;
@@ -44,7 +53,29 @@ export class InstallPromptService {
   }
 
   private checkStandalone(): boolean {
-    return window.matchMedia('(display-mode: standalone)').matches;
+    return (
+      window.matchMedia('(display-mode: standalone)').matches ||
+      // Safari iOS no usa display-mode: expone su propia bandera.
+      (navigator as unknown as { standalone?: boolean }).standalone === true
+    );
+  }
+
+  private detectPlatform(): InstallPlatform {
+    const ua = navigator.userAgent;
+    if (this.isIos) return 'ios';
+    if (/android/i.test(ua)) return 'android';
+    if (/macintosh/i.test(ua) && /safari/i.test(ua) && !/chrome|chromium|crios|fxios|edg/i.test(ua)) return 'safari-mac';
+    return 'other';
+  }
+
+  /** Instala con el aviso nativo si el navegador lo ofrece; si no (Safari, o
+   * Chrome sin aviso todavía), muestra los pasos manuales de la plataforma. */
+  async install(): Promise<void> {
+    if (this.deferredPrompt) {
+      await this.promptInstall();
+      return;
+    }
+    this.dialog.open(InstallHelpDialog, { width: '90vw', maxWidth: '420px', autoFocus: false, data: { platform: this.platform } });
   }
 
   /** Dispara el prompt nativo del navegador (Chrome/Edge/Android). En iOS no

@@ -15,15 +15,11 @@
       <span class="app-version">v{{ version }}</span>
       <p class="tagline">Encuentra clientes, haz seguimiento y cierra la venta — todo en un solo lugar.</p>
 
-      @if (installPrompt.canInstall()) {
-        <button mat-stroked-button type="button" class="install-btn" (click)="installPrompt.promptInstall()">
+      @if (!installPrompt.isInstalled()) {
+        <button mat-stroked-button type="button" class="install-btn" (click)="installPrompt.install()">
           <mat-icon>install_mobile</mat-icon>
           Instalar app
         </button>
-      } @else if (installPrompt.isIos && !installPrompt.isInstalled()) {
-        <p class="install-hint">
-          En iPhone/iPad: toca <strong>Compartir</strong> en Safari → <strong>Agregar a inicio</strong>.
-        </p>
       }
     </div>
 
@@ -32,15 +28,11 @@
       <span class="app-version mobile-only">v{{ version }}</span>
 
       <div class="mobile-only">
-        @if (installPrompt.canInstall()) {
-          <button mat-stroked-button type="button" class="install-btn" (click)="installPrompt.promptInstall()">
+        @if (!installPrompt.isInstalled()) {
+          <button mat-stroked-button type="button" class="install-btn" (click)="installPrompt.install()">
             <mat-icon>install_mobile</mat-icon>
             Instalar app
           </button>
-        } @else if (installPrompt.isIos && !installPrompt.isInstalled()) {
-          <p class="install-hint">
-            Toca <strong>Compartir</strong> en Safari → <strong>Agregar a inicio</strong> para instalarla.
-          </p>
         }
       </div>
 

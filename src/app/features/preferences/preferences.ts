@@ -7,6 +7,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 
 import { ACCENT_THEMES, UiStateService } from '../../core/ui-state.service';
 import { CHANGELOG, ChangelogEntry } from '../../core/changelog';
+import { InstallPromptService } from '../../core/pwa/install-prompt.service';
 import { UserProfileService } from '../../core/profile/user-profile.service';
 import { KontrolCashSyncService } from '../../core/sync/kontrol-cash-sync.service';
 import { APP_VERSION } from '../../core/version';
@@ -28,6 +29,7 @@ export class Preferences {
   profile = inject(UserProfileService);
   kontrolCash = inject(KontrolCashSyncService);
   private readonly dialog = inject(MatDialog);
+  installPrompt = inject(InstallPromptService);
   themes = ACCENT_THEMES;
   changelog = CHANGELOG;
   version = APP_VERSION;
