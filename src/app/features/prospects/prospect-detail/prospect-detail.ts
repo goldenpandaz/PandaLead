@@ -30,7 +30,8 @@ import { HistoryEventType } from '../../../domain/enums/history-event-type.enum'
 import { DIAL_CODES } from '../../../shared/constants/dial-codes';
 import { formatIsoDate, formatTime, parseIsoDate, parseTime } from '../../../shared/utils/date-input.util';
 import { normalizeName } from '../../../shared/utils/normalize.util';
-import { joinPhone, splitPhone } from '../../../shared/utils/phone.util';
+import { joinPhone, normalizeWhatsappUser, splitPhone } from '../../../shared/utils/phone.util';
+import { phoneOrWhatsappUser } from '../../../shared/utils/contact.validator';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { WhatsappTemplatePicker } from '../whatsapp/whatsapp-template-picker/whatsapp-template-picker';
 import { MessageTemplate } from '../../../domain/models/template.model';
@@ -120,12 +121,13 @@ export class ProspectDetail {
   readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
     dialCode: [this.dialCodes[0].code, Validators.required],
-    localNumber: ['', Validators.required],
+    localNumber: [''],
+    whatsappUser: [''],
     // Validators.required falla con array vacío: mínimo una categoría.
     categories: [[] as string[], Validators.required],
     statusId: [''],
     favorite: [false],
-  });
+  }, { validators: phoneOrWhatsappUser });
 
   // Las categorías pueden venir de antes de que existiera el catálogo (texto libre
   // viejo) o no estar dadas de alta todavía — se muestran "sugeridas" en vez de
@@ -169,6 +171,7 @@ export class ProspectDetail {
             name: p.name,
             dialCode,
             localNumber,
+            whatsappUser: p.whatsappUser ?? '',
             categories: p.categories,
             statusId: p.statusId ?? '',
             favorite: p.favorite,
@@ -216,10 +219,11 @@ export class ProspectDetail {
     this.saving.set(true);
     this.errorMessage.set(null);
     try {
-      const { dialCode, localNumber, ...rest } = value;
+      const { dialCode, localNumber, whatsappUser, ...rest } = value;
       await this.prospectRepo.update(this.id(), {
         ...rest,
         phone: joinPhone(dialCode, localNumber),
+        whatsappUser: normalizeWhatsappUser(whatsappUser) || null,
         normalizedName: normalizeName(value.name),
       });
       await this.historyRepo.log(this.id(), HistoryEventType.Edited, {});
@@ -327,7 +331,7 @@ export class ProspectDetail {
 
   openWhatsapp(): void {
     const prospect = this.prospect();
-    if (!prospect?.phone) return;
+    if (!prospect || (!prospect.phone && !prospect.whatsappUser)) return;
 
     this.dialog
       .open<WhatsappTemplatePicker, void, MessageTemplate | null>(WhatsappTemplatePicker, { width: '420px' })

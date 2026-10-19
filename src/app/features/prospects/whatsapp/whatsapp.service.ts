@@ -27,11 +27,22 @@ export class WhatsappService {
 
   async openWithTemplate(prospect: Prospect, template: MessageTemplate | null, project: Project | null = null): Promise<void> {
     const number = normalizePhone(prospect.phone ?? '');
-    if (!number) return;
+    if (!number && !prospect.whatsappUser) return;
 
     const message = template ? this.interpolate(template, prospect, project) : '';
-    const url = message ? `https://wa.me/${number}?text=${encodeURIComponent(message)}` : `https://wa.me/${number}`;
-    window.open(url, '_blank', 'noopener');
+    if (number) {
+      const url = message ? `https://wa.me/${number}?text=${encodeURIComponent(message)}` : `https://wa.me/${number}`;
+      window.open(url, '_blank', 'noopener');
+    } else {
+      // WhatsApp no documenta un enlace directo por usuario: se copia el "@usuario"
+      // y se abre WhatsApp Web para pegarlo en el buscador.
+      try {
+        await navigator.clipboard.writeText(prospect.whatsappUser!);
+      } catch {
+        // sin permiso de portapapeles: igual se abre WhatsApp Web
+      }
+      window.open('https://web.whatsapp.com/', '_blank', 'noopener');
+    }
 
     await this.prospectRepo.update(prospect.id, { lastContactAt: Date.now() });
     await this.history.log(prospect.id, HistoryEventType.WhatsappOpened, {

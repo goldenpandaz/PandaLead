@@ -253,7 +253,7 @@ export class ProspectsList {
       if (fromMs != null && p.createdAt < fromMs) return false;
       if (toMs != null && p.createdAt > toMs) return false;
       if (term) {
-        const haystack = `${p.name} ${p.phone ?? ''} ${p.categories.join(' ')}`.toLowerCase();
+        const haystack = `${p.name} ${p.phone ?? ''} ${p.whatsappUser ?? ''} ${p.categories.join(' ')}`.toLowerCase();
         if (!haystack.includes(term)) return false;
       }
       return true;
@@ -457,7 +457,7 @@ export class ProspectsList {
 
   openWhatsapp(prospect: Prospect, event: Event): void {
     event.stopPropagation();
-    if (!prospect.phone) return;
+    if (!prospect.phone && !prospect.whatsappUser) return;
 
     this.dialog
       .open<WhatsappTemplatePicker, void, MessageTemplate | null>(WhatsappTemplatePicker, { width: '420px' })

@@ -9,7 +9,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { Prospect } from '../../../domain/models/prospect.model';
 import { CategoryConfig } from '../../../domain/models/category.model';
 import { normalizeName } from '../../../shared/utils/normalize.util';
-import { joinPhone, splitPhone } from '../../../shared/utils/phone.util';
+import { joinPhone, normalizeWhatsappUser, splitPhone } from '../../../shared/utils/phone.util';
 
 export interface ProspectEditDialogData {
   prospect: Prospect;
@@ -42,6 +42,7 @@ export class ProspectEditDialog {
     name: this.data.prospect.name,
     dialCode: this.initialPhone.dialCode,
     phone: this.initialPhone.localNumber,
+    whatsappUser: this.data.prospect.whatsappUser ?? '',
     categories: [...this.data.prospect.categories],
     statusId: this.data.prospect.statusId || '',
   };
@@ -51,9 +52,15 @@ export class ProspectEditDialog {
       name: this.form.name,
       normalizedName: normalizeName(this.form.name),
       phone: joinPhone(this.form.dialCode, this.form.phone),
+      whatsappUser: normalizeWhatsappUser(this.form.whatsappUser) || null,
       categories: this.form.categories,
       statusId: this.form.statusId,
     });
+  }
+
+  /** Sin teléfono ni usuario de WhatsApp no hay forma de contactar al cliente. */
+  get hasContact(): boolean {
+    return !!joinPhone(this.form.dialCode, this.form.phone) || !!normalizeWhatsappUser(this.form.whatsappUser);
   }
 
   cancel(): void {

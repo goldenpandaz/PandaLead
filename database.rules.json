@@ -10,6 +10,7 @@
             "name": { ".validate": "newData.isString() && newData.val().length > 0" },
             "normalizedName": { ".validate": "newData.isString()" },
             "phone": { ".validate": "newData.isString()" },
+            "whatsappUser": { ".validate": "newData.isString()" },
             "email": { ".validate": "newData.isString()" },
             "website": { ".validate": "newData.isString()" },
             "instagram": { ".validate": "newData.isString()" },

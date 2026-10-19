@@ -220,7 +220,7 @@
 
       <ng-container matColumnDef="phone">
         <th mat-header-cell *matHeaderCellDef>Teléfono</th>
-        <td mat-cell *matCellDef="let row">{{ row.phone | phone }}</td>
+        <td mat-cell *matCellDef="let row">{{ row.phone ? (row.phone | phone) : row.whatsappUser || '—' }}</td>
       </ng-container>
 
       <ng-container matColumnDef="statusId">
@@ -297,7 +297,7 @@
           <button mat-icon-button matTooltip="Ver detalles" (click)="openDetail(row, $event)">
             <mat-icon class="action-view">visibility</mat-icon>
           </button>
-          <button mat-icon-button matTooltip="Abrir WhatsApp" [disabled]="!row.phone" (click)="openWhatsapp(row, $event)">
+          <button mat-icon-button matTooltip="Abrir WhatsApp" [disabled]="!row.phone && !row.whatsappUser" (click)="openWhatsapp(row, $event)">
             <mat-icon class="action-chat">chat</mat-icon>
           </button>
           <button mat-icon-button matTooltip="Eliminar" (click)="remove(row, $event)">

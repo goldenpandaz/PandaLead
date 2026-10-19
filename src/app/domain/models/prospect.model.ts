@@ -14,6 +14,8 @@ export interface Prospect {
 
   /** Único número de contacto — se usa tanto para llamar como para WhatsApp */
   phone?: string;
+  /** Usuario de WhatsApp (siempre con "@"). Si está cargado, el teléfono pasa a ser opcional. */
+  whatsappUser?: string;
   /** Rubros del negocio del cliente (al menos uno) — nombres elegidos de `config/categories`. */
   categories: string[];
 

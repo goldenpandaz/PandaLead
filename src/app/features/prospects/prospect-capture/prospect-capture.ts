@@ -29,7 +29,8 @@ import { ProspectRepository } from '../../../data/repositories/prospect.reposito
 import { DuplicateDetectionService } from '../../../data/duplicate-detection.service';
 import { DIAL_CODES } from '../../../shared/constants/dial-codes';
 import { normalizeName } from '../../../shared/utils/normalize.util';
-import { joinPhone, splitPhone } from '../../../shared/utils/phone.util';
+import { joinPhone, normalizeWhatsappUser, splitPhone } from '../../../shared/utils/phone.util';
+import { phoneOrWhatsappUser } from '../../../shared/utils/contact.validator';
 import { ImageCaptureService } from '../../ocr/image-capture.service';
 import { OcrService } from '../../ocr/ocr.service';
 import { ParserRegistryService } from '../../ocr/parsers/parser-registry.service';
@@ -103,12 +104,13 @@ export class ProspectCapture {
   readonly form = this.fb.nonNullable.group({
     name: ['', Validators.required],
     dialCode: [this.dialCodes[0].code, Validators.required],
-    localNumber: ['', Validators.required],
+    localNumber: [''],
+    whatsappUser: [''],
     // Validators.required falla con array vacío (Angular lo trata como "sin valor").
     categories: [[] as string[], Validators.required],
     statusId: [''],
     serviceId: [{ value: '', disabled: true }],
-  });
+  }, { validators: phoneOrWhatsappUser });
 
   private readonly statusIdValue = toSignal(this.form.controls.statusId.valueChanges, {
     initialValue: this.form.controls.statusId.value,
@@ -254,8 +256,13 @@ export class ProspectCapture {
 
   private buildCandidate(): Partial<Prospect> {
     const value = this.form.getRawValue();
-    const { dialCode, localNumber, serviceId, ...rest } = value;
-    return { ...rest, phone: joinPhone(dialCode, localNumber), normalizedName: normalizeName(value.name) };
+    const { dialCode, localNumber, serviceId, whatsappUser, ...rest } = value;
+    return {
+      ...rest,
+      phone: joinPhone(dialCode, localNumber),
+      whatsappUser: normalizeWhatsappUser(whatsappUser) || undefined,
+      normalizedName: normalizeName(value.name),
+    };
   }
 
   private runDuplicateCheck(): void {
@@ -321,6 +328,7 @@ export class ProspectCapture {
         name: candidate.name!,
         normalizedName: candidate.normalizedName!,
         phone: candidate.phone || undefined,
+        whatsappUser: candidate.whatsappUser,
         categories: candidate.categories ?? [],
         statusId,
         source,

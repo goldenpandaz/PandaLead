@@ -8,7 +8,7 @@
 
       <span class="spacer"></span>
 
-      <button mat-stroked-button [disabled]="!prospect.phone" (click)="openWhatsapp()">
+      <button mat-stroked-button [disabled]="!prospect.phone && !prospect.whatsappUser" (click)="openWhatsapp()">
         <mat-icon>chat</mat-icon>
         WhatsApp
       </button>
@@ -97,6 +97,16 @@
               <label class="field-label">Teléfono</label>
               <input type="text" formControlName="localNumber" class="field-input" />
             </div>
+          </div>
+
+          <div class="form-field-custom span-2">
+            <label class="field-label">Usuario de WhatsApp (opcional)</label>
+            <input type="text" formControlName="whatsappUser" class="field-input" placeholder="@usuario" />
+            @if (form.hasError('contactRequired') && form.touched) {
+              <p class="error-text">Ingresa un teléfono o un usuario de WhatsApp</p>
+            } @else {
+              <small class="field-hint">Si lo ingresas, el teléfono deja de ser obligatorio</small>
+            }
           </div>
 
           <mat-form-field appearance="outline">

@@ -7,6 +7,12 @@ export function joinPhone(dialCode: string, localNumber: string): string {
   return `${dialCode}${digits}`;
 }
 
+/** Deja el usuario de WhatsApp como "@usuario" (sin espacios, un solo "@"). Vacío si no hay nada. */
+export function normalizeWhatsappUser(raw: string | undefined | null): string {
+  const name = (raw ?? '').replace(/\s+/g, '').replace(/^@+/, '');
+  return name ? `@${name}` : '';
+}
+
 /**
  * Separa un teléfono guardado (o extraído por OCR, con cualquier formato) en
  * indicativo + número local, para precargar los dos campos del form. Si no
