@@ -16,6 +16,8 @@ import { KontrolCashDialog } from './kontrol-cash-dialog/kontrol-cash-dialog';
 
 const NAME_MAX_LENGTH = 60;
 const KONTROL_CASH_SIGNUP_URL = 'https://juanzarta.github.io/Kontrol-Cash/login';
+/** Link del video tutorial en YouTube. Mientras esté vacío, el botón queda deshabilitado ("Próximamente"). */
+const TUTORIAL_VIDEO_URL = 'https://youtu.be/XU6mmZbG4uI';
 
 @Component({
   selector: 'app-preferences',
@@ -35,6 +37,7 @@ export class Preferences {
   version = APP_VERSION;
   readonly nameMaxLength = NAME_MAX_LENGTH;
   readonly kontrolCashUrl = KONTROL_CASH_SIGNUP_URL;
+  readonly tutorialUrl = TUTORIAL_VIDEO_URL;
 
   notaAbierta = signal<ChangelogEntry | null>(null);
 

@@ -26,6 +26,30 @@
           </button>
         }
       </div>
+
+      <div class="preference-item">
+        <div class="preference-content">
+          <div class="preference-label">Tutorial</div>
+          <div class="preference-description">
+            @if (tutorialUrl) {
+              Mira en YouTube cómo funciona PandaLead.
+            } @else {
+              Próximamente: un video para ver cómo funciona PandaLead.
+            }
+          </div>
+        </div>
+        @if (tutorialUrl) {
+          <a mat-stroked-button [href]="tutorialUrl" target="_blank" rel="noopener noreferrer">
+            <mat-icon>play_circle</mat-icon>
+            Ver tutorial
+          </a>
+        } @else {
+          <button mat-stroked-button type="button" disabled>
+            <mat-icon>play_circle</mat-icon>
+            Ver tutorial
+          </button>
+        }
+      </div>
     </div>
   </section>
 
